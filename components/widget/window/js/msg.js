@@ -1,5 +1,5 @@
 (function($){
-    var IpcMsg = {
+    var Msg = {
         ID : 0,
         mainTemplate :  '<div >' + 
                         '<div class="seven-windows-holder"></div>' +
@@ -23,76 +23,76 @@
         btnTemplate : '<input class="seven-windows-button seven-windows-alert-button" value="OK" type="button" />',
         close : function(msg){
             var context = msg.parent();
-            $('body').unbind('keydown', IpcMsg.hotClose);
+            $('body').unbind('keydown', Msg.hotClose);
             msg.remove();
             return context;
         },
         cancel : function(msg){
             var context = msg.parent();
             msg.option.cancel();
-            return IpcMsg.close(msg);
+            return Msg.close(msg);
         },
         confirm : function(msg){
             var context = msg.parent();
             msg.option.confirm();
-            return IpcMsg.close(msg);
+            return Msg.close(msg);
         },
         ok : function(msg){
             var context = msg.parent();
             msg.option.ok();
-            return IpcMsg.close(msg);
+            return Msg.close(msg);
         },
         hotClose: function(event){
             if (event.keyCode == "27") {
-                IpcMsg.close(event.data.msg);
+                Msg.close(event.data.msg);
             };
         }
 
     };
 
-    $.IpcMsg = function(options){
+    $.Msg = function(options){
 
-        var _options = $.extend(true, {}, $.IpcMsg.defaults, options);
+        var _options = $.extend(true, {}, $.Msg.defaults, options);
 
-        var id = "IpcMsg-1";
+        var id = "Msg-1";
         if ($("#" + id).length > 0) {
             $('#' + id).remove();
         }
         _options.id = id;
         
 
-        var rHtml = IpcMsg.mainTemplate;
-        var ipcMsg = $(rHtml);
+        var rHtml = Msg.mainTemplate;
+        var msg = $(rHtml);
 
         //render id, title, info, button and size
-        ipcMsg.attr("id", id);
-        $('.seven-windows-head-title', ipcMsg).text(_options.title);
-        $('.seven-windows-body-contain-font', ipcMsg).text(_options.info); 
+        msg.attr("id", id);
+        $('.seven-windows-head-title', msg).text(_options.title);
+        $('.seven-windows-body-contain-font', msg).text(_options.info); 
         
         switch(_options.type)
         {
             case "alert":
-                $('.seven-windows-body-foot-contain', ipcMsg).append(IpcMsg.btnTemplate);
-                $('.seven-windows-alert-button:first', ipcMsg).attr("value", _options.btnOk);
-                $('.seven-windows-alert-button:first', ipcMsg).attr("for", "ok");
+                $('.seven-windows-body-foot-contain', msg).append(Msg.btnTemplate);
+                $('.seven-windows-alert-button:first', msg).attr("value", _options.btnOk);
+                $('.seven-windows-alert-button:first', msg).attr("for", "ok");
             break;
 
             case "confirm":
-                $('.seven-windows-body-foot-contain', ipcMsg).append(IpcMsg.btnTemplate);
-                $('.seven-windows-body-foot-contain', ipcMsg).append(IpcMsg.btnTemplate);
-                $('.seven-windows-alert-button:first', ipcMsg).attr("value", _options.btnCancel);
-                $('.seven-windows-alert-button:first', ipcMsg).attr("for", "cancel");
-                $('.seven-windows-alert-button:last', ipcMsg).attr("value", _options.btnConfirm);
-                $('.seven-windows-alert-button:last', ipcMsg).attr("for", "confirm");
+                $('.seven-windows-body-foot-contain', msg).append(Msg.btnTemplate);
+                $('.seven-windows-body-foot-contain', msg).append(Msg.btnTemplate);
+                $('.seven-windows-alert-button:first', msg).attr("value", _options.btnCancel);
+                $('.seven-windows-alert-button:first', msg).attr("for", "cancel");
+                $('.seven-windows-alert-button:last', msg).attr("value", _options.btnConfirm);
+                $('.seven-windows-alert-button:last', msg).attr("for", "confirm");
             break;
 
             default:
-                $('.seven-windows-body-foot-contain', ipcMsg).append(IpcMsg.btnTemplate);
-                $('.seven-windows-alert-button:first', ipcMsg).attr("value", _options.btnOk);
+                $('.seven-windows-body-foot-contain', msg).append(Msg.btnTemplate);
+                $('.seven-windows-alert-button:first', msg).attr("value", _options.btnOk);
             break;
         }
 
-        $('.seven-windows-contain', ipcMsg).css({
+        $('.seven-windows-contain', msg).css({
             "width": _options.width,
             "height": _options.height
         });
@@ -100,7 +100,7 @@
         _options.beforeInit();
 
         try {
-            ipcMsg.appendTo('body');
+            msg.appendTo('body');
         } catch(e)
         {
             console.log(e);
@@ -108,44 +108,44 @@
             return false;
         }
 
-        ipcMsg.option = _options;
+        msg.option = _options;
 
         // add object functions. so we can dynamic call this functions.
-        ipcMsg.close = function(){
-            IpcMsg.close(ipcMsg);
+        msg.close = function(){
+            Msg.close(msg);
         };
 
-        ipcMsg.cancel = function(){
-            IpcMsg.cancel(ipcMsg);
+        msg.cancel = function(){
+            Msg.cancel(msg);
         }
 
-        ipcMsg.confirm = function(){
-            IpcMsg.confirm(ipcMsg);
+        msg.confirm = function(){
+            Msg.confirm(msg);
         }
 
-        ipcMsg.ok = function()
+        msg.ok = function()
         {
-            IpcMsg.ok(ipcMsg);
+            Msg.ok(msg);
         }
 
-        $('.seven-windows-alert-button', ipcMsg).on('click', function(e){
+        $('.seven-windows-alert-button', msg).on('click', function(e){
             e.preventDefault();
             var type = $(this).attr("for");
-            IpcMsg[type](ipcMsg); 
+            Msg[type](msg); 
         });
 
-        $('.seven-windows-head-close', ipcMsg).on('click', function(e){
+        $('.seven-windows-head-close', msg).on('click', function(e){
             e.preventDefault();
-            IpcMsg.close(ipcMsg);
+            Msg.close(msg);
         });
 
-        $('body').bind('keydown', {msg: ipcMsg}, IpcMsg.hotClose);
+        $('body').bind('keydown', {msg: msg}, Msg.hotClose);
 
-        return ipcMsg;
+        return msg;
     };
 
     // make default options writable outside
-    $.IpcMsg.defaults = {
+    $.Msg.defaults = {
         type        :       "alert",
         title       :       "",
         info        :       "",
