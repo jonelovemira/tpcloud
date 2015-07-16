@@ -1,0 +1,95 @@
+.window-msg-bg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0.6;
+	background: #000;
+	z-index: 8888;
+}
+.window-msg-holder {
+	position: absolute;
+	top: 200px;
+	width: 100%;
+	height: 260px;
+	z-index: 9999;
+}
+.window-msg-contain {
+	position: relative;
+	margin: 0 auto;
+	height: 100%;
+	width: 400px;
+	background: #fff;
+	border: 2px solid #26ADE4;
+	font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+}
+.window-msg-contain > .window-msg-head {
+	width: 100%;
+	height: 28px;
+	background: #26ADE4;
+}
+.window-msg-head > .window-msg-head-title {
+	position: relative;
+	width: 350px;
+	height: 100%;
+	font-weight: bold;
+	font-size: 15px;
+	margin-left: 8px;
+	color: #fff;
+	top: 4px;
+}
+.window-msg-head > .window-msg-head-close {
+	position: relative;
+	width: 12px;
+	height: 12px;
+	float: right;
+	top: 7px;
+	right: 5px;
+	cursor: pointer;
+	background: url("../../../../common/img/common.png") 0 -191px;
+}
+.window-msg-head > .window-msg-head-close:hover {
+	background: url("../../../../common/img/common.png") 0 -128px;
+}
+.window-msg-contain > .window-msg-body {
+	height: 175px;
+	width: 100%;
+}
+.window-msg-body > .window-msg-body-content {
+	position: relative;
+	width: 351px;
+	font-size: 15px;
+	text-align: left;
+	top: 15px;
+	left: 25px;
+}
+.window-msg-contain > .window-msg-body-foot {
+	position: absolute;
+	bottom: 0;
+	height: 50px;
+	width: 100%;
+}
+.window-msg-body-foot > .window-msg-btn {
+	background: #4DBCE9;
+	border-radius: 4px;
+	color: #fff;
+	padding: 5px;
+	cursor: pointer;
+	font-size: 14px;
+	text-align: center;
+	width: 100px;
+	border: 1px solid #bfbfbf;
+}
+.window-msg-body-foot > .window-msg-btn[for=ok] {
+	float: left;
+	margin-left: 70px;
+}
+.window-msg-body-foot > .window-msg-btn[for=confirm]{
+	float: right;
+	margin-right: 80px;
+}
+.window-msg-body-foot > .window-msg-btn[for=cancel]{
+	float: left;
+	margin-left: 70px;
+}
