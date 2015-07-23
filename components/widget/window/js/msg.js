@@ -2,21 +2,21 @@
     var Msg = {
         ID : 0,
         mainTemplate :  '<div >' + 
-                        '<div class="window-msg-bg"></div>' +
-                        '<div class="window-msg-holder">' + 
-                            '<div class="window-msg-contain">' +
-                                '<div class="window-msg-head">' +
-                                    '<span class="window-msg-head-title"></span>' +
-                                '</div>' +
-                                '<div class="window-msg-body">' +
-                                    '<div class="window-msg-body-content">' +
+                            '<div class="window-msg-bg"></div>' +
+                            '<div class="window-msg-holder">' + 
+                                '<div class="window-msg-contain">' +
+                                    '<div class="window-msg-head">' +
+                                        '<span class="window-msg-head-title"></span>' +
+                                    '</div>' +
+                                    '<div class="window-msg-body">' +
+                                        '<div class="window-msg-body-content">' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<div class="window-msg-body-foot">' +
                                     '</div>' +
                                 '</div>' +
-                                '<div class="window-msg-body-foot">' +
-                                '</div>' +
                             '</div>' +
-                        '</div>' +
-                    '</div>',
+                        '</div>',
         closeIconTemplate : '<span class="window-msg-head-close"></span>',
         btnTemplate : '<input class="window-msg-btn" value="OK" type="button" />',
         close : function(msg){

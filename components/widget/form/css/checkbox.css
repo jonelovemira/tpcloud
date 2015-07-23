@@ -1,0 +1,27 @@
+.checkbox{
+	float:left;
+	margin:1px;
+	cursor:pointer;
+	width:13px;
+	height:13px;
+	background: url("../../../../common/img/common.png") no-repeat scroll 0 0 transparent;
+}
+.checkbox:hover{
+	background-position:;
+}
+.checkbox-disabled{
+	/*background:url(../images/checkbox-disable.png);*/
+}
+.checkbox-disabled:hover{
+	background-position:;
+}
+.checkbox-checked{
+	background: url("../../../../common/img/common.png") no-repeat scroll 0 -64px transparent;
+}
+.checkbox-checked:hover{
+	background-position:;
+}
+
+.checkbox-checked-disabled{
+	/*background:url(../images/checkbox-disable.png);*/
+}
