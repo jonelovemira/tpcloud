@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--<!DOCTYPE html>-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="description" content="cloud tp-link" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Cloud</title>
+
+<link rel="icon" href="./img/favicon.ico" />
+<link rel="shortcut icon png" href="./img/favicon.png" />
+<link type="text/css" href="./style.css" rel="stylesheet" />
+<body>
+<div id="header">
+	<div class="container">
+		<ul class="link">
+			<li>
+				<a class="lang" href="index.html">Home</a>
+			</li>
+			<li class="split"></li>
+			<li>
+				<a class="lang" href="download.html">Download</a>
+			</li>
+			<li class="split"></li>
+			<li class="topfaq">
+				<a class="lang" href="faq.html">FAQ</a>
+			</li>
+			<li class="global">
+				<span class="global-span">
+					<span class="global-img"></span>
+				</span>
+				<a class="lang" href="javascript:void(0)">Global</a>
+			</li>
+		</ul>
+		<div id="logo" title="link to tp-link">
+			<a href="index.html"></a>
+		</div>
+	</div>
+</div>
+<div id="footer">
+	<div class="container">
+		<ul class="social-icons">
+			<li>
+				<a class="facebook" href="http://www.facebook.com/TPLINK"></a>
+			</li>
+			<li>
+				<a class="twitter" href="http://twitter.com/TPLINK"></a>
+			</li>
+			<li>
+				<a class="youtube" href="http://youtube.com/user/TPLINKTECH"></a>
+			</li>
+			<li>
+				<a class="linkedin" href="http://www.linkedin.com/company/tp-link-technologies-co-ltd?trk=fc_badge"></a>
+			</li>
+		</ul>
+		<div class="link">
+			<nav>
+				<a class="btmlb" href="http://www.tp-link.com">TP-LINK</a>
+				<a class="btmlb" href="TermsofUse.php">Terms of Use</a>
+				<a class="btmlb" href="PrivacyPolicy.php">Privacy Policy</a>
+				<a class="btmlb contactus" href="contact.php">Contact Us</a>
+			</nav>
+		</div>
+		<span class="about">Copyright © 2015 <span>TP-LINK Technologies Co.,Ltd.</span><span>All rights reserved.</span></span>
+	</div>
+</div>
+</body>
+</html>
+
+<script type="text/javascript" src="../components/js/libs/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="./base.js"></script>
+<script type="text/javascript">
+	$(function()
+	{
+		$.Base.loginCallbacks.fire("test");
+		$.Base.showWelcomeInfo();
+		$.Base.logoutCallbacks.fire();
+		$.Base.showWelcomeInfo();
+	})
+</script>
