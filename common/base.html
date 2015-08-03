@@ -37,6 +37,9 @@
 		</div>
 	</div>
 </div>
+{% block body %}
+{% endblock %}
+
 <div id="footer">
 	<div class="container">
 		<ul class="social-icons">
@@ -72,9 +75,17 @@
 <script type="text/javascript">
 	$(function()
 	{
-		$.Base.loginCallbacks.fire("test");
-		$.Base.showWelcomeInfo();
-		$.Base.logoutCallbacks.fire();
-		$.Base.showWelcomeInfo();
+		// $.Base.loginCallbacks.fire("test");
+		// $.Base.showWelcomeInfo();
+		// $.Base.logoutCallbacks.fire();
+		// $.Base.showWelcomeInfo();
+
+		// require("hello");
+		require.config({
+	        "deps" : {
+	            "a" : [ "b", "c" ],
+	            "b" : [ "d" ]
+	        }
+	    });
 	})
 </script>
