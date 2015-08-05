@@ -18,7 +18,7 @@
 		var $selectOptions = $select.find("option");
 		var width = $select.width() == 0 ? _options.width : ($select.outerWidth()),
 			slideWidth = _options.optionWidth == null ? width : _options.optionWidth,
-			slideHeight = Math.min(_options.slideMaxHeight, _options.slideOptionHeight * $selectOptions.length);
+			slideHeight = Math.min(_options.slideMaxHeight, (_options.slideOptionHeight + 8) * $selectOptions.length);
 		var disabled = $select.attr("disabled");
 
 		$select.hide();
@@ -36,7 +36,7 @@
 		// generate new styled select widget
 		var a = "<div class='plugin-select select" + ("disabled" == disabled ? " select-disabled" : "") + " " + name + " select-slide'>";
 
-		a += "<div class='selected lang'>" + (null == temp ? "" : temp) + "</div>";
+		a += "<div class='selected' ><span lang=\"en\">" + (null == temp ? "" : temp) + "</span></div>";
 		a += "<div class='triangle'></div>";
 		a += "<div class='forDisabled'></div>";
 		a += "<div class='slide'>";
@@ -44,7 +44,7 @@
 
 		$selectOptions.each(function(i) {
 			if ($(this).css("display") != "none") {
-				a += "  <div class='slide-item lang' xvalue='" + $(this).attr("value") + "' class='forOption'>" + $(this).html() + "</div>";
+				a += " <div class='slide-item' xvalue='" + $(this).attr("value") + "' class='forOption'><span lang=\"en\">" + $(this).html() + "</span></div>";
 			}
 
 		});
@@ -132,7 +132,7 @@
 
 			var value = $(objx).attr("xvalue");
 
-			$widgetSelect.find(".selected").html($(objx).html());
+			$widgetSelect.find(".selected").html("<span lang=\"en\">" + $(objx).html() + "</span>");
 
 			$select.val(value);
 
@@ -141,11 +141,8 @@
 
 		// changes to original select changes the value of widget select too.
 		$select.change(function() {
-			$widgetSelect.find(".selected").html($(this).children("option:selected").html());
+			$widgetSelect.find(".selected").html("<span lang=\"en\">" + $(this).children("option:selected").html() + "</span>");
 		});
-
-
-		
 	}
 
 	$.fn.Select.defaults = {

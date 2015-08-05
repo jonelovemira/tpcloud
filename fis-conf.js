@@ -75,6 +75,7 @@ var templateInherit = function (childFile, baseFile) {
     // body...
     var childTagArr = getTagArrKeyValue(childFile);
     var baseTagArr = getTagArrKeyValue(baseFile);
+
     var baseContent = baseFile.getContent();
     var childContent = childFile.getContent();
     var lastAddedLength = 0;
@@ -84,11 +85,12 @@ var templateInherit = function (childFile, baseFile) {
             baseTagArr['block'][block][i] += lastAddedLength;
         };
 
+
         var preContent = baseContent.substring(0, baseTagArr['block'][block][0]);
         var lastContent = baseContent.substring(baseTagArr['block'][block][3] + 1);
         var currentBaseBlockLength = baseTagArr['block'][block][3] - baseTagArr['block'][block][0] + 1;
         var addedContent = childContent.substring(childTagArr['block'][block][1] + 1, childTagArr['block'][block][2]);
-        lastAddedLength = addedContent.length - currentBaseBlockLength;
+        lastAddedLength += addedContent.length - currentBaseBlockLength;
         baseContent = preContent + addedContent + lastContent;
     };
 
@@ -119,25 +121,29 @@ var getTagArrKeyValue = function (fileObj) {
             tagArrKeyValue[extendsTag] = value;
         };
         if (-1 != blockIndex) {
+
+
             var value = tagArr[i].substring(blockIndex + blockTag.length, tagArr[i].length - 2);
             value = value.trim();
             if (value.length > 0) {
                 if (tagArrKeyValue[blockTag][value] == undefined){
                     tagArrKeyValue[blockTag][value] = [];
                 }
+
                 var tagStartBeginIndex = content.indexOf(tagArr[i]);
                 var tagStartEndIndex = tagStartBeginIndex + tagArr[i].length - 1;
                 // var tempContent = content;
                 i += 1;
 
                 var tagStopBeginIndex = content.indexOf(tagArr[i]);
-                var tagStopEndIndex = tagStopBeginIndex + tagArr[i].length - 1;
-                content = content.substr(tagStopEndIndex + 1);
+                var tagStopEndIndex = tagStopBeginIndex + tagArr[i].length  - 1;
+
+                content = content.substring(tagStopEndIndex + 1);
                 tagArrKeyValue[blockTag][value].push(tagStartBeginIndex + lastBlockIndex);
                 tagArrKeyValue[blockTag][value].push(tagStartEndIndex + lastBlockIndex);
                 tagArrKeyValue[blockTag][value].push(tagStopBeginIndex + lastBlockIndex);
                 tagArrKeyValue[blockTag][value].push(tagStopEndIndex + lastBlockIndex);
-                lastBlockIndex = tagStopEndIndex + 1;
+                lastBlockIndex = lastBlockIndex + tagStopEndIndex + 1;
                 
             };
         };
