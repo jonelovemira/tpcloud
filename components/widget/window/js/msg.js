@@ -6,11 +6,11 @@
                             '<div class="window-msg-holder">' + 
                                 '<div class="window-msg-contain">' +
                                     '<div class="window-msg-head">' +
-                                        '<span class="window-msg-head-title"></span>' +
+                                        '<span class="window-msg-head-title" lang="en"></span>' +
                                     '</div>' +
                                     '<div class="window-msg-body">' +
-                                        '<div class="window-msg-body-content">' +
-                                        '</div>' +
+                                        '<div class="window-msg-body-content"><span lang="en">' +
+                                        '</span></div>' +
                                     '</div>' +
                                     '<div class="window-msg-body-foot">' +
                                     '</div>' +
@@ -18,7 +18,7 @@
                             '</div>' +
                         '</div>',
         closeIconTemplate : '<span class="window-msg-head-close"></span>',
-        btnTemplate : '<input class="window-msg-btn" value="OK" type="button" />',
+        btnTemplate : '<input class="window-msg-btn" value="OK" lang="en" type="button" />',
         close : function(msg){
             var context = msg.parent();
             $('body').unbind('keydown', Msg.hotClose);
@@ -65,7 +65,7 @@
         //render id, title, info, button and size
         msg.attr("id", id);
         $('.window-msg-head-title', msg).text(_options.title);
-        $('.window-msg-body-content', msg).text(_options.info); 
+        $('.window-msg-body-content span', msg).text(_options.info); 
         
         switch(_options.type)
         {
