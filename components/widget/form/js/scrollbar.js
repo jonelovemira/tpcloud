@@ -114,10 +114,10 @@
 					top: 0
 				});
 
-				var scrollBlockPercent = Math.floor(($target.height() - $holder.height()) / 1000) * 100
+				var scrollBlockPercent = Math.floor(($targetHeight - $holder.height()) / 1000) * 100
 
 				$holder.find(".scrollBar-vertical .scroll-block").css({
-					height: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
+					// height: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
 				});
 			}
 			if (overflowFlag) {
