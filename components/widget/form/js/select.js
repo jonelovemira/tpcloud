@@ -19,6 +19,8 @@
 		var width = $select.width() == 0 ? _options.width : ($select.outerWidth()),
 			slideWidth = _options.optionWidth == null ? width : _options.optionWidth,
 			slideHeight = Math.min(_options.slideMaxHeight, (_options.slideOptionHeight + 8) * $selectOptions.length);
+		
+
 		var disabled = $select.attr("disabled");
 
 		$select.hide();
@@ -42,12 +44,20 @@
 		a += "<div class='slide'>";
 		a += "<div class='slide-item-holder'>";
 
-		$selectOptions.each(function(i) {
-			if ($(this).css("display") != "none") {
-				a += " <div class='slide-item' xvalue='" + $(this).attr("value") + "' class='forOption'><span lang=\"en\">" + $(this).html() + "</span></div>";
-			}
+		function optionHtml($tmpSelectOptions)
+		{
+			var htmlStr = "";
+			$tmpSelectOptions.each(function(i) {
+				if ($(this).css("display") != "none") {
+					htmlStr += " <div class='slide-item' xvalue='" + $(this).attr("value") + "' class='forOption'><span lang=\"en\">" + $(this).html() + "</span></div>";
+				}
+			});
+			return htmlStr;
+		}
 
-		});
+		a += optionHtml($selectOptions);
+
+		
 
 		a += " </div>";
 		a += "</div>";
@@ -94,35 +104,63 @@
 		});
 
 		// self-defined widget "select" change
-		$widgetSelect.find(".slide").find(".slide-item").bind({
-			click: function(e) {
-				optionSelected(this);
-				e.stopPropagation();
+		function bindItemClickCallback(){
+			$widgetSelect.find(".slide").find(".slide-item").bind({
+				click: function(e) {
+					optionSelected(this);
+					e.stopPropagation();
+				}
+			});
+		}
 
-			}
-		});
+		bindItemClickCallback();
+		
 
 		//css styles update
-		$widgetSelect.width(width);
-		$widgetSelect.find(".selected").width(width - 30);
-		$widgetSelect.find(".slide").width(slideWidth).height(slideHeight);
-		$widgetSelect.find(".slide-item").height(_options.slideOptionHeight);
-		$widgetSelect.find(".slide-item").css({
-			"font-size": _options.slideOptionHeight - 11,
-		})
-		$widgetSelect.find(".slide-item-holder").width(slideWidth).attr({
-			height: 25 * $selectOptions.length
-		}); //.height(15*$selectOptions.length);
-		$widgetSelect.find(".forDisabled").width(width).bind({
-			click: function(e) {
-				e.stopPropagation();
-			}
-		});
+		function updateStyle(tmpSelectWidth, tmpSlideWidth, tmpSlideHeight, tmpOptionHeight, $tmpSelectOptions)
+		{
+			$widgetSelect.width(tmpSelectWidth);
+			$widgetSelect.find(".selected").width(tmpSelectWidth - 30);
+			$widgetSelect.find(".slide").width(tmpSlideWidth).height(tmpSlideHeight);
+			$widgetSelect.find(".slide-item").height(tmpOptionHeight);
+			$widgetSelect.find(".slide-item").css({
+				"font-size": tmpOptionHeight - 11,
+			})
+			$widgetSelect.find(".slide-item-holder").width(tmpSlideWidth).attr({
+				height: (tmpOptionHeight + 8) * $tmpSelectOptions.length
+			}); //.height(15*$selectOptions.length);
+		}
+
+		updateStyle(width, slideWidth, slideHeight, _options.slideOptionHeight, $selectOptions)
+		// 
+		
+
+		// $widgetSelect.width(width);
+		// $widgetSelect.find(".selected").width(width - 30);
+		// $widgetSelect.find(".slide").width(slideWidth).height(slideHeight);
+		// $widgetSelect.find(".slide-item").height(_options.slideOptionHeight);
+		// $widgetSelect.find(".slide-item").css({
+		// 	"font-size": _options.slideOptionHeight - 11,
+		// })
+		// $widgetSelect.find(".slide-item-holder").width(slideWidth).attr({
+		// 	height: (_options.slideOptionHeight + 8) * $selectOptions.length
+		// });
+		
+		// $widgetSelect.find(".forDisabled").width(width).bind({
+		// 	click: function(e) {
+		// 		e.stopPropagation();
+		// 	}
+		// });
+
 
 		// add scrollbar
-		$widgetSelect.find(".slide").Scrollbar({
-			target: $widgetSelect.find(".slide .slide-item-holder")
-		});
+		function addScrollbar(){
+			$widgetSelect.find(".slide").Scrollbar({
+				target: $widgetSelect.find(".slide .slide-item-holder")
+			});
+		}
+		addScrollbar();
+		
 
 		// initially hide element
 		$widgetSelect.removeClass("select-slide");
@@ -143,6 +181,27 @@
 		$select.change(function() {
 			$widgetSelect.find(".selected").html("<span lang=\"en\">" + $(this).children("option:selected").html() + "</span>");
 		});
+
+
+		$widgetSelect.update = function (){
+			$select.show();
+			$select.removeClass("select");
+			var optionWidth = $select.width() + 10;
+			$select.addClass("select");
+			var $selectOptions = $select.find("option");
+			var width = $select.width() == 0 ? _options.width : ($select.outerWidth()),
+				slideWidth = optionWidth == null ? width : Math.max(optionWidth + 10, width),
+				slideHeight = Math.min(_options.slideMaxHeight, (_options.slideOptionHeight + 8) * $selectOptions.length);
+			$select.hide();
+			$widgetSelect.find(".slide-item-holder").empty();
+			$widgetSelect.find(".slide-item-holder").append(optionHtml($selectOptions));
+			updateStyle(width, slideWidth, slideHeight, _options.slideOptionHeight, $selectOptions);
+			bindItemClickCallback();
+			addScrollbar();
+		}
+
+
+		return $widgetSelect;
 	}
 
 	$.fn.Select.defaults = {
@@ -153,7 +212,8 @@
 
 	$(function(){
 		$('select.select').each(function(){
-			$(this).Select({});
+			var ref = $(this).Select({});
+			$(this)[0]["widgetRef"] = ref;
 		});
 	})
 })(jQuery)
