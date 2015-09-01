@@ -31,7 +31,7 @@ fis.config.set('roadmap.path', [
         release : '/public/views/$1',
     },
     {
-        reg : /^\/views\/(.*)$/,
+        reg : /^\/views\/(.*)$/i,
         isViews : true,
         release : '/public/views/$1',
     },
@@ -41,6 +41,19 @@ fis.config.set('roadmap.path', [
         useOptimizer : false
     }
 ]);
+
+
+// fis.config.merge({
+//     roadmap : {
+//         domain : {
+//             "**.css" : "http://css1.example.com",
+//             "**.js" : "http://js1.example.com",
+//             "image" : ["http://s1.example.com"]
+//         }
+//     }
+// });
+
+
 
 /**
  * [createFrameworkConfig replace the depandency map for special flag]
@@ -103,7 +116,7 @@ var templateInherit = function (childFile, baseFile) {
     var baseContent = baseFile.getContent();
     var childContent = childFile.getContent();
     var lastAddedLength = 0;
-    for (var block in childTagArr['block']) {
+    for (var block in baseTagArr['block']) {
 
         for (var i = 0; i < baseTagArr['block'][block].length; i++) {
             baseTagArr['block'][block][i] += lastAddedLength;
@@ -112,12 +125,26 @@ var templateInherit = function (childFile, baseFile) {
         var preContent = baseContent.substring(0, baseTagArr['block'][block][0]);
         var lastContent = baseContent.substring(baseTagArr['block'][block][3] + 1);
         var currentBaseBlockLength = baseTagArr['block'][block][3] - baseTagArr['block'][block][0] + 1;
-        var addedContent = childContent.substring(childTagArr['block'][block][1] + 1, childTagArr['block'][block][2]);
+
+        var addedContent;
+        if (childTagArr['block'][block] != undefined) {
+            addedContent = childContent.substring(childTagArr['block'][block][1] + 1, childTagArr['block'][block][2]);
+            delete childTagArr['block'][block];
+        }
+        else
+        {
+            addedContent = "";
+        }
 
         // refresh offset when render child content to base content
         lastAddedLength += addedContent.length - currentBaseBlockLength;
         baseContent = preContent + addedContent + lastContent;
     };
+
+    for (var block in childTagArr['block'])
+    {
+        throw "child has some block which base doesn't have: " + block + ";";
+    }
 
     return baseContent;
 }
