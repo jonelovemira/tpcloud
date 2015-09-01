@@ -4,7 +4,11 @@
 	 * [Base class for control base template]
 	 * @author xuzhongyong
 	 */
-	$.Base = function(){
+	$.BaseController = function(){
+	}
+
+	$.BaseController.defaults = {
+		username : "tplink-account"
 	}
 
 	/**
@@ -14,10 +18,17 @@
 	 * WELCOME_INFO_SELECTOR for selector configuration
 	 * @author xuzhongyong
 	 */
-	$.Base.loginCallbacks = $.Callbacks();
-	$.Base.logoutCallbacks = $.Callbacks();
-	var username;
+	$.BaseController.loginCallbacks = $.Callbacks();
+	$.BaseController.logoutCallbacks = $.Callbacks();
+	var username = $.cookie("username") || $.BaseController.defaults.username;
 	var WELCOME_INFO_SELECTOR = "#header .welcome-info";
+
+	function getUsername(){
+
+	}
+
+	function clearUsername () {
+	}
 
 	/**
 	 * [
@@ -27,19 +38,21 @@
 	 * @param  {string} name
 	 * @author xuzhongyong
 	 */
-	var getUsernameCallback = function(name){
-		username = name;
+	var loginHandler = function(){
+		// username = name;
+		getUsername();
 	}
-	var resetUsernameCallback = function () {
+	var logoutHandler = function () {
 		// body...
-		username = undefined;
+		// username = undefined;
+		clearUsername();
 	}
 
 	/**
 	 * register callbacks for login and logout
 	 */
-	$.Base.loginCallbacks.add(getUsernameCallback);
-	$.Base.logoutCallbacks.add(resetUsernameCallback);
+	$.BaseController.loginCallbacks.add(loginHandler);
+	$.BaseController.logoutCallbacks.add(logoutHandler);
 
 	/**
 	 * showing welcome information during header
@@ -47,16 +60,16 @@
 	 * @return {none}       
 	 * @author xuzhongyong
 	 */
-	$.Base.showWelcomeInfo = function () {
+	$.BaseController.showWelcomeInfo = function () {
 
 		if (undefined == username) {
-			$.Base.hideWelcomeInfo();
+			$.BaseController.hideWelcomeInfo();
 			console.log("username is undefined. Hide welcome info directly");
-			return $.Base.isShowingWelcome();
+			return $.BaseController.isShowingWelcome();
 		}
 
 
-		if ($.Base.isShowingWelcome()) {
+		if ($.BaseController.isShowingWelcome()) {
 			console.log("welcome info is already showing, update username only");
 		}
 		else{
@@ -73,7 +86,7 @@
 
 		$("#header #username").text(username);
 
-		return $.Base.isShowingWelcome();
+		return $.BaseController;
 	}
 
 	/**
@@ -81,7 +94,7 @@
 	 * @return {Boolean} [returned true when currentlly showing the welcome information, otherwise false]
 	 * @author xuzhongyong
 	 */
-	$.Base.isShowingWelcome = function (){
+	$.BaseController.isShowingWelcome = function (){
 		var selector = WELCOME_INFO_SELECTOR;
 		return $(selector).length > 0 && !$(selector).is(":hidden");
 	}
@@ -91,11 +104,14 @@
 	 * @return {none}
 	 * @author xuzhongyong
 	 */
-	$.Base.hideWelcomeInfo = function () {
+	$.BaseController.hideWelcomeInfo = function () {
 		// body...
 		var selector = WELCOME_INFO_SELECTOR;
 		$(selector).hide();
+		return $.BaseController;
 	}
 
+	
 
+				
 })(jQuery);

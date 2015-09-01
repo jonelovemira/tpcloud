@@ -73,14 +73,54 @@
 </div>
 
 <script type="text/javascript" src="../components/js/libs/jquery-1.8.2.min.js"></script>
-<!-- <script type="text/javascript" src="../components/js/libs/jquery.cookie.js"></script> -->
+<script type="text/javascript" src="../components/js/libs/jquery.cookie.js"></script>
 <script type="text/javascript" src="../components/js/libs/jquery-lang.js"></script>
+<script type="text/javascript" src="../components/js/libs/ipc-info-libs.js"></script>
+<script type="text/javascript" src="../components/js/libs/ipc-basic-libs.js"></script>
 <script type="text/javascript">
 	var lang = new Lang("en");
 	var zh_cnPath = __uri("./locale/zh_cn.js");
 	lang.dynamic("ch", zh_cnPath);
 </script>
-<script type="text/javascript" src="./base.js"></script>
+<script type="text/javascript">
+	function BasicLogic() {
+		// body...
+	}
+
+	BasicLogic.prototype.styleRerender = function() {
+		// body..
+	};
+
+	BasicLogic.prototype.initVariable = function() {
+		// body...
+	};
+
+	BasicLogic.prototype.readCookie = function() {
+		// body...
+	};
+
+	BasicLogic.prototype.bindHandler = function() {
+		// body...
+	};
+
+	BasicLogic.prototype.asyncLoading = function() {
+		// body...
+	};
+
+	BasicLogic.prototype.intervalProc = function() {
+		// body...
+	};
+
+	BasicLogic.prototype.init = function() {
+		// body...
+		this.styleRerender();
+		this.initVariable();
+		this.readCookie();
+		this.bindHandler();
+		this.asyncLoading();
+		this.intervalProc();
+	};
+</script>
 {% block script %}
 {% endblock %}
 </body>
