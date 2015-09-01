@@ -5,6 +5,7 @@
 		var _options = $.extend(true, {}, $.fn.Select.defaults, options);
 		var $select = $(this);
 
+		// some attributes can only retrieved after it show up.
 		$select.show();
 
 		var optionWidth = $select.attr("select-width");
@@ -12,19 +13,19 @@
 			_options.optionWidth = parseInt(optionWidth);
 		};
 
-		// preserve initial select informations
+		// preserve original select informations.
 		var name = $(this).attr("id") || "";
 
 		var $selectOptions = $select.find("option");
 		var width = $select.width() == 0 ? _options.width : ($select.outerWidth()),
 			slideWidth = _options.optionWidth == null ? width : _options.optionWidth,
 			slideHeight = Math.min(_options.slideMaxHeight, (_options.slideOptionHeight + 8) * $selectOptions.length);
-		
-
 		var disabled = $select.attr("disabled");
 
+		// corresponding hide
 		$select.hide();
 
+		// save option selected or first.
 		var temp;
 		if ($select.val()) {
 			temp = $select.find("option[value='" + $select.val() + "']").html() || $select.val();
@@ -131,26 +132,7 @@
 			}); //.height(15*$selectOptions.length);
 		}
 
-		updateStyle(width, slideWidth, slideHeight, _options.slideOptionHeight, $selectOptions)
-		// 
-		
-
-		// $widgetSelect.width(width);
-		// $widgetSelect.find(".selected").width(width - 30);
-		// $widgetSelect.find(".slide").width(slideWidth).height(slideHeight);
-		// $widgetSelect.find(".slide-item").height(_options.slideOptionHeight);
-		// $widgetSelect.find(".slide-item").css({
-		// 	"font-size": _options.slideOptionHeight - 11,
-		// })
-		// $widgetSelect.find(".slide-item-holder").width(slideWidth).attr({
-		// 	height: (_options.slideOptionHeight + 8) * $selectOptions.length
-		// });
-		
-		// $widgetSelect.find(".forDisabled").width(width).bind({
-		// 	click: function(e) {
-		// 		e.stopPropagation();
-		// 	}
-		// });
+		updateStyle(width, slideWidth, slideHeight, _options.slideOptionHeight, $selectOptions);
 
 
 		// add scrollbar
