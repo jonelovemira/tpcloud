@@ -1,19 +1,21 @@
 (function ($) {
 	
 	$.BrowserTypeVersion = (function(){
-		var ua = navigator.userAgent, tem;
-		var M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-		if(/trident/i.test(M[1])){
-			tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
-			return 'IE '+(tem[1] || '');
-		}
-		if(M[1]=== 'Chrome'){			
-			tem= ua.match(/\bOPR\/(\d+)/);
-			if(tem!= null) return 'Opera '+tem[1];
-		}
-		M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-		if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
-		return M.join(' ');
+	    var ua= navigator.userAgent, tem, 
+	    M= ua.match(/(opera|chrome|safari|firefox|msie|edge|trident(?=\/))\/?\s*(\d+)/i) || [];
+	    if(/trident/i.test(M[1])){
+	        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+	        return 'IE '+(tem[1] || '');
+	    }
+	    if(M[1]=== 'Chrome'){
+	        tem= ua.match(/\bOPR\/(\d+)/);
+	        if(tem!= null) return 'Opera '+tem[1];
+	        tem = ua.match(/Edge\/(\d+)/);
+	        if(tem!= null) return 'Edge '+tem[1];
+	    }
+	    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+	    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+	    return M.join(' ');
 	})();
 
 	function ieXDomainAjax(options){	
@@ -69,14 +71,15 @@
 			(options.beforeSend || function(){})();
 		}
 		newOptions.complete = function(xhr){
-			(options.complete || function(xhr){})(xhr);
+			var contextAjax = this;
+			$.proxy((options.complete || function(xhr){}), contextAjax)(xhr);
 		}
 		newOptions.error = function(xhr){
 			(options.error || function(xhr){})(xhr);
 		}
 		newOptions.success = function(response){
-			var currentAjaxOptions = this.data;
-			(options.success || function(resp, currAO){})(response, currentAjaxOptions);
+			var contextAjax = this;
+			$.proxy((options.success || function(resp){}), contextAjax)(response);
 		}
 
 		$.ajax(newOptions);
