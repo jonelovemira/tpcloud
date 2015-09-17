@@ -1,21 +1,19 @@
 (function ($) {
 	
 	$.BrowserTypeVersion = (function(){
-	    var ua= navigator.userAgent, tem, 
-	    M= ua.match(/(opera|chrome|safari|firefox|msie|edge|trident(?=\/))\/?\s*(\d+)/i) || [];
-	    if(/trident/i.test(M[1])){
-	        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
-	        return 'IE '+(tem[1] || '');
-	    }
-	    if(M[1]=== 'Chrome'){
-	        tem= ua.match(/\bOPR\/(\d+)/);
-	        if(tem!= null) return 'Opera '+tem[1];
-	        tem = ua.match(/Edge\/(\d+)/);
-	        if(tem!= null) return 'Edge '+tem[1];
-	    }
-	    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-	    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
-	    return M.join(' ');
+		var ua = navigator.userAgent, tem;
+		var M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+		if(/trident/i.test(M[1])){
+			tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+			return 'IE '+(tem[1] || '');
+		}
+		if(M[1]=== 'Chrome'){			
+			tem= ua.match(/\bOPR\/(\d+)/);
+			if(tem!= null) return 'Opera '+tem[1];
+		}
+		M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+		if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+		return M.join(' ');
 	})();
 
 	function ieXDomainAjax(options){	
@@ -59,7 +57,6 @@
 	};
 
 	function normalAjax (options) {
-		// body...
 		var newOptions = $.extend(true, {}, $.xAjax.normalAjaxDefaults, options);
 	
 		if (newOptions.url == undefined) {
@@ -71,18 +68,19 @@
 			(options.beforeSend || function(){})();
 		}
 		newOptions.complete = function(xhr){
-			var contextAjax = this;
-			$.proxy((options.complete || function(xhr){}), contextAjax)(xhr);
+			var ajaxContext = this;
+			$.proxy((options.complete || function(xhr){}), ajaxContext)(xhr);
 		}
 		newOptions.error = function(xhr){
 			(options.error || function(xhr){})(xhr);
 		}
 		newOptions.success = function(response){
-			var contextAjax = this;
-			$.proxy((options.success || function(resp){}), contextAjax)(response);
+			var ajaxContext = this;
+			$.proxy((options.success || function(resp){}), ajaxContext)(response);
 		}
 
-		$.ajax(newOptions);
+		var ajaxObj = $.ajax(newOptions);
+		return ajaxObj;
 	};
 
 	var browserAjaxMap = {
@@ -91,11 +89,11 @@
 		"MSIE 10": ieXDomainAjax
 	};
 
-	// body...
 	$.xAjax = function(options, xDomain)
 	{
 		var ajaxFunction = xDomainAjaxMap[xDomain] || normalAjax;
-		ajaxFunction(options);
+		var ajaxObj = ajaxFunction(options);
+		return ajaxObj;
 	};
 
 	$.xAjax.normalAjaxDefaults = {
@@ -123,4 +121,19 @@
 	var xDomainAjaxMap = {};
 	xDomainAjaxMap[xDomainStr] = browserAjaxMap[$.BrowserTypeVersion] || normalAjax;
 
+
+	$.OneOrNoneTrim = function(str, mode) {
+		if (null == str) {
+			return;
+		};
+		var result;
+		var str = str;
+		result = str.replace(/(^\s+)|(\s+$)/g, ""); 
+		if (mode == "all") {
+			result = result.replace(/\s/g, "");
+		} else if (mode == "one") { 
+			result = result.replace(/\s+/g, " ");
+		}
+		return result;
+	}
 })(jQuery);
