@@ -309,11 +309,7 @@ var Lang = (function () {
 						} catch (e) {
 							
 						}
-					} else {
-						if (console && console.log) {
-							console.log('Translation for "' + defaultText + '" not found!');
-						}
-					}
+					} 
 				}
 			} else {
 				// Replace with original text
@@ -531,12 +527,6 @@ var Lang = (function () {
 				if (!translation) {
 					// No token translation was found, test for regex match
 					translation = this._regexMatch(text, lang);
-				}
-				
-				if (!translation) {
-					if (console && console.log) {
-						console.log('Translation for "' + text + '" not found in language pack: ' + lang);
-					}
 				}
 	
 				return translation || text;

@@ -83,6 +83,13 @@
     padding: 5px;
 }
 
+.infocus:focus,textarea:focus {
+    -webkit-focus-ring-color:none;
+    border:solid 1px #323232!important;
+    background-color:#ffffff;
+    outline:none;
+}
+
 #passwordshow {
     position: absolute;
     left: 2px;

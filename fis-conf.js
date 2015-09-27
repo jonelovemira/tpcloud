@@ -1,96 +1,28 @@
 /**
  * [set rules for release src file]
  */
-fis.config.set('roadmap.path', [
-    {
-        reg : '**.md',
-        release : false,
-        isHtmlLike : true
-    },
-    {
-        reg : /^\/common\/(.*html)$/,
-        // flag for indicating this file is a base template file
-        isBaseTemplateFile : true,
-        release : '/public/common/$1'
-    },  
-    {
-        reg : /^\/common\/(.*)$/i,
-        release : '/public/common/$1'
-    },
-    {
-        reg : /^\/components\/(.*)$/i,
-        id : '${name}/${version}/$1',
-        // flag for indicating this file is a component file
-        isComponents : true,
-        release : '/public/components/$1'
-    },
-    {
-        reg : /^\/views\/(.*html)$/,
-        // flag for indicating this file is child template file
-        isChildTemplateFile : true,
-        release : '/public/views/$1',
-    },
-    {
-        reg : /^\/views\/(.*)$/i,
-        isViews : true,
-        release : '/public/views/$1',
-    },
-    {
-        reg : '**',
-        useStandard : false,
-        useOptimizer : false
-    }
+fis.set('project.ignore', [
+    '.git/**',
+    '.svn/**',
+    'fis-conf.js',
 ]);
 
+fis.match('*', {
+    release: '/static/$0',
+});
 
-// fis.config.merge({
-//     roadmap : {
-//         domain : {
-//             "**.css" : "http://css1.example.com",
-//             "**.js" : "http://js1.example.com",
-//             "image" : ["http://s1.example.com"]
-//         }
-//     }
-// });
+fis.match("*.{js,css,png}", {
+    useHash: true
+});
 
+fis.match('/common/*.html', {
+    isBaseTemplateFile: true
+})
 
-
-/**
- * [createFrameworkConfig replace the depandency map for special flag]
- * @param  {[type]} ret      [description]
- * @param  {[type]} conf     [description]
- * @param  {[type]} settings [description]
- * @param  {[type]} opt      [description]
- */
-var createFrameworkConfig = function(ret, conf, settings, opt){
-    var map = {};
-    map.deps = {};
-    map.alias = {};
-
-    // find dependency and create alias by directory name
-    fis.util.map(ret.src, function(subpath, file){
-        if(file.isComponents || file.isComponentModules){
-            var match = subpath.match(/^\/components\/(.*?([^\/]+))\/\2\.js$/i);
-            if(match && match[1] && !map.alias.hasOwnProperty(match[1])){
-                map.alias[match[1]] = file.id;
-            }
-            if(file.requires && file.requires.length){
-                map.deps[file.id] = file.requires;
-            }
-        }
-    });
-
-    var stringify = JSON.stringify(map, null, opt.optimize ? null : 4);
-
-    // replace map for __FRAMEWORK_CONFIG__ in js code
-    fis.util.map(ret.src, function(subpath, file){
-        if(file.isViews && (file.isJsLike || file.isHtmlLike)){
-            var content = file.getContent();
-            content = content.replace(/\b__FRAMEWORK_CONFIG__\b/g, stringify);
-            file.setContent(content);
-        }
-    });
-};
+fis.match('/views/**/*.html', {
+    release: '/template/$0',
+    isChildTemplateFile: true
+});
 
 /**
  * [getBaseFileId ]
@@ -173,47 +105,50 @@ var getTagArrKeyValue = function (fileObj) {
     tagArrKeyValue[blockTag] = {};
     var lastBlockIndex = 0;
 
-    for (var i = 0; i < tagArr.length; i++) {
-        
-        var extendsIndex = tagArr[i].indexOf(extendsTag);
-        var blockIndex = tagArr[i].indexOf(blockTag);
+    if (tagArr != undefined) {
+        for (var i = 0; i < tagArr.length; i++) {
+            
+            var extendsIndex = tagArr[i].indexOf(extendsTag);
+            var blockIndex = tagArr[i].indexOf(blockTag);
 
-        if (-1 != extendsIndex) {
-            var value = tagArr[i].substring(extendsIndex + extendsTag.length, tagArr[i].length - 2);
-            value = value.trim();
-            value = value.replace(/['"]+/g, "");
-            tagArrKeyValue[extendsTag] = value;
-        };
-
-        if (-1 != blockIndex) {
-            var value = tagArr[i].substring(blockIndex + blockTag.length, tagArr[i].length - 2);
-            value = value.trim();
-            if (value.length > 0) {
-                if (tagArrKeyValue[blockTag][value] == undefined){
-                    tagArrKeyValue[blockTag][value] = [];
-                }
-
-                var tagStartBeginIndex = content.indexOf(tagArr[i]);
-                var tagStartEndIndex = tagStartBeginIndex + tagArr[i].length - 1;
-
-
-                // don't forget to find endblock tag
-                i += 1;
-                var tagStopBeginIndex = content.indexOf(tagArr[i]);
-                var tagStopEndIndex = tagStopBeginIndex + tagArr[i].length  - 1;
-
-                content = content.substring(tagStopEndIndex + 1);
-                tagArrKeyValue[blockTag][value].push(tagStartBeginIndex + lastBlockIndex);
-                tagArrKeyValue[blockTag][value].push(tagStartEndIndex + lastBlockIndex);
-                tagArrKeyValue[blockTag][value].push(tagStopBeginIndex + lastBlockIndex);
-                tagArrKeyValue[blockTag][value].push(tagStopEndIndex + lastBlockIndex);
-
-                // change relative position to absolute position.
-                lastBlockIndex = lastBlockIndex + tagStopEndIndex + 1;
-                
+            if (-1 != extendsIndex) {
+                var value = tagArr[i].substring(extendsIndex + extendsTag.length, tagArr[i].length - 2);
+                value = value.trim();
+                value = value.replace(/['"]+/g, "");
+                tagArrKeyValue[extendsTag] = value;
             };
-        };
+
+            if (-1 != blockIndex) {
+                var value = tagArr[i].substring(blockIndex + blockTag.length, tagArr[i].length - 2);
+                value = value.trim();
+                if (value.length > 0) {
+                    if (tagArrKeyValue[blockTag][value] == undefined){
+                        tagArrKeyValue[blockTag][value] = [];
+                    }
+
+                    var tagStartBeginIndex = content.indexOf(tagArr[i]);
+                    var tagStartEndIndex = tagStartBeginIndex + tagArr[i].length - 1;
+
+
+                    // don't forget to find endblock tag
+                    i += 1;
+                    var tagStopBeginIndex = content.indexOf(tagArr[i]);
+                    var tagStopEndIndex = tagStopBeginIndex + tagArr[i].length  - 1;
+
+                    content = content.substring(tagStopEndIndex + 1);
+                    tagArrKeyValue[blockTag][value].push(tagStartBeginIndex + lastBlockIndex);
+                    tagArrKeyValue[blockTag][value].push(tagStartEndIndex + lastBlockIndex);
+                    tagArrKeyValue[blockTag][value].push(tagStopBeginIndex + lastBlockIndex);
+                    tagArrKeyValue[blockTag][value].push(tagStopEndIndex + lastBlockIndex);
+
+                    // change relative position to absolute position.
+                    lastBlockIndex = lastBlockIndex + tagStopEndIndex + 1;
+                    
+                };
+            };
+        }; 
     };
+    
     return tagArrKeyValue;
 }
 
@@ -232,6 +167,7 @@ var templateInheritance = function (ret, conf, settings, opt) {
     // save base file refernce
     fis.util.map(ret.src, function(subpath, file){
         if (file.isBaseTemplateFile) {
+            console.log(file.id)
             baseFiles[file.id] = file;
         };
     });

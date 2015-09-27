@@ -83,43 +83,37 @@
 	lang.dynamic("ch", zh_cnPath);
 </script>
 <script type="text/javascript">
-	function BasicLogic() {
-		// body...
-	}
+	(function($){
+		$.ipc = $.ipc || {};
 
-	BasicLogic.prototype.styleRerender = function() {
-		// body..
-	};
+		function Error(initArgs){
+		    if (undefined == initArgs["code"] || undefined == initArgs["msg"]) {
+		        throw "error when construct error code";
+		    };
+		    this.code = initArgs["code"];
+		    this.msg = initArgs["msg"];
+		}
 
-	BasicLogic.prototype.initVariable = function() {
-		// body...
-	};
+		Error.prototype.printMsg = function() {
+		    console.log(this.msg);
+		};
 
-	BasicLogic.prototype.readCookie = function() {
-		// body...
-	};
+		$.ipc.Error = Error;
 
-	BasicLogic.prototype.bindHandler = function() {
-		// body...
-	};
-
-	BasicLogic.prototype.asyncLoading = function() {
-		// body...
-	};
-
-	BasicLogic.prototype.intervalProc = function() {
-		// body...
-	};
-
-	BasicLogic.prototype.init = function() {
-		// body...
-		this.styleRerender();
-		this.initVariable();
-		this.readCookie();
-		this.bindHandler();
-		this.asyncLoading();
-		this.intervalProc();
-	};
+		$.ipc.PublicMethod = function(){};
+		$.ipc.PublicMethod.buildDefaultCallbacksForModel = function(model, inputCallbacks){
+			if (undefined == model) {
+				throw "error in buildDefaultCallbacksForModel";
+				return;
+			};
+			var callbacks = model.defaultCallbacks;
+			if (inputCallbacks != undefined) {
+			    callbacks = $.extend(true, {}, model.defaultCallbacks, { "errorCodeCallBackMap" : inputCallbacks});
+			};
+			return callbacks;
+		}
+		
+	})(jQuery)
 </script>
 {% block script %}
 {% endblock %}
