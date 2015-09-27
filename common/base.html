@@ -82,39 +82,6 @@
 	var zh_cnPath = __uri("./locale/zh_cn.js");
 	lang.dynamic("ch", zh_cnPath);
 </script>
-<script type="text/javascript">
-	(function($){
-		$.ipc = $.ipc || {};
-
-		function Error(initArgs){
-		    if (undefined == initArgs["code"] || undefined == initArgs["msg"]) {
-		        throw "error when construct error code";
-		    };
-		    this.code = initArgs["code"];
-		    this.msg = initArgs["msg"];
-		}
-
-		Error.prototype.printMsg = function() {
-		    console.log(this.msg);
-		};
-
-		$.ipc.Error = Error;
-
-		$.ipc.PublicMethod = function(){};
-		$.ipc.PublicMethod.buildDefaultCallbacksForModel = function(model, inputCallbacks){
-			if (undefined == model) {
-				throw "error in buildDefaultCallbacksForModel";
-				return;
-			};
-			var callbacks = model.defaultCallbacks;
-			if (inputCallbacks != undefined) {
-			    callbacks = $.extend(true, {}, model.defaultCallbacks, { "errorCodeCallBackMap" : inputCallbacks});
-			};
-			return callbacks;
-		}
-		
-	})(jQuery)
-</script>
 {% block script %}
 {% endblock %}
 </body>
