@@ -15,41 +15,38 @@
 
     $.ipc.Error = Error;
 
-    $.ipc.PublicMethod = function(){};
-    $.ipc.PublicMethod.extendDefaultCallbacksForModel = function(model, inputCallbacks){
-        if (undefined == model) {
-            throw "error in extendDefaultCallbacksForModel";
-            return;
-        };
-        var callbacks = model.defaultCallbacks;
-        if (inputCallbacks != undefined) {
-            callbacks = $.extend(true, {}, model.defaultCallbacks, { "errorCodeCallBackMap" : inputCallbacks});
-        };
-        return callbacks;
+    function Model () {}
+
+    var errorCodeInfo = {
+        NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
+        DEFAULT: new$.ipc.Error({code: -1, msg: "unknow error"}),
     }
-    $.ipc.PublicMethod.buildDefaultCallbacks = function(model){
-        if (undefined == model || undefined == model.errorCodeInfo) {
-            throw "error in buildDefaultCallbacks";
-            return;
-        };
-        var tmpErrorCodeCallBackMap = {}
-        for (var eci in model.errorCodeInfo) {
-            var e = model.errorCodeInfo[eci];
-            tmpErrorCodeCallBackMap[e.code] = $.proxy(e.printMsg, e);
-        };
 
-        var defaultCallbacks = {
-            errorCodeCallBackMap : tmpErrorCodeCallBackMap,
-            errorCallback : function(xhr){console.log("xhr error: ", xhr)},
-        };
+    var tmpErrorCodeCallBackMap = {}
+    for (var eci in errorCodeInfo) {
+        var e = errorCodeInfo[eci];
+        tmpErrorCodeCallBackMap[e.code] = $.proxy(e.printMsg, e);
+    };
 
-        return defaultCallbacks;
-    }    
+    Model.prototype.ajaxCallbacks = {
+        errorCodeCallbackMap : tmpErrorCodeCallBackMap,
+        errorCallback : function(xhr){console.log("xhr error: ", xhr)},
+    }
+
+    Model.prototype.extendAjaxCallback = function(inputCallbacks) {
+        if (inputCallbacks != undefined) {
+            $.extend(true, this.ajaxCallbacks, { "errorCodeCallbackMap" : inputCallbacks});
+        };
+    };
+
+    $.ipc.Model = Model;
+
 })(jQuery)
+
 (function ($) {
     "use strict";
 
-    $.ipc = $.ipc || {};
+    $.ipc = $.ipc || {};   
 
     function User(){
         this.username = null;
@@ -57,9 +54,7 @@
         this.email = null;
         this.account = null;
     };
-
-    User.errorCodeInfo = {
-        NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
+    var userErrorCodeInfo = {
         SESSION_TIMEOUT: new $.ipc.Error({code: 100, msg: "session is timeout"}),
         CROSS_REGION: new $.ipc.Error({code: 302, msg: "user logined cross region"}),
         ACCOUNT_IS_EMPTY: new $.ipc.Error({code: 1005, msg: "input an empty account"}),
@@ -68,12 +63,11 @@
         PASSWORD_EMPTY: new $.ipc.Error({code: 1020, msg: "input password is empty"}),
         PASSWORD_FORMAT_INVALID: new $.ipc.Error({code: 1023, msg: "input password has an invalid format"}),
         ACCOUNT_PASSWORD_NOT_MATCH: new $.ipc.Error({code: 1024, msg: "input account doesn't match the password"}),
-        DEFAULT: new$.ipc.Error({code: -1, msg: "unknow error"}),
     };
+    var userModel = new $.ipc.Model();
+    userModel.extendAjaxCallback(userErrorCodeInfo);
 
-    var defaultCallbacks = $.ipc.PublicMethod.buildDefaultCallbacks(User);
-
-    User.prototype.defaultCallbacks = defaultCallbacks;
+    User.prototype = userModel;
 
     User.prototype.login = function(inputCallbacks){
         /* validate needed args*/
@@ -84,7 +78,7 @@
         /* preserve context obj */
         var currentUser = this;
         /* ajax callbacks extend */
-        var callbacks = $.ipc.PublicMethod.extendDefaultCallbacksForModel(currentUser, inputCallbacks);
+        currentUser.extendAjaxCallback(inputCallbacks);
         /* build ajax data*/
         var data = JSON.stringify({
             "account" : currentUser.email,
@@ -98,10 +92,10 @@
                 /* change currentUser state*/
                 // none
                 
-                var callbackFunc = callbacks.errorCodeCallBackMap[response.errorCode] || callbacks.errorCodeCallBackMap[-1];
+                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
                 callbackFunc(response);
             },
-            error : function(xhr){callbacks.errorCallback(xhr)}
+            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
         });
     };
 
@@ -114,7 +108,7 @@
         /* preserve context obj */
         var currentUser = this;
         /* ajax callbacks extend */
-        var callbacks = $.ipc.PublicMethod.extendDefaultCallbacksForModel(currentUser, inputCallbacks);
+        currentUser.extendAjaxCallback(inputCallbacks);
         /* build ajax data*/
         var data = {
             "REQUEST": "GETUSER",
@@ -133,10 +127,10 @@
                     currentUser.username = response.msg.username;
                 };
                 
-                var callbackFunc = callbacks.errorCodeCallBackMap[response.errorCode] || callbacks.errorCodeCallBackMap[-1];
+                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
                 callbackFunc(response);
             },
-            error : function(xhr){callbacks.errorCallback(xhr)}
+            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
         });
     };
 
@@ -149,7 +143,7 @@
         /* preserve context obj */
         var currentUser = this;
         /* ajax callbacks extend */
-        var callbacks = $.ipc.PublicMethod.extendDefaultCallbacksForModel(currentUser, inputCallbacks);
+        currentUser.extendAjaxCallback(inputCallbacks);
         /* build ajax data*/
         var data = {
             "REQUEST": "LOGOUT",
@@ -168,10 +162,10 @@
                     currentUser.token = null;
                 };
                 
-                var callbackFunc = callbacks.errorCodeCallBackMap[response.errorCode] || callbacks.errorCodeCallBackMap[-1];
+                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
                 callbackFunc(response);
             },
-            error : function(xhr){callbacks.errorCallback(xhr)}
+            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
         });
     };
 
@@ -185,15 +179,19 @@
     $.ipc = $.ipc || {};
 
     function Device(){}
-    Device.errorCodeInfo = {
-        NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
+
+    var deviceErrorCodeInfo = {
         OWNER_NOT_LOGIN : new $.ipc.Error({code:-20651, msg: "owner doesn't logged in"}),
         BELONG_TO_ANOTHER_USER: new $.ipc.Error({code: -20506, msg: "this device belong to another user"}),
         NO_OWNER: new Error({code: -20507, msg: "this device is not binded to any user"}),
         DEVICE_OFFLINE: new Error({code: -20571, msg: "this device is offline"}),
         ALIAS_FORMAT_ERROR: new Error({code: -20572, msg: "device alias format error"}),
-        DEFAULT: new$.ipc.Error({code: -1, msg: "unknow error"}),
     };
+
+    var deviceModel = new Model();
+    deviceModel.extendAjaxCallback(deviceErrorCodeInfo);
+
+    Device.prototype = deviceModel;
 
     var defaultCallbacks = $.ipc.PublicMethod.buildDefaultCallbacks(Device);
 

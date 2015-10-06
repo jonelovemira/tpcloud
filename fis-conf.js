@@ -11,7 +11,7 @@ fis.match('*', {
     release: '/static/$0',
 });
 
-fis.match("*.{js,css,png}", {
+fis.match('*.{js,css,png,ico}', {
     useHash: true
 });
 
@@ -23,6 +23,18 @@ fis.match('/views/**/*.html', {
     release: '/template/$0',
     isChildTemplateFile: true
 });
+
+fis.media('alpha').match('*.{js,css,png,ico}',{
+    domain: ''
+})
+
+fis.media('beta').match('*.{js,css,png,ico}',{
+    domain: ''
+})
+
+fis.media('product').match('*.{js,css,png,ico}',{
+    domain: 'http://cdn.baidu.com/'
+})
 
 /**
  * [getBaseFileId ]
@@ -167,7 +179,6 @@ var templateInheritance = function (ret, conf, settings, opt) {
     // save base file refernce
     fis.util.map(ret.src, function(subpath, file){
         if (file.isBaseTemplateFile) {
-            console.log(file.id)
             baseFiles[file.id] = file;
         };
     });

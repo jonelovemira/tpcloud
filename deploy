@@ -1,0 +1,49 @@
+#! /bin/bash
+
+init(){
+	curl --silent --location https://rpm.nodesource.com/setup | bash -
+	sudo yum -y install nodejs npm
+	npm install -g fis3
+}
+
+stop(){
+
+}
+
+update(){
+
+}
+
+config(){
+
+}
+
+start(){
+
+}
+
+case "$1" in
+	
+	init)
+		init
+		;;
+	stop)
+		stop
+		;;
+	update)
+		update
+		;;
+	config)
+		config $2 $3
+		;;
+	start)
+		start
+		;;
+	help|*)
+	echo $"Usage: $0 {init|stop|update|config|start}"
+	exit 1
+	;;
+
+esac
+
+exit 0
