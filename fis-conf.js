@@ -1,14 +1,19 @@
 /**
  * [set rules for release src file]
  */
+var ALPHA_CDN_PATH = '';
+var BETA_CDN_PATH = '';
+var PRODUCT_CDN_PATH = 'http://test.com/cdn';
+
 fis.set('project.ignore', [
     '.git/**',
     '.svn/**',
     'fis-conf.js',
+    'deploy'
 ]);
 
 fis.match('*', {
-    release: '/static/$0',
+    release: '/$0',
 });
 
 fis.match('*.{js,css,png,ico}', {
@@ -20,20 +25,20 @@ fis.match('/common/*.html', {
 })
 
 fis.match('/views/**/*.html', {
-    release: '/template/$0',
+    release: '/$0',
     isChildTemplateFile: true
 });
 
 fis.media('alpha').match('*.{js,css,png,ico}',{
-    domain: ''
+    domain: ALPHA_CDN_PATH
 })
 
 fis.media('beta').match('*.{js,css,png,ico}',{
-    domain: ''
+    domain: BETA_CDN_PATH
 })
 
 fis.media('product').match('*.{js,css,png,ico}',{
-    domain: 'http://cdn.baidu.com/'
+    domain: PRODUCT_CDN_PATH
 })
 
 /**

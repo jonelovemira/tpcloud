@@ -1,20 +1,29 @@
 #! /bin/bash
 
+WEB_ROOT=/usr/tomcat/apache-tomcat-7.0.64/webapps/web-3.0
+CDN_PATH="http://cdn.tplinkcloud.com/"
+DEVELOP_PATH=`pwd`
+
+
 init(){
 	curl --silent --location https://rpm.nodesource.com/setup | bash -
 	sudo yum -y install nodejs npm
 	npm install -g fis3
 }
 
-stop(){
+stop(){}
 
-}
-
-update(){
-
-}
+update(){}
 
 config(){
+
+	sed -i "s@PRODUCT_CDN_PATH\s*=\s*'[^']*'@PRODUCT_CDN_PATH = '$CDN_PATH'@g" $DEVELOP_PATH/fis-conf.js
+
+	fis3 release $1 -d $WEB_ROOT
+
+	if [ ${SRV_TYPE}x = "product"x ] ; then
+		cd $WEB_ROOT && rm -rf !(./views/pages)
+	fi
 
 }
 
