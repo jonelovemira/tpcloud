@@ -8,8 +8,6 @@ var PRODUCT_CDN_PATH = 'http://test.com/cdn';
 fis.set('project.ignore', [
     '.git/**',
     '.svn/**',
-    'fis-conf.js',
-    'deploy'
 ]);
 
 fis.match('*', {
@@ -19,6 +17,10 @@ fis.match('*', {
 fis.match('*.{js,css,png,ico}', {
     useHash: true
 });
+
+fis.match('fis-conf.js',{
+    useHash: false
+})
 
 fis.match('/common/*.html', {
     isBaseTemplateFile: true
