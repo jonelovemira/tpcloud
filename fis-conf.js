@@ -8,14 +8,11 @@ var PRODUCT_CDN_PATH = 'http://test.com/cdn';
 fis.set('project.ignore', [
     '.git/**',
     '.svn/**',
+    'create-package'
 ]);
 
 fis.match('*', {
     release: '/$0',
-});
-
-fis.match('*.{js,css,png,ico}', {
-    useHash: true
 });
 
 fis.match('fis-conf.js',{
@@ -26,22 +23,36 @@ fis.match('/common/*.html', {
     isBaseTemplateFile: true
 })
 
-fis.match('/views/**/*.html', {
-    release: '/$0',
+fis.match('/views/pages/{*,**/*}.html', {
+    release: '$0',
     isChildTemplateFile: true
+});
+
+fis.match('/views/pages/index.html', {
+    release: '/index.html',
+    isChildTemplateFile: true
+});
+
+fis.media('build').match('/views/pages/index.html', {
+    release: '$0',
+    isChildTemplateFile: true
+});
+
+fis.media('build').match('*.{js,css,png,ico}', {
+    useHash: true
 });
 
 fis.media('alpha').match('*.{js,css,png,ico}',{
     domain: ALPHA_CDN_PATH
-})
+});
 
 fis.media('beta').match('*.{js,css,png,ico}',{
     domain: BETA_CDN_PATH
-})
+});
 
 fis.media('product').match('*.{js,css,png,ico}',{
     domain: PRODUCT_CDN_PATH
-})
+});
 
 /**
  * [getBaseFileId ]
@@ -204,5 +215,3 @@ var templateInheritance = function (ret, conf, settings, opt) {
 }
 
 fis.config.set('modules.postpackager', [templateInheritance]);
-fis.config.set('name', 'proj'); 
-fis.config.set('version', '1.0.3');

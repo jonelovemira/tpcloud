@@ -7,13 +7,17 @@ DEVELOP_PATH=`pwd`
 
 init(){
 	curl --silent --location https://rpm.nodesource.com/setup | bash -
-	sudo yum -y install nodejs npm
+	sudo yum -y install nodejs
 	npm install -g fis3
 }
 
-stop(){}
+stop(){
+	:
+}
 
-update(){}
+update(){
+	:
+}
 
 config(){
 
@@ -21,18 +25,17 @@ config(){
 
 	fis3 release $1 -d $WEB_ROOT
 	
-	shopt -s extglob
-	if [ ${SRV_TYPE}x = "product"x ] ; then
-		cd $WEB_ROOT && rm -rf !(./views/pages)
-	else
-		rm -rf $WEB_ROOT/deploy $WEB_ROOT/fis-conf.js
+	if [ "$1"x = "product"x ] ; then
+		find $WEB_ROOT -maxdepth 2 -type d -not -name pages -not -name "." -exec rm -ir {} \;
+	fi
+	rm -rf $WEB_ROOT/deploy $WEB_ROOT/fis-conf.js
 
-
+	
 	
 }
 
 start(){
-
+	:
 }
 
 case "$1" in

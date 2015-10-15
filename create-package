@@ -1,0 +1,39 @@
+#! /bin/bash
+
+PACKAGE_VERSION=$1
+SVN_VERSION=$2
+FOLDER_ROOT=/tmp/ipc-web
+PACKAGE_FOLDER=web-$1-$2
+RELEASE_FOLDER=$FOLDER_ROOT/$PACKAGE_FOLDER
+SRC_FOLDER=.
+FRONT_END_FOLDER=front-end
+
+echo "mkdir"
+mkdir -p $RELEASE_FOLDER
+rm -rf $RELEASE_FOLDER/*
+mkdir $RELEASE_FOLDER/static
+mkdir $RELEASE_FOLDER/$FRONT_END_FOLDER
+
+echo "release"
+cd $SRC_FOLDER && fis3 release build -d $RELEASE_FOLDER/$FRONT_END_FOLDER
+cp -r $RELEASE_FOLDER/$FRONT_END_FOLDER/common $RELEASE_FOLDER/static
+cp -r $RELEASE_FOLDER/$FRONT_END_FOLDER/components $RELEASE_FOLDER/static
+cp -r $RELEASE_FOLDER/$FRONT_END_FOLDER/data $RELEASE_FOLDER/static 2>/dev/null
+cp -r $RELEASE_FOLDER/$FRONT_END_FOLDER/views $RELEASE_FOLDER/static
+rm -rf $RELEASE_FOLDER/static/views/pages
+rm -rf $RELEASE_FOLDER/$FRONT_END_FOLDER/index.html
+
+echo "build"
+cd $FOLDER_ROOT
+rm -rf $PACKAGE_FOLDER.tar.gz $PACKAGE_FOLDER.md5
+tar -czf $PACKAGE_FOLDER.tar.gz ./$PACKAGE_FOLDER
+md5sum $PACKAGE_FOLDER.tar.gz > $PACKAGE_FOLDER.md5
+rm -rf $PACKAGE_FOLDER
+
+
+
+
+
+
+
+

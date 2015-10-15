@@ -19,7 +19,7 @@
 
     var errorCodeInfo = {
         NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
-        DEFAULT: new$.ipc.Error({code: -1, msg: "unknow error"}),
+        DEFAULT: new $.ipc.Error({code: -1, msg: "unknow error"}),
     }
 
     var tmpErrorCodeCallBackMap = {}
@@ -41,7 +41,7 @@
 
     $.ipc.Model = Model;
 
-})(jQuery)
+})(jQuery);
 
 (function ($) {
     "use strict";
@@ -188,7 +188,7 @@
         ALIAS_FORMAT_ERROR: new Error({code: -20572, msg: "device alias format error"}),
     };
 
-    var deviceModel = new Model();
+    var deviceModel = new $.ipc.Model();
     deviceModel.extendAjaxCallback(deviceErrorCodeInfo);
 
     Device.prototype = deviceModel;
