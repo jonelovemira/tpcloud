@@ -53,26 +53,61 @@
         this.token = null;
         this.email = null;
         this.account = null;
+        this.password = null;
     };
     var userErrorCodeInfo = {
-        SESSION_TIMEOUT: new $.ipc.Error({code: 100, msg: "session is timeout"}),
-        CROSS_REGION: new $.ipc.Error({code: 302, msg: "user logined cross region"}),
-        ACCOUNT_IS_EMPTY: new $.ipc.Error({code: 1005, msg: "input an empty account"}),
-        ACCOUNT_ALREADY_EXIST: new $.ipc.Error({code: 1006, msg: "input account already exist"}),
-        ACCOUNT_NOT_ACTIVATED: new $.ipc.Error({code: 1009, msg: "account is not activated"}),
-        PASSWORD_EMPTY: new $.ipc.Error({code: 1020, msg: "input password is empty"}),
-        PASSWORD_FORMAT_INVALID: new $.ipc.Error({code: 1023, msg: "input password has an invalid format"}),
-        ACCOUNT_PASSWORD_NOT_MATCH: new $.ipc.Error({code: 1024, msg: "input account doesn't match the password"}),
+        EMAIL_NEEDED: new $.ipc.Error({code: 1000, msg: "email is needed"}),
+        EMAIL_FORMAT_ERROR: new $.ipc.Error({code: 1002, msg: "email format is invalid"}),
+        ACCOUNT_IS_NEEDED: new $.ipc.Error({code: 1005, msg: "account is needed"}),
+        ACCOUNT_NOT_EXIST: new $.ipc.Error({code: 1006, msg: "account does not exist"}),
+        ACCOUNT_ALREADY_ACTIVATED: new $.ipc.Error({code: 1007, msg: "account has already been activated"}),
+        EMAIL_HAVE_BEEN_USED: new $.ipc.Error({code: 1008, msg: "email have been used"}),
+        ACCOUNT_NOT_ACTIVE: new $.ipc.Error({code: 1009, msg: "account is not activated"}),
+        USERNAME_NEEDED: new $.ipc.Error({code: 1011, msg: "username is needed"}),
+        USERNAME_HAVE_BEED_USED: new $.ipc.Error({code: 1013, msg: "username have been used"}),
+        USERNAME_FORMAT_ERROR: new $.ipc.Error({code: 1015, msg: "username format is invalid"}),
+        PASSWORD_NEEDED: new $.ipc.Error({code:1020, msg: "password is needed"}),
+        PASSWORD_LENGTH_ERROR: new $.ipc.Error({code: 1022, msg: "password length is invalid"}),
+        DECRYPT_PASSWORD_FAILED: new $.ipc.Error({code: 1023, msg: "decrypt password failed"}),
+        ACCOUNT_PASSWORD_NOT_MATCH: new $.ipc.Error({code: 1024, msg: "account and password is not match"}),
     };
     var userModel = new $.ipc.Model();
     userModel.extendAjaxCallback(userErrorCodeInfo);
 
     User.prototype = userModel;
 
+
+    User.prototype.register = function(inputCallbacks) {
+        if (undefined == this.email || undefined == this.username || undefined == this.password) {
+            throw "args error in register";
+            return;
+        };
+        
+        var currentUser = this;
+        currentUser.extendAjaxCallback(inputCallbacks);
+        var data = JSON.stringify({
+            "email": currentUser.email,
+            "username": currentUser.username,
+            "password": currentUser.password
+        });
+        $.xAjax({
+            url : "/register",
+            data : data,
+            success : function(response){
+                /* change currentUser state*/
+                // none
+                
+                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
+                callbackFunc(response);
+            },
+            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
+        });
+    };
+
     User.prototype.login = function(inputCallbacks){
         /* validate needed args*/
-        if (undefined == this.email || undefined == this.password) {
-            throw "error when login due to args error";
+        if (undefined == this.account || undefined == this.password) {
+            throw "args error in login";
             return;
         };
         /* preserve context obj */
@@ -81,7 +116,7 @@
         currentUser.extendAjaxCallback(inputCallbacks);
         /* build ajax data*/
         var data = JSON.stringify({
-            "account" : currentUser.email,
+            "account" : currentUser.account,
             "password" : currentUser.password
         });
         /* make ajax request*/
@@ -90,7 +125,10 @@
             data : data,
             success : function(response){
                 /* change currentUser state*/
-                // none
+                if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
+                    currentUser.token = response.msg.token;
+                    currentUser.email = response.msg.email;
+                };
                 
                 var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
                 callbackFunc(response);
@@ -137,7 +175,7 @@
     User.prototype.logout = function(inputCallbacks) {
         /* validate needed args*/
         if (undefined == this.email) {
-            throw "error when logout due to args error";
+            throw "args error in logout";
             return;
         };
         /* preserve context obj */
@@ -145,17 +183,13 @@
         /* ajax callbacks extend */
         currentUser.extendAjaxCallback(inputCallbacks);
         /* build ajax data*/
-        var data = {
-            "REQUEST": "LOGOUT",
-            "DATA": {
-                "account": currentUser.email
-            }
-        };
+        var data = JSON.stringify({
+            "email": currentUser.email
+        });
         /* make ajax request*/
         $.xAjax({
-            url : "init3.php",
+            url : "/logout",
             data : data,
-            contentType: "application/x-www-form-urlencoded;charset=UTF-8",
             success : function(response){
                 /* change currentUser state*/
                 if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
@@ -168,6 +202,41 @@
             error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
         });
     };
+
+    User.prototype.sendActiveEmail = function(inputCallbacks) {
+        if (undefined == this.email) {
+            throw "args error in sendActiveEmail";
+            return;
+        };
+
+        var currentUser = this;
+        currentUser.extendAjaxCallback(inputCallbacks);
+        var data = JSON.stringify({
+            "email": currentUser.email
+        });
+
+        $.xAjax({
+            url : "/sentactiveemail",
+            data : data,
+            success : function(response){
+                /* change currentUser state*/
+                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
+                callbackFunc(response);
+            },
+            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
+        });
+    };
+
+    User.prototype.resetPassword = function(inputCallbacks) {
+        if (undefined == this.email) {
+            throw "args error in resetPassword";
+            return;
+        };
+
+        
+    };
+
+
 
     $.ipc.User = User;
 

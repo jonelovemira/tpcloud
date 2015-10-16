@@ -104,6 +104,7 @@
         dataType : "json",              
         cache : false,
         contentType : "application/json;charset=utf-8",
+        headers: {Accept : "application/json; version=1.0; charset=utf-8"},
         timeout : 60000,
         async : true,
         global : false
