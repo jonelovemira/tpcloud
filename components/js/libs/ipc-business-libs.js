@@ -15,28 +15,54 @@
 
     $.ipc.Error = Error;
 
-    function Model () {}
+    function Model () {
+        var errorCodeInfo = {
+            NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
+            DEFAULT: new $.ipc.Error({code: -1, msg: "unknow error"}),
+        }
 
-    var errorCodeInfo = {
-        NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
-        DEFAULT: new $.ipc.Error({code: -1, msg: "unknow error"}),
-    }
+        var tmpErrorCodeCallBackMap = {}
+        for (var eci in errorCodeInfo) {
+            var e = errorCodeInfo[eci];
+            tmpErrorCodeCallBackMap[e.code] = $.proxy(e.printMsg, e);
+        };
 
-    var tmpErrorCodeCallBackMap = {}
-    for (var eci in errorCodeInfo) {
-        var e = errorCodeInfo[eci];
-        tmpErrorCodeCallBackMap[e.code] = $.proxy(e.printMsg, e);
-    };
-
-    Model.prototype.ajaxCallbacks = {
-        errorCodeCallbackMap : tmpErrorCodeCallBackMap,
-        errorCallback : function(xhr){console.log("xhr error: ", xhr)},
+        this.ajaxCallbacks = {
+            errorCodeCallbackMap : tmpErrorCodeCallBackMap,
+            errorCallback : function(xhr){console.log("xhr error: ", xhr)},
+        }
     }
 
     Model.prototype.extendAjaxCallback = function(inputCallbacks) {
-        if (inputCallbacks != undefined) {
-            $.extend(true, this.ajaxCallbacks, { "errorCodeCallbackMap" : inputCallbacks});
+        var tmpCallbacks =  $.extend(true, {}, this.ajaxCallbacks, inputCallbacks);
+        return tmpCallbacks;
+    };
+
+    Mode.prototype.makeAjaxRequest = function(inputArgs) {
+
+        if (undefined == inputArgs["url"] || undefined == inputArgs["data"] || undefined == inputArgs["changeState"]) {
+            throw "args error in makeAjaxRequest";
+            return;
         };
+
+        var tmpCallbacks = this.extendAjaxCallback(inputArgs["callbacks"]);
+        var currentModel = this;
+
+        $.xAjax({
+            url : inputArgs["url"],
+            data : inputArgs["data"],
+            success : function(response){
+                /* change currentUser state*/
+                if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
+                    var changeStateFunc = $.proxy(initArgs["changeState"], currentModel);
+                    changeStateFunc(response);
+                }
+                
+                var callbackFunc = tmpCallbacks.errorCodeCallBackMap[response.errorCode] || tmpCallbacks.errorCodeCallBackMap[-1];
+                callbackFunc(response);
+            },
+            error : function(xhr){tmpCallbacks.errorCallback(xhr)}
+        });
     };
 
     $.ipc.Model = Model;
@@ -54,8 +80,10 @@
         this.email = null;
         this.account = null;
         this.password = null;
+        this.oldpassword = null;
     };
     var userErrorCodeInfo = {
+        TOKEN_INVALID: new new $.ipc.Error({code: 100, msg: "token is invalid, plz relogin"}),
         EMAIL_NEEDED: new $.ipc.Error({code: 1000, msg: "email is needed"}),
         EMAIL_FORMAT_ERROR: new $.ipc.Error({code: 1002, msg: "email format is invalid"}),
         ACCOUNT_IS_NEEDED: new $.ipc.Error({code: 1005, msg: "account is needed"}),
@@ -70,12 +98,12 @@
         PASSWORD_LENGTH_ERROR: new $.ipc.Error({code: 1022, msg: "password length is invalid"}),
         DECRYPT_PASSWORD_FAILED: new $.ipc.Error({code: 1023, msg: "decrypt password failed"}),
         ACCOUNT_PASSWORD_NOT_MATCH: new $.ipc.Error({code: 1024, msg: "account and password is not match"}),
+        NEW_PASSWORD_NEEDED: new $.ipc.Error({code: 1025, msg: "new password is needed"}),
     };
     var userModel = new $.ipc.Model();
-    userModel.extendAjaxCallback(userErrorCodeInfo);
+    userModel.ajaxCallbacks = userModel.extendAjaxCallback({"errorCodeCallbackMap": userErrorCodeInfo});
 
     User.prototype = userModel;
-
 
     User.prototype.register = function(inputCallbacks) {
         if (undefined == this.email || undefined == this.username || undefined == this.password) {
@@ -83,124 +111,49 @@
             return;
         };
         
-        var currentUser = this;
-        currentUser.extendAjaxCallback(inputCallbacks);
         var data = JSON.stringify({
-            "email": currentUser.email,
-            "username": currentUser.username,
-            "password": currentUser.password
+            "email": this.email,
+            "username": this.username,
+            "password": this.password
         });
-        $.xAjax({
-            url : "/register",
-            data : data,
-            success : function(response){
-                /* change currentUser state*/
-                // none
-                
-                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
-                callbackFunc(response);
-            },
-            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
-        });
+
+        this.makeAjaxRequest({url: "/register", data: data, callbacks: inputCallbacks, changeState: $.noop});
     };
 
     User.prototype.login = function(inputCallbacks){
-        /* validate needed args*/
         if (undefined == this.account || undefined == this.password) {
             throw "args error in login";
             return;
         };
-        /* preserve context obj */
-        var currentUser = this;
-        /* ajax callbacks extend */
-        currentUser.extendAjaxCallback(inputCallbacks);
-        /* build ajax data*/
+        
         var data = JSON.stringify({
-            "account" : currentUser.account,
-            "password" : currentUser.password
+            "account" : this.account,
+            "password" : this.password
         });
-        /* make ajax request*/
-        $.xAjax({
-            url : "/login",
-            data : data,
-            success : function(response){
-                /* change currentUser state*/
-                if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
-                    currentUser.token = response.msg.token;
-                    currentUser.email = response.msg.email;
-                };
-                
-                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
-                callbackFunc(response);
-            },
-            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
-        });
-    };
 
-    User.prototype.getUsername = function(inputCallbacks){
-        /* validate needed args*/
-        if (undefined == this.email) {
-            throw "error when get username due to args error";
-            return;
-        };
-        /* preserve context obj */
-        var currentUser = this;
-        /* ajax callbacks extend */
-        currentUser.extendAjaxCallback(inputCallbacks);
-        /* build ajax data*/
-        var data = {
-            "REQUEST": "GETUSER",
-            "DATA": {
-                "account": currentUser.email
-            }
-        };
-        /* make ajax request*/
-        $.xAjax({
-            url : "init3.php",
-            data : data,
-            contentType: "application/x-www-form-urlencoded;charset=UTF-8",
-            success : function(response){
-                /* change currentUser state*/
-                if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
-                    currentUser.username = response.msg.username;
-                };
-                
-                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
-                callbackFunc(response);
-            },
-            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
-        });
+        var changeStateFunc = function(response){
+            this.token = response.msg.token;
+            this.email = response.msg.email;
+        }
+
+        this.makeAjaxRequest({url: "/login", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
     User.prototype.logout = function(inputCallbacks) {
-        /* validate needed args*/
         if (undefined == this.email) {
             throw "args error in logout";
             return;
         };
-        /* preserve context obj */
-        var currentUser = this;
-        /* ajax callbacks extend */
-        currentUser.extendAjaxCallback(inputCallbacks);
-        /* build ajax data*/
+
         var data = JSON.stringify({
-            "email": currentUser.email
+            "email": this.email
         });
-        /* make ajax request*/
-        $.xAjax({
-            url : "/logout",
-            data : data,
-            success : function(response){
-                /* change currentUser state*/
-                if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
-                    currentUser.token = null;
-                };
-                
-                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
-                callbackFunc(response);
-            },
-            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
-        });
+
+        var changeStateFunc = function(response){
+            this.token = null;
+        }
+
+        this.makeAjaxRequest({url: "/logout", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
     User.prototype.sendActiveEmail = function(inputCallbacks) {
@@ -209,22 +162,11 @@
             return;
         };
 
-        var currentUser = this;
-        currentUser.extendAjaxCallback(inputCallbacks);
         var data = JSON.stringify({
-            "email": currentUser.email
+            "email": this.email
         });
 
-        $.xAjax({
-            url : "/sentactiveemail",
-            data : data,
-            success : function(response){
-                /* change currentUser state*/
-                var callbackFunc = currentUser.ajaxCallbacks.errorCodeCallBackMap[response.errorCode] || currentUser.ajaxCallbacks.errorCodeCallBackMap[-1];
-                callbackFunc(response);
-            },
-            error : function(xhr){currentUser.ajaxCallbacks.errorCallback(xhr)}
-        });
+        this.makeAjaxRequest({url: "/sentactiveemail", data: data, callbacks: inputCallbacks, changeState: $.noop});
     };
 
     User.prototype.resetPassword = function(inputCallbacks) {
@@ -232,11 +174,56 @@
             throw "args error in resetPassword";
             return;
         };
-
         
+        var data = JSON.stringify({
+            "email": this.email
+        });
+
+        var changeStateFunc = function(response){
+            this.password = null;
+        };
+
+        this.makeAjaxRequest({url: "/forgetpassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
+    User.prototype.modifyPassword = function(inputCallbacks) {
+        if (undefined == this.email || undefined == this.oldpassword 
+            || undefined == this.password || undefined == this.token) {
+            throw "args error in modifyPassword";
+            return;
+        };
+        
+        var data = JSON.stringify({
+            "email": this.email,
+            "oldpassword": this.oldpassword,
+            "password": this.password,
+            "token": this.token
+        });
 
+        var changeStateFunc = function(response){
+            this.token = null;
+            this.password = null;
+        };
+
+        this.makeAjaxRequest({url: "/modifypassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
+
+    User.prototype.getUsername = function(inputCallbacks){
+        if (undefined == this.email) {
+            throw "error when get username due to args error";
+            return;
+        };
+
+        var data = JSON.stringify({
+            "email": this.email  
+        });
+
+        var changeStateFunc = function(response){
+            this.username = response.msg.username;
+        };
+        
+        this.makeAjaxRequest({url: "/getuser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
 
     $.ipc.User = User;
 
@@ -258,11 +245,9 @@
     };
 
     var deviceModel = new $.ipc.Model();
-    deviceModel.extendAjaxCallback(deviceErrorCodeInfo);
+    deviceModel.extendAjaxCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
 
     Device.prototype = deviceModel;
-
-    var defaultCallbacks = $.ipc.PublicMethod.buildDefaultCallbacks(Device);
 
     Device.prototype.changeName = function(newName, inputCallbacks) {
         /* validate needed args*/
