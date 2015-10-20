@@ -129,9 +129,7 @@
         if (null == str) {
             return;
         };
-        var result;
-        var str = str;
-        result = str.replace(/(^\s+)|(\s+$)/g, ""); 
+        var result = str.replace(/(^\s+)|(\s+$)/g, ""); 
         if (mode == "all") {
             result = result.replace(/\s/g, "");
         } else if (mode == "one") { 

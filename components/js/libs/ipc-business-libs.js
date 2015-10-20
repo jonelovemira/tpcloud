@@ -1,4 +1,19 @@
+/*****************************************************************************
+* Copyright© 2004-2015 TP-LINK TECHNOLOGIES CO., LTD.
+* File Name: ipc-business-libs.js
+* Author:    Jone Xu
+* Version:   1.0
+* Description:
+*     This is business libs for interact with backend from front-ends model.
+* 
+*
+* History:
+*     2015-10-20: Jone Xu         File created.
+*****************************************************************************/
+
 (function($){
+    "use strict";
+
     $.ipc = $.ipc || {};
 
     function Error(initArgs){
@@ -38,7 +53,7 @@
         return tmpCallbacks;
     };
 
-    Mode.prototype.makeAjaxRequest = function(inputArgs) {
+    Model.prototype.makeAjaxRequest = function(inputArgs) {
 
         if (undefined == inputArgs["url"] || undefined == inputArgs["data"] || undefined == inputArgs["changeState"]) {
             throw "args error in makeAjaxRequest";
@@ -83,7 +98,7 @@
         this.oldpassword = null;
     };
     var userErrorCodeInfo = {
-        TOKEN_INVALID: new new $.ipc.Error({code: 100, msg: "token is invalid, plz relogin"}),
+        TOKEN_INVALID: new $.ipc.Error({code: 100, msg: "token is invalid, plz relogin"}),
         EMAIL_NEEDED: new $.ipc.Error({code: 1000, msg: "email is needed"}),
         EMAIL_FORMAT_ERROR: new $.ipc.Error({code: 1002, msg: "email format is invalid"}),
         ACCOUNT_IS_NEEDED: new $.ipc.Error({code: 1005, msg: "account is needed"}),
@@ -234,7 +249,22 @@
 
     $.ipc = $.ipc || {};
 
-    function Device(){}
+    function Device(){
+        this.owner = null;
+        this.id = null;
+        this.type = null;
+        this.mac = null;
+        this.isOnline = null;
+        this.fwVer = null;
+        this.appServerUrl = null;
+        this.name = null;
+        this.isSameRegion = null;
+        this.azIP = null;
+        this.azDNS = null;
+        this.systemStatus = null;
+        this.needForceUpgrade = null;
+        this.fwUrl = null;
+    }
 
     var deviceErrorCodeInfo = {
         OWNER_NOT_LOGIN : new $.ipc.Error({code:-20651, msg: "owner doesn't logged in"}),
@@ -248,6 +278,25 @@
     deviceModel.extendAjaxCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
 
     Device.prototype = deviceModel;
+
+    Device.prototype.getCamera = function(inputCallbacks) {
+        if (undefined == this.owner || undefined == this.owner.email || undefined == this.id) {
+            throw "args error in getcamera";
+            return;
+        };
+
+        var data = JSON.stringify({
+            "email": this.owner.email,
+            "Id": this.id  
+        });
+
+        var changeStateFunc = function(response){
+            this.username = response.msg.username;
+            $.extend(true, this, response.msg);
+        };
+        
+        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
 
     Device.prototype.changeName = function(newName, inputCallbacks) {
         /* validate needed args*/
@@ -287,5 +336,50 @@
         });
     };
 
+    $.ipc.Device = Device;
+
     
-})(jQuery)
+})(jQuery);
+
+(function ($){
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function DeviceList () {
+        this.owner = null;
+        this.devices = [];
+    }
+
+    var deviceListErrorCodeInfo = {
+        EMAIL_NEEDED: new $.ipc.Error({code: 1000, msg: "email is needed"}),
+        EMAIL_FORMAT_ERROR: new $.ipc.Error({code: 1002, msg: "email format is invalid"}),
+        ACCOUNT_NOT_EXIST: new $.ipc.Error({code: 1006, msg: "account does not exist"}),
+        ACCOUNT_ALREADY_ACTIVATED: new $.ipc.Error({code: 1007, msg: "account has already been activated"}),
+    }
+
+    var deviceListModel = new $.ipc.Model;
+    deviceListModel.extendAjaxCallback({"errorCodeCallbackMap": deviceListErrorCodeInfo});
+    DeviceList.prototype = deviceListModel;
+
+    DeviceList.prototype.getMyList = function(inputCallbacks) {
+        if (undefined == this.owner || undefined == this.owner.email || undefined == this.id) {
+            throw "args error in getcamera";
+            return;
+        };
+
+        var data = JSON.stringify({
+            "email": this.owner.email,
+            "Id": this.id  
+        });
+
+        var changeStateFunc = function(response){
+            this.username = response.msg.username;
+            $.extend(true, this, response.msg);
+        };
+        
+        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
+
+
+})(jQuery);
