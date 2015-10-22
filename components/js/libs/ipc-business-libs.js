@@ -31,25 +31,17 @@
     $.ipc.Error = Error;
 
     function Model () {
-        var errorCodeInfo = {
-            NO_ERROR: new $.ipc.Error({code: 0, msg: "OK"}),
-            DEFAULT: new $.ipc.Error({code: -1, msg: "unknow error"}),
-        }
-
-        var tmpErrorCodeCallBackMap = {}
-        for (var eci in errorCodeInfo) {
-            var e = errorCodeInfo[eci];
-            tmpErrorCodeCallBackMap[e.code] = $.proxy(e.printMsg, e);
-        };
-
-        this.ajaxCallbacks = {
-            errorCodeCallbackMap : tmpErrorCodeCallBackMap,
+        this.errorCodeCallbacks = {
+            errorCodeCallbackMap : {
+                "0": function(){console.log("OK");},
+                "-1": function(){console.log("unknow error");},
+            },
             errorCallback : function(xhr){console.log("xhr error: ", xhr)},
-        }
+        } 
     }
 
-    Model.prototype.extendAjaxCallback = function(inputCallbacks) {
-        var tmpCallbacks =  $.extend(true, {}, this.ajaxCallbacks, inputCallbacks);
+    Model.prototype.extendErrorCodeCallback = function(inputCallbacks) {
+        var tmpCallbacks =  $.extend(true, {}, this.errorCodeCallbacks, inputCallbacks);
         return tmpCallbacks;
     };
 
@@ -60,20 +52,22 @@
             return;
         };
 
-        var tmpCallbacks = this.extendAjaxCallback(inputArgs["callbacks"]);
+        var tmpCallbacks = this.extendErrorCodeCallback(inputArgs["callbacks"]);
         var currentModel = this;
 
         $.xAjax({
             url : inputArgs["url"],
             data : inputArgs["data"],
             success : function(response){
-                /* change currentUser state*/
-                if (response.errorCode == User.errorCodeInfo.NO_ERROR.code) {
-                    var changeStateFunc = $.proxy(initArgs["changeState"], currentModel);
+                var errCodeStrIndex = inputArgs["errCodeStrIndex"] || "errorCode";
+                var noErrorCode = inputArgs["noErrorCode"] || 0;
+                var defaultErrorCode = inputArgs["defaultErrorCode"] || -1;
+
+                if (response[errCodeStrIndex] == noErrorCode) {
+                    var changeStateFunc = $.proxy(inputArgs["changeState"], currentModel);
                     changeStateFunc(response);
                 }
-                
-                var callbackFunc = tmpCallbacks.errorCodeCallBackMap[response.errorCode] || tmpCallbacks.errorCodeCallBackMap[-1];
+                var callbackFunc = tmpCallbacks.errorCodeCallbackMap[response[errCodeStrIndex]] || tmpCallbacks.errorCodeCallbackMap[defaultErrorCode];
                 callbackFunc(response);
             },
             error : function(xhr){tmpCallbacks.errorCallback(xhr)}
@@ -98,25 +92,25 @@
         this.oldpassword = null;
     };
     var userErrorCodeInfo = {
-        TOKEN_INVALID: new $.ipc.Error({code: 100, msg: "token is invalid, plz relogin"}),
-        EMAIL_NEEDED: new $.ipc.Error({code: 1000, msg: "email is needed"}),
-        EMAIL_FORMAT_ERROR: new $.ipc.Error({code: 1002, msg: "email format is invalid"}),
-        ACCOUNT_IS_NEEDED: new $.ipc.Error({code: 1005, msg: "account is needed"}),
-        ACCOUNT_NOT_EXIST: new $.ipc.Error({code: 1006, msg: "account does not exist"}),
-        ACCOUNT_ALREADY_ACTIVATED: new $.ipc.Error({code: 1007, msg: "account has already been activated"}),
-        EMAIL_HAVE_BEEN_USED: new $.ipc.Error({code: 1008, msg: "email have been used"}),
-        ACCOUNT_NOT_ACTIVE: new $.ipc.Error({code: 1009, msg: "account is not activated"}),
-        USERNAME_NEEDED: new $.ipc.Error({code: 1011, msg: "username is needed"}),
-        USERNAME_HAVE_BEED_USED: new $.ipc.Error({code: 1013, msg: "username have been used"}),
-        USERNAME_FORMAT_ERROR: new $.ipc.Error({code: 1015, msg: "username format is invalid"}),
-        PASSWORD_NEEDED: new $.ipc.Error({code:1020, msg: "password is needed"}),
-        PASSWORD_LENGTH_ERROR: new $.ipc.Error({code: 1022, msg: "password length is invalid"}),
-        DECRYPT_PASSWORD_FAILED: new $.ipc.Error({code: 1023, msg: "decrypt password failed"}),
-        ACCOUNT_PASSWORD_NOT_MATCH: new $.ipc.Error({code: 1024, msg: "account and password is not match"}),
-        NEW_PASSWORD_NEEDED: new $.ipc.Error({code: 1025, msg: "new password is needed"}),
+        100: function(){console.log("token is invalid, plz relogin");},
+        1000: function(){console.log("email is needed");},
+        1002: function(){console.log("email format is invalid");},
+        1005: function(){console.log("account is needed");},
+        1006: function(){console.log("account does not exist");},
+        1007: function(){console.log("account has already been activated");},
+        1008: function(){console.log("email have been used");},
+        1009: function(){console.log("account is not activated");},
+        1011: function(){console.log("username is needed");},
+        1013: function(){console.log("username have been used");},
+        1015: function(){console.log("username format is invalid");},
+        1020: function(){console.log("password is needed");},
+        1022: function(){console.log("password length is invalid");},
+        1023: function(){console.log("decrypt password failed");},
+        1024: function(){console.log("account and password is not match");},
+        1025: function(){console.log("new password is needed");},
     };
     var userModel = new $.ipc.Model();
-    userModel.ajaxCallbacks = userModel.extendAjaxCallback({"errorCodeCallbackMap": userErrorCodeInfo});
+    userModel.errorCodeCallbacks = userModel.extendErrorCodeCallback({"errorCodeCallbackMap": userErrorCodeInfo});
 
     User.prototype = userModel;
 
@@ -136,13 +130,13 @@
     };
 
     User.prototype.login = function(inputCallbacks){
-        if (undefined == this.account || undefined == this.password) {
+        if (undefined == this.username || undefined == this.password) {
             throw "args error in login";
             return;
         };
         
         var data = JSON.stringify({
-            "account" : this.account,
+            "username" : this.username,
             "password" : this.password
         });
 
@@ -181,7 +175,7 @@
             "email": this.email
         });
 
-        this.makeAjaxRequest({url: "/sentactiveemail", data: data, callbacks: inputCallbacks, changeState: $.noop});
+        this.makeAjaxRequest({url: "/sendActiveEmail", data: data, callbacks: inputCallbacks, changeState: $.noop});
     };
 
     User.prototype.resetPassword = function(inputCallbacks) {
@@ -198,7 +192,7 @@
             this.password = null;
         };
 
-        this.makeAjaxRequest({url: "/forgetpassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({url: "/forgetPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
     User.prototype.modifyPassword = function(inputCallbacks) {
@@ -220,10 +214,10 @@
             this.password = null;
         };
 
-        this.makeAjaxRequest({url: "/modifypassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({url: "/modifyPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.getUsername = function(inputCallbacks){
+    User.prototype.getUser = function(inputCallbacks){
         if (undefined == this.email) {
             throw "error when get username due to args error";
             return;
@@ -237,7 +231,7 @@
             this.username = response.msg.username;
         };
         
-        this.makeAjaxRequest({url: "/getuser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({url: "/getUser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
     $.ipc.User = User;
@@ -275,7 +269,7 @@
     };
 
     var deviceModel = new $.ipc.Model();
-    deviceModel.extendAjaxCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
+    deviceModel.extendErrorCodeCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
 
     Device.prototype = deviceModel;
 
@@ -359,7 +353,7 @@
     }
 
     var deviceListModel = new $.ipc.Model;
-    deviceListModel.extendAjaxCallback({"errorCodeCallbackMap": deviceListErrorCodeInfo});
+    deviceListModel.extendErrorCodeCallback({"errorCodeCallbackMap": deviceListErrorCodeInfo});
     DeviceList.prototype = deviceListModel;
 
     DeviceList.prototype.getMyList = function(inputCallbacks) {
