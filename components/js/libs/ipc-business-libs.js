@@ -5,10 +5,16 @@
 * Version:   1.0
 * Description:
 *     This is business libs for interact with backend from front-ends model.
-* 
+*
+* Requires:
+*     jquery-1.8.2.min.js           jquery libs 
+*     ipc-info-libs.js              ipc msg tips library      
+*     
 *
 * History:
-*     2015-10-20: Jone Xu         File created.
+*     2015-10-20: Jone Xu           File created.
+*     2015-10-21: Jone Xu           Finish the methods of User
+*     2015-10-23: Jone Xu           Add validate methods to check attrs
 *****************************************************************************/
 
 (function($){
@@ -16,12 +22,9 @@
 
     $.ipc = $.ipc || {};
 
-    function Error(initArgs){
-        if (undefined == initArgs["code"] || undefined == initArgs["msg"]) {
-            throw "error when construct error code";
-        };
-        this.code = initArgs["code"];
-        this.msg = initArgs["msg"];
+    function Error(){
+        this.code = null;
+        this.msg = null;
     }
 
     Error.prototype.printMsg = function() {
@@ -72,6 +75,31 @@
             },
             error : function(xhr){tmpCallbacks.errorCallback(xhr)}
         });
+    };
+
+    Model.prototype.validateAttr = function (inputArgs) {
+        if(undefined == inputArgs["attr"] || undefined == inputArgs["attrEmptyMsg"] || 
+            undefined == inputArgs["maxLength"] || undefined == inputArgs["minLength"] ||
+            undefined == inputArgs["attrOutOfLimitMsg"] || undefined == inputArgs["pattern"] ||
+            undefined == inputArgs["patternTestFailMsg"]) {
+            throw "args error in validateAttr";
+            return;
+        };
+        var e = new $.ipc.Error();
+        if (0 == inputArgs["attr"].length) {
+            e.code = -1;
+            e.msg = inputArgs["attrEmptyMsg"];
+        } else if (inputArgs["attr"].length > inputArgs["maxLength"] || inputArgs["attr"].length < inputArgs["minLength"]) {
+            e.code = -1;
+            e.msg = inputArgs["attrOutOfLimitMsg"];
+        } else if (!inputArgs["pattern"].test(inputArgs["attr"])) {
+            e.code = -1;
+            e.msg = inputArgs["patternTestFailMsg"];
+        } else {
+            e.code = 0;
+            e.msg = "OK";
+        }
+        return e;
     };
 
     $.ipc.Model = Model;
@@ -234,11 +262,66 @@
         this.makeAjaxRequest({url: "/getUser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
+    User.prototype.validateUsernameFormat = function() {
+        if (undefined == this.username) {
+            throw "args error in validateUsernameFormat";
+            return;
+        };
+
+        var validateArgs = {
+            "attr": this.username,
+            "attrEmptyMsg": tips.valid.userName.empty,
+            "maxLength": 32,
+            "minLength": 1,
+            "attrOutOfLimitMsg": tips.valid.userName.limit,
+            "pattern": /^[0-9A-Za-z-_.]{1,32}$/,
+            "patternTestFailMsg": tips.valid.userName.invalid, 
+        };
+
+        return this.validateAttr(validateArgs);
+    };
+
+    User.prototype.validatePasswordFormat = function() {
+        if (undefined == this.password) {
+            throw "args error in validatePasswordFormat";
+            return;
+        };
+        
+        var validateArgs = {
+            "attr": this.password,
+            "attrEmptyMsg": tips.valid.changepassword.empty,
+            "maxLength": 32,
+            "minLength": 6,
+            "attrOutOfLimitMsg": tips.valid.changepassword.limit,
+            "pattern": /^[\x21-\x7e]{6,32}$/,
+            "patternTestFailMsg": tips.valid.changepassword.invalid, 
+        };
+        return this.validateAttr(validateArgs);
+    };
+
+    User.prototype.validateEmailFormat = function() {
+        if (undefined == this.email) {
+            throw "args error in validateEmailFormat";
+            return;
+        };
+        
+        var validateArgs = {
+            "attr": this.email,
+            "attrEmptyMsg": tips.valid.email.empty,
+            "maxLength": 64,
+            "minLength": 1,
+            "attrOutOfLimitMsg": tips.valid.email.limit,
+            "pattern": /^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,6})$/,
+            "patternTestFailMsg": tips.valid.email.invalid, 
+        };
+        return this.validateAttr(validateArgs);
+    };
+
     $.ipc.User = User;
 
 })(jQuery);
 
-(function ($){
+/*(function ($){
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -293,18 +376,14 @@
     };
 
     Device.prototype.changeName = function(newName, inputCallbacks) {
-        /* validate needed args*/
         if (undefined == newName || undefined == this.id
             || undefined == this.appServerUrl || undefined == this.owner
             || undefined == this.owner.token) {
             throw "error when change device name due to args error";
             return;
         };
-        /* preserve context obj */
         var currentDevice = this;
-        /* ajax callbacks extend */
         var callbacks = $.ipc.PublicMethod.extendDefaultCallbacksForModel(currentDevice, inputCallbacks);
-        /* build ajax data*/
         var data = JSON.stringify({
             "method": "setAlias",
             "params": {
@@ -312,13 +391,11 @@
                 "deviceId": currentDevice.id
             }
         });
-        /* make ajax request*/
         $.xAjax({
             url : currentDevice.appServerUrl + "?token=" + currentDevice.owner.token,
             data : data,
             context: {newName: newName},
             success : function(response){
-                /* change currentDevice state*/
                 if (response.errorCode == Device.errorCodeInfo.NO_ERROR.code) {
                     currentDevice.name = this.newName;
                 };
@@ -376,4 +453,4 @@
     };
 
 
-})(jQuery);
+})(jQuery);*/

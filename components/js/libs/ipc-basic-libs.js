@@ -124,17 +124,4 @@
     var xDomainAjaxMap = {};
     xDomainAjaxMap[xDomainStr] = browserAjaxMap[$.BrowserTypeVersion] || normalAjax;
 
-
-    $.OneOrNoneTrim = function(str, mode) {
-        if (null == str) {
-            return;
-        };
-        var result = str.replace(/(^\s+)|(\s+$)/g, ""); 
-        if (mode == "all") {
-            result = result.replace(/\s/g, "");
-        } else if (mode == "one") { 
-            result = result.replace(/\s+/g, " ");
-        }
-        return result;
-    }
 })(jQuery);

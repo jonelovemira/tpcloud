@@ -1,4 +1,4 @@
-var lang = {
+var tips = {
     "setting": {
         "showpwd": "Show password",
         "hidepwd": "Hide password"
@@ -85,7 +85,7 @@ var lang = {
             "empty": "E-mail can't be empty.",
             "invalid": "Please enter a valid e-mail address.",
             "emailexist":"Account doesn’t exist.",
-            "limit": "Please enter an e-mail address within 32 characters."
+            "limit": "Please enter an e-mail address within 64 characters."
         },
         "userName": {
             "empty": "Username can't be empty.",
