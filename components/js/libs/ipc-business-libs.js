@@ -33,14 +33,33 @@
 
     $.ipc.Error = Error;
 
-    function Model () {
-        this.errorCodeCallbacks = {
-            errorCodeCallbackMap : {
-                "0": function(){console.log("OK");},
-                "-1": function(){console.log("unknow error");},
-            },
-            errorCallback : function(xhr){console.log("xhr error: ", xhr)},
-        } 
+    $.ipc.create = function(p) {
+        if (p == null) {
+            throw "unknown type, cannot create";
+        };
+
+        if (Object.create) {
+            return Object.create(p);
+        };
+
+        var t = typeof p;
+        if (t !== "object" && t !== "function" ) {
+            throw "not a object or function";
+        };
+
+        function f() {};
+        f.prototype = p;
+        return new f();
+    }
+
+    function Model () {};
+
+    Model.prototype.errorCodeCallbacks = {
+        errorCodeCallbackMap : {
+            "0": function(){console.log("OK");},
+            "-1": function(){console.log("unknow error");},
+        },
+        errorCallback : function(xhr){console.log("xhr error: ", xhr)},
     }
 
     Model.prototype.extendErrorCodeCallback = function(inputCallbacks) {
@@ -112,6 +131,7 @@
     $.ipc = $.ipc || {};   
 
     function User(){
+        $.ipc.Model.call(this, arguments);
         this.username = null;
         this.token = null;
         this.email = null;
@@ -119,6 +139,10 @@
         this.password = null;
         this.oldpassword = null;
     };
+    
+    User.prototype = $.ipc.create($.ipc.Model.prototype);
+    User.prototype.constructor = User;
+
     var userErrorCodeInfo = {
         100: function(){console.log("token is invalid, plz relogin");},
         1000: function(){console.log("email is needed");},
@@ -137,10 +161,8 @@
         1024: function(){console.log("account and password is not match");},
         1025: function(){console.log("new password is needed");},
     };
-    var userModel = new $.ipc.Model();
-    userModel.errorCodeCallbacks = userModel.extendErrorCodeCallback({"errorCodeCallbackMap": userErrorCodeInfo});
 
-    User.prototype = userModel;
+    User.prototype.errorCodeCallbacks = User.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": userErrorCodeInfo});
 
     User.prototype.register = function(inputCallbacks) {
         if (undefined == this.email || undefined == this.username || undefined == this.password) {

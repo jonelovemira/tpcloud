@@ -15,10 +15,6 @@ fis.match('*', {
     release: '/$0',
 });
 
-fis.match('fis-conf.js',{
-    useHash: false
-})
-
 fis.match('/common/*.html', {
     isBaseTemplateFile: true
 })
@@ -52,6 +48,10 @@ fis.media('beta').match('*.{js,css,png,ico}',{
 
 fis.media('product').match('*.{js,css,png,ico}',{
     domain: PRODUCT_CDN_PATH
+});
+
+fis.match('fis-conf.js',{
+    useHash: false
 });
 
 /**

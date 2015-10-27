@@ -13,7 +13,7 @@
 <div id="login" class="login" >
     <div class="putin">
         <div class="loginmode loginname">
-            <input tabindex=1 class="mf infocus" onBlur="if(this.value=='')this.value=this.defaultValue;" onFocus="if(this.value==this.defaultValue)this.value='';" id="Email" type="text" place="E-mail/Username" />
+            <input tabindex=1 class="mf infocus" onBlur="if(this.value=='')this.value=this.defaultValue;" onFocus="if(this.value==this.defaultValue)this.value='';" id="Email" type="text" value="E-mail/Username" />
         </div>
         <div class="loginmode">
             <span  class="mf" lang="en"  id ="passwordshow" >Password</span>
@@ -255,6 +255,8 @@
 <script type="text/javascript">
     $(function () {
 
+        "use strict";
+
         var feedDataUrlAttr = function(){
             var sectionPathMap = {
                 section0ImgPath : __uri("../img/index/m_section0.png"),
@@ -336,11 +338,29 @@
                 }, '500');
             });
         }
-
         backtotop();
 
+        $("#remember").siblings(".checkbox").attr("tabindex", 3);
+
+        $("#passwordshow").bind({
+            click: function() {
+                $(this).hide();
+                $("#Password").focus();
+            }
+        });
+
+        $("#Password").bind({
+            focus: function() {
+                $("#passwordshow").hide();
+            },
+            blur: function(){
+                if (!$("#Password").val())
+                {
+                    $("#passwordshow").show();
+                }
+            }
+        });
     })
-    
 </script>
 <script type="text/javascript" src="../js/index.js"></script>
-{% endblock%}
+{% endblock %}
