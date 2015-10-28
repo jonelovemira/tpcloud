@@ -50,7 +50,7 @@
 
     $.Msg = function(options){
 
-        var _options = $.extend(true, {}, $.Msg.defaults, options);
+        var _options = $.extend({}, $.Msg.defaults, options);
 
         var id = "Msg-1";
         if ($("#" + id).length > 0) {

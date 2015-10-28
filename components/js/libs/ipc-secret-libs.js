@@ -1044,7 +1044,6 @@
     Secret.base64encode = base64encode;
     Secret.base64decode = base64decode;
 
-    $.ipc.secret = $.ipc.secret || {};
     $.ipc.Secret = Secret;
 
 })(jQuery);

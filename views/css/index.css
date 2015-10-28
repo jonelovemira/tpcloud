@@ -59,7 +59,7 @@
     position: relative;
 }
 
-#Email, #Password {
+#Account, #Password {
     width: 234px;
     width: 254px\9;
     height: 33px\9;
@@ -73,9 +73,12 @@
     padding: 8px 8px 8px 10px;
 }
 
+#Account:focus,#Password:focus{
+    color:#323232;
+}
+
 .infocus {
     border: 1px solid #aaa;
-    /* box-shadow: 0 0px 0px 0px #7bd9ff; */
     background: #FAFAFA;
     height: 17px;
     color: #323232;
@@ -90,7 +93,7 @@
     outline:none;
 }
 
-#passwordshow {
+#password-cover {
     position: absolute;
     left: 2px;
     width: 234px;
@@ -102,6 +105,20 @@
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     z-index: 2;
     top: 57px;
+}
+
+#account-cover {
+    position: absolute;
+    left: 1px;
+    width: 234px;
+    height: 15px;
+    cursor: text;
+    padding: 8px 8px 8px 10px;
+    color: #aaa;
+    font-size: 1.2em;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    z-index: 2;
+    top: 2px;
 }
 
 .remeberaccount-holder {

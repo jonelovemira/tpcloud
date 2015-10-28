@@ -29,7 +29,7 @@
             return;
         };
 
-        var newOptions = $.extend(true, {}, $.xAjax.ieXDomainAjaxDefaults, options);
+        var newOptions = $.extend({}, $.xAjax.ieXDomainAjaxDefaults, options);
 
         if (newOptions.url == undefined) {
             throw "no url in ieXDomainAjax";
@@ -59,7 +59,7 @@
     };
 
     function normalAjax (options) {
-        var newOptions = $.extend(true, {}, $.xAjax.normalAjaxDefaults, options);
+        var newOptions = $.extend({}, $.xAjax.normalAjaxDefaults, options);
     
         if (newOptions.url == undefined) {
             throw "options.url in undefined in normalAjax";

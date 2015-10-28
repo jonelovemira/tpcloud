@@ -2,7 +2,7 @@
 
     $.fn.Select = function(options){
 
-        var _options = $.extend(true, {}, $.fn.Select.defaults, options);
+        var _options = $.extend({}, $.fn.Select.defaults, options);
         var $select = $(this);
 
         // some attributes can only retrieved after it show up.
