@@ -53,14 +53,14 @@
         return new f();
     };
 
-    function Model () {};
-
-    Model.prototype.errorCodeCallbacks = {
-        errorCodeCallbackMap : {
-            "0": function(){console.log("OK");},
-            "-1": function(){console.log("unknow error");},
-        },
-        errorCallback : function(xhr){console.log("xhr error: ", xhr)},
+    function Model () {
+        this.errorCodeCallbacks = {
+            errorCodeCallbackMap : {
+                "0": function(){console.log("OK");},
+                "-1": function(){console.log("unknow error");},
+            },
+            errorCallback : function(xhr){console.log("xhr error: ", xhr)},
+        };
     };
 
     Model.prototype.extendErrorCodeCallback = function(inputCallbacks) {
@@ -165,6 +165,7 @@
         1023: function(){console.log("decrypt password failed");},
         1024: function(){console.log("account and password is not match");},
         1025: function(){console.log("new password is needed");},
+        1029: function(){console.log("account was locked");},
     };
 
     User.prototype.errorCodeCallbacks = User.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": userErrorCodeInfo});
@@ -185,13 +186,13 @@
     };
 
     User.prototype.login = function(inputCallbacks){
-        if (undefined == this.username || undefined == this.password) {
+        if (undefined == this.account || undefined == this.password) {
             throw "args error in login";
             return;
         };
         
         var data = JSON.stringify({
-            "username" : this.username,
+            "username" : this.account,
             "password" : this.encryptText(this.password)
         });
 
@@ -297,12 +298,12 @@
 
         var validateArgs = {
             "attr": this.username,
-            "attrEmptyMsg": tips.valid.userName.empty,
+            "attrEmptyMsg": tips.types.username.cantBeEmpty,
             "maxLength": 32,
             "minLength": 1,
-            "attrOutOfLimitMsg": tips.valid.userName.limit,
+            "attrOutOfLimitMsg": tips.types.username.outOfLimit,
             "pattern": /^[0-9A-Za-z-_.]{1,32}$/,
-            "patternTestFailMsg": tips.valid.userName.invalid, 
+            "patternTestFailMsg": tips.types.username.invalid, 
         };
 
         return this.validateAttr(validateArgs);
@@ -316,12 +317,12 @@
         
         var validateArgs = {
             "attr": this.password,
-            "attrEmptyMsg": tips.valid.changepassword.empty,
+            "attrEmptyMsg": tips.types.password.cantBeEmpty,
             "maxLength": 32,
             "minLength": 6,
-            "attrOutOfLimitMsg": tips.valid.changepassword.limit,
+            "attrOutOfLimitMsg": tips.types.password.outOfLimit,
             "pattern": /^[\x21-\x7e]{6,32}$/,
-            "patternTestFailMsg": tips.valid.changepassword.invalid, 
+            "patternTestFailMsg": tips.types.password.invalid, 
         };
         return this.validateAttr(validateArgs);
     };
@@ -334,12 +335,12 @@
         
         var validateArgs = {
             "attr": this.email,
-            "attrEmptyMsg": tips.valid.email.empty,
+            "attrEmptyMsg": tips.types.email.cantBeEmpty,
             "maxLength": 64,
             "minLength": 1,
-            "attrOutOfLimitMsg": tips.valid.email.limit,
+            "attrOutOfLimitMsg": tips.types.email.outOfLimit,
             "pattern": /^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,6})$/,
-            "patternTestFailMsg": tips.valid.email.invalid, 
+            "patternTestFailMsg": tips.types.email.invalid, 
         };
         return this.validateAttr(validateArgs);
     };
