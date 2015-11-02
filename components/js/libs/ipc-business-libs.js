@@ -158,6 +158,7 @@
         1008: function(){console.log("email have been used");},
         1009: function(){console.log("account is not activated");},
         1011: function(){console.log("username is needed");},
+        1012: function(){console.log("username can not contain any illegal char")},
         1013: function(){console.log("username have been used");},
         1015: function(){console.log("username format is invalid");},
         1020: function(){console.log("password is needed");},
@@ -350,8 +351,9 @@
             throw "error in encryptText";
             return;
         };
-
-        return $.ipc.Secret.rsaEncrypt(text);
+        
+        return text;
+        // return $.ipc.Secret.rsaEncrypt(text);
     }
 
     $.ipc.User = User;

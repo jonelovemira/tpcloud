@@ -735,3 +735,28 @@
     border: #cacaca 1px solid;
     outline: none;
 }
+
+.declare {
+    color: #FF3F34;
+    font-size: 1em;
+    left: 5px;
+    position: relative;
+    top: 8px;
+}
+
+#warningtips {
+    background: none repeat scroll 0 0 #FFEBEA;
+    border: 1px solid #FFA8A3;
+    height: 32px;
+    position: absolute;
+    width: 252px;
+}
+
+.closetips {
+    cursor: pointer;
+    height: 16px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 16px;
+}

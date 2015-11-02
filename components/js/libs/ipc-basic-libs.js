@@ -3,10 +3,13 @@
     $.BrowserTypeVersion = (function(){
         var ua= navigator.userAgent, tem, 
         M= ua.match(/(opera|chrome|safari|firefox|msie|edge|trident(?=\/))\/?\s*(\d+)/i) || [];
-        if(/trident/i.test(M[1])){
-            tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
-            return 'IE '+(tem[1] || '');
-        }
+        for (var ieVer = 0; ieVer < 12; ieVer++) {
+            var b = document.createElement('b')
+            b.innerHTML = '<!--[if IE ' + ieVer + ']><i></i><![endif]-->';
+            if( b.getElementsByTagName('i').length === 1 ) {
+                return "MSIE " + ieVer;
+            };
+        };
         if(M[1]=== 'Chrome'){
             tem= ua.match(/\bOPR\/(\d+)/);
             if(tem!= null) return 'Opera '+tem[1];
