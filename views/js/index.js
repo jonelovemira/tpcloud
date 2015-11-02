@@ -3,9 +3,9 @@
         $.ipc.User.call(this, arguments);
         this.rememberMe = null;
     };
+    
+    $.ipc.inheritPrototype(User, $.ipc.User);
 
-    User.prototype = $.ipc.create($.ipc.User.prototype);
-    User.prototype.constructor = User;
     User.prototype.readCookieDataCallbacks = $.Callbacks("unique stopOnFalse");
     User.prototype.successLoginCallbacks = $.Callbacks("unique stopOnFalse");
 
@@ -16,39 +16,11 @@
     };
 
     function UserController() {
-        this.user = null;
-        this.view = null;
-        this.selectorHandlerMap = {};
-        this.domClickCallbacks = $.Callbacks("unique stopOnFalse");
-        var currentController = this;
-        this.domClickCallbacks.add(function(selector, eventName, data, event){
-            var func = function(data){console.log("this element did not bind any handler: ", selector);};
-            if (currentController.selectorHandlerMap && 
-                currentController.selectorHandlerMap[selector] && 
-                currentController.selectorHandlerMap[selector][eventName]) {
-                func = currentController.selectorHandlerMap[selector][eventName];
-            };
-
-            var contextFunc = $.proxy(func, currentController);
-            contextFunc(data, event);
-        });
+        $.ipc.BaseController.call(this, arguments);
     };
 
-    UserController.prototype.addHandler = function(inputArgs) {
-        var currentController = this;
-        var getMsgInformed = inputArgs["getMsgInformed"];
-        var selector = inputArgs["selector"];
-        var eventName = inputArgs["eventName"];
-    
-        $(document).on(eventName, selector, function(event){
-            var data = null;
-            if (getMsgInformed) {
-                data = $.proxy(getMsgInformed, this)();
-            };
-            currentController.domClickCallbacks.fire(selector, eventName, data, event);
-        });
+    $.ipc.inheritPrototype(UserController, $.ipc.BaseController);
 
-    };
 
     UserController.prototype.initHandler = function(){
         var appendedSelectorHandlerMap = {
@@ -60,17 +32,9 @@
             ".closetips": {"click": this.hideErrorTips}
         };
 
-        $.extend(this.selectorHandlerMap, appendedSelectorHandlerMap);
+        var selectorMsgProduceFuncMap = {};
 
-        for (var selector in appendedSelectorHandlerMap) {
-            var args = {};
-            args["selector"] = selector;
-            args["getMsgInformed"] = null;
-            for (var eventName in appendedSelectorHandlerMap[selector]) {
-                args["eventName"] = eventName;
-                this.addHandler(args);
-            };
-        };
+        this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
     };
 
     UserController.prototype.loginUser = function() {
@@ -78,15 +42,15 @@
         this.rememberUserLogic();
 
         var account = $("#Account").val();
-        this.user.account = account;
-        if (!this.user.account) {
+        this.model.account = account;
+        if (!this.model.account) {
             var displayTips = tips.types.account.cantBeEmpty;
             this.view.showTips(displayTips);
             return;
         };
 
-        this.user.password = $("#Password").val();
-        if (!this.user.account) {
+        this.model.password = $("#Password").val();
+        if (!this.model.account) {
             var displayTips = tips.types.password.cantBeEmpty;
             this.view.showTips(displayTips);
             return;
@@ -110,7 +74,7 @@
                     document.cookie = "token=" + result.token + "; domain=.tplinkcloud.com";
                     document.cookie = "account=" + account + "; domain=.tplinkcloud.com";
                     
-                    currentController.user.successLoginCallbacks.fire();
+                    currentController.model.successLoginCallbacks.fire();
                 },
                 1006: function() {
                     currentController.view.renderLoginError(errCodeTipsMap[1006]);
@@ -133,7 +97,7 @@
             }
         };
 
-        currentController.user.login(inputCallbacks);
+        currentController.model.login(inputCallbacks);
 
     };
 
@@ -146,8 +110,8 @@
     };
 
     UserController.prototype.rememberUserLogic = function() {
-        this.user.rememberMe = !$("input.checkbox[name=remember]").is(":checked");
-        if (this.user.rememberMe) {
+        this.model.rememberMe = !$("input.checkbox[name=remember]").is(":checked");
+        if (this.model.rememberMe) {
             var userName = $("#Account").val();
             userName && $.cookie("rmbUser", "true", {expires: 7}) && $.cookie("userName", userName, {expires: 7});
         } else {
@@ -186,7 +150,7 @@
     };
 
     function UserView() {
-        this.user = null;
+        this.model = null;
     };
 
     UserView.prototype.tipsTimeoutObj = null;
@@ -237,29 +201,120 @@
     };
 
     UserView.prototype.renderInitRememberMe = function() {
-        if(this.user.rememberMe && this.user.account) {
-            var rememberMe = this.user.rememberMe == true ? true : false;
+        if(this.model.rememberMe && this.model.account) {
+            var rememberMe = this.model.rememberMe == true ? true : false;
             $("#remember").attr("checked", rememberMe);
-            $("#Account").val(this.user.account);
+            $("#Account").val(this.model.account);
             $("#Password").focus().select();
             $("#account-cover").hide();
             $("#password-cover").hide();
         }
+    };
+
+
+    function DeviceList() {
+        $.ipc.DeviceList.call(this, arguments);
+    };
+
+    $.ipc.inheritPrototype(DeviceList, $.ipc.DeviceList);
+
+    function DeviceListController () {
+        $.ipc.BaseController.call(this, arguments);
+    };
+
+    $.ipc.inheritPrototype(DeviceListController, $.ipc.BaseController);
+
+    DeviceListController.prototype.getUpgradeList = function() {
+        
+        var currentController = this;
+
+        var inputCallbacks = {
+            "errorCodeCallbackMap": {
+                0: function(response) {
+                    if (currentController.model.upgradeList &&
+                        currentController.model.upgradeList.length > 0) {
+                        var contextUpgradeAll = $.proxy(currentController.upgradeSomeDevice, currentController);
+                        var options = {
+                            "confirm" : contextUpgradeAll,
+                            "cancel": currentController.gotoAdmin
+                        };
+                        currentController.view.showUpgradeOptions(options);
+                    } else {
+                        currentController.gotoAdmin();
+                    }
+                }
+            }
+        };
+
+        currentController.model.getUpgradeList(inputCallbacks);
+    };
+
+    DeviceListController.prototype.gotoAdmin = function() {
+        var adminPage = __uri("../pages/admin.html");
+        window.location.href = adminPage;
+    };
+
+    DeviceListController.prototype.upgradeSomeDevice = function() {
+        var currentController = this;
+
+        var inputCallbacks = {
+            "errorCodeCallbackMap": {
+                0: function(response) {
+                    currentController.gotoAdmin();
+                }
+            }
+        };
+
+        currentController.model.upgradeAll(inputCallbacks);
+    };
+
+    function DeviceListView () {
+        this.model = null;
+    };
+
+    DeviceListView.prototype.showUpgradeOptions = function(options) {
+        
+        if (options && options["confirm"] && options["cancel"]) {
+            var tipInfo = tips.types.firmware.needUpgrade;
+            var displayOptions = {
+                "type": "confirm",
+                "info": tipInfo,
+                "width": 408,
+                "btnConfirm": "Update",
+                "btnCancel": "Later"
+            };
+            $.extend(options, displayOptions);
+            $.Msg(options);
+        } else {
+            throw "args error in showUpgradeOptions";
+        };
     };
     
     
     var u = new User();
     var uc = new UserController();
     var uv = new UserView();
-
-    uc.user = u;
+    uc.model = u;
     uc.view = uv;
-    uv.user = u;
+    uv.model = u;
+
+
+    var dl = new DeviceList();
+    var dlc = new DeviceListController();
+    var dlv = new DeviceListView();
+    dl.owner = u;
+    dlc.model = dl;
+    dlc.view = dlv;
+    dlv.model = dl;
+    
     
     uc.initHandler();
 
     var contextRememberUserFunc = $.proxy(uv.renderInitRememberMe, uv);
     User.prototype.readCookieDataCallbacks.add(contextRememberUserFunc);
+
+    var contextGetUpgradeList = $.proxy(dlc.getUpgradeList, dlc);
+    User.prototype.successLoginCallbacks.add(contextGetUpgradeList);
 
     u.readDataFromCookie();
 

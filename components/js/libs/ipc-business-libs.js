@@ -34,7 +34,7 @@
 
     $.ipc.Error = Error;
 
-    $.ipc.create = function(p) {
+    $.ipc.create = function (p) {
         if (p == null) {
             throw "unknown type, cannot create";
         };
@@ -52,6 +52,15 @@
         f.prototype = p;
         return new f();
     };
+
+    $.ipc.inheritPrototype = function (subType, baseType) {
+        if (undefined == baseType || undefined == subType) {
+            throw "args error in inherit";
+        };
+
+        subType.prototype = $.ipc.create(baseType.prototype);
+        subType.prototype.constructor = subType;
+    }
 
     function Model () {
         this.errorCodeCallbacks = {
@@ -144,9 +153,8 @@
         this.password = null;
         this.oldpassword = null;
     };
-    
-    User.prototype = $.ipc.create($.ipc.Model.prototype);
-    User.prototype.constructor = User;
+
+    $.ipc.inheritPrototype(User, $.ipc.Model);
 
     var userErrorCodeInfo = {
         100: function(){console.log("token is invalid, plz relogin");},
@@ -470,8 +478,7 @@
         this.devices = [];
     };
 
-    DeviceList.prototype = $.ipc.create($.ipc.Model.prototype);
-    DeviceList.prototype.constructor = DeviceList;
+    $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
 
     var deviceListErrorCodeInfo = {
         100: function(){console.log("Session timeout or invaild");},
@@ -543,5 +550,67 @@
     };
     
     $.ipc.DeviceList = DeviceList;
+
+})(jQuery);
+
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function BaseController () {
+        this.model = null;
+        this.view = null;
+        this.selectorHandlerMap = {};
+        this.domClickCallbacks = $.Callbacks("unique stopOnFalse");
+        var currentController = this;
+        this.domClickCallbacks.add(function(selector, eventName, data, event){
+            var func = function(data){console.log("this element did not bind any handler: ", selector);};
+            if (currentController.selectorHandlerMap && 
+                currentController.selectorHandlerMap[selector] && 
+                currentController.selectorHandlerMap[selector][eventName]) {
+                func = currentController.selectorHandlerMap[selector][eventName];
+            };
+
+            var contextFunc = $.proxy(func, currentController);
+            contextFunc(data, event);
+        });
+    };
+
+    BaseController.prototype.addHandler = function(inputArgs) {
+        var currentController = this;
+        var getMsgInformed = inputArgs["getMsgInformed"];
+        var selector = inputArgs["selector"];
+        var eventName = inputArgs["eventName"];
+    
+        $(document).on(eventName, selector, function(event){
+            var data = null;
+            if (getMsgInformed) {
+                data = $.proxy(getMsgInformed, this)();
+            };
+            currentController.domClickCallbacks.fire(selector, eventName, data, event);
+        });
+    };
+
+    BaseController.prototype.batchInitHandler = function(appendedSelectorHandlerMap, selectorMsgProduceFuncMap){
+        if (undefined == appendedSelectorHandlerMap || 
+            undefined == selectorMsgProduceFuncMap) {
+            throw "args error in batchInitHandler";
+        };
+
+        $.extend(this.selectorHandlerMap, appendedSelectorHandlerMap);
+
+        for (var selector in appendedSelectorHandlerMap) {
+            var args = {};
+            args["selector"] = selector;
+            args["getMsgInformed"] = selectorMsgProduceFuncMap[selector];
+            for (var eventName in appendedSelectorHandlerMap[selector]) {
+                args["eventName"] = eventName;
+                this.addHandler(args);
+            };
+        };
+    };
+
+    $.ipc.BaseController = BaseController;
 
 })(jQuery);

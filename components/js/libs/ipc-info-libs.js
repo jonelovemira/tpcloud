@@ -45,6 +45,9 @@ var tips = {
         "plugin": {
             "update": "New Plugin version is available, please click Download to update."
         },
+        "firmware": {
+            "needUpgrade": "Firmware update is required due to cloud server upgrade. Do you want to update it now? You need to manually update the camera app and web browser plug-in after the firmware is updated."
+        },
         "camera": {
             "notExist": "No camera exists in this account. Please add a camera by using the Setup Wizard or the tpCamera app.",
             "offline": "Operation failed. Please make sure the device is online."
