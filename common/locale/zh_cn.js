@@ -13,7 +13,7 @@
 		"OK" : "好的"
 	},
 	"regex": [
-		["Budget", "งบประมาณ"],
+		["Budget", ""],
 		["^Something at start of text", ""],
 		["This will be case insensitive", "i", ""]
 	]

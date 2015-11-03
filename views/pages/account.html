@@ -1,0 +1,93 @@
+{% extends "common/base.html" %}
+
+{% block title %}
+<title lang="en">Account</title>
+{% endblock %}}
+
+{% block link %}
+<link type="text/css" href="../css/account.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="../../components/widget/window/css/msg.css">
+{% endblock %}
+
+{% block body %}
+<div id="maincontainer">
+
+<div class="navcontain">
+    <span style="display:none" id="usrn"> </span>
+    <div class= "navcontain-inner">
+
+        <ul class="navstitle">
+            <li class="navstitle-cell ">
+                <span id="device" class="navstitle-title"  title="Live View" >
+
+                    <a href="tpcamera-admin.html" class="accountinnertext">Device</a>
+
+                </span>
+            </li>
+            <li class="navstitle-cell">
+                <span id="account" class="navstitle-title navselected" title="Account" >
+                    <a href="account.html" class="accountinnertext">Account</a>
+                </span>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="admin-main-board">
+    <div id = "maincontent" class="accountcontent">
+        <div class="account-information">
+            <div class="content-title content-cell">
+                <span class="content-title-img"></span>
+                <span id="account-title" class="content-title-font">Account Information</span>
+            </div>
+            <div class="userinfo content-cell">
+                <div class="userinfo-cell">
+                    <span id="userinfo-title-email" class="userinfo-title userinfo-cell-span">E-mail Address:</span>
+                    <span id="userinfo-email" class=" userinfo-title userinfo-cell-span"></span>
+                </div>
+                <div class="userinfo-cell">
+                    <span  class="userinfo-title userinfo-cell-span">Password:</span>
+                    <a id="userinfo-title-changepwd" class="userinfo-title userinfo-cell-span">Change Your Password</a>
+                </div>
+            </div>
+        </div>
+        <div class="change-password-form">
+            <div class="content-title content-cell">
+                <span class="content-title-img"></span>
+                <span id="account-title" class="content-title-font">Change Password</span>
+            </div>
+            <div class="userinfo content-cell">
+                <div class="userinfo-cell">
+                    <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span">Current Password:</span>
+                    <span class="userinfo-cell-span">
+                        <input id="oldpwd" maxlength="32" type="password" class="userinfo-input infocus" />            
+                    </span>
+                </div>
+                <div class="userinfo-cell">
+                    <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span">New Password:</span>
+                    <span class=" userinfo-cell-span">
+                        <input id="newpwd"  maxlength="32" type="password" class="userinfo-input infocus" />            
+                    </span>
+                </div>
+                <div class="userinfo-cell">
+                    <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span">Confirm Password:</span>
+                    <span class="userinfo-cell-span">
+                        <input id="cfpwd"  maxlength="32" type="password" class="userinfo-input infocus" />            
+                    </span>
+                </div>
+            </div>
+            <div class="content-cell btncontent">
+                <input id="changepwd" type="button" class="btn account-btn" value="OK">            
+                <input type="button" id="backaccount"class="btn account-btn" value="Cancel">
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" src="../../components/js/libs/ipc-secret-libs.js"></script>
+<script type="text/javascript" src="../../components/js/libs/ipc-business-libs.js"></script>
+<script type="text/javascript" src="../../components/widget/window/js/msg.js"></script>
+<script type="text/javascript" src="../js/account.js"></script>
+{% endblock %}

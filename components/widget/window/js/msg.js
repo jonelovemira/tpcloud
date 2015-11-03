@@ -48,9 +48,9 @@
 
     };
 
-    $.Msg = function(options){
+    $.ipc.Msg = function(options){
 
-        var _options = $.extend({}, $.Msg.defaults, options);
+        var _options = $.extend({}, $.ipc.Msg.defaults, options);
 
         var id = "Msg-1";
         if ($("#" + id).length > 0) {
@@ -153,7 +153,7 @@
     };
 
     // make default options writable outside
-    $.Msg.defaults = {
+    $.ipc.Msg.defaults = {
         type        :       "alert",
         title       :       "",
         info        :       "",

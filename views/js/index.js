@@ -1,19 +1,10 @@
-(function ($){
+$(function (){
     function User() {
         $.ipc.User.call(this, arguments);
-        this.rememberMe = null;
     };
     
     $.ipc.inheritPrototype(User, $.ipc.User);
-
-    User.prototype.readCookieDataCallbacks = $.Callbacks("unique stopOnFalse");
     User.prototype.successLoginCallbacks = $.Callbacks("unique stopOnFalse");
-
-    User.prototype.readDataFromCookie = function(callbacks) {
-        $.cookie("rmbUser") && (this.rememberMe = true);
-        $.cookie("userName") && (this.account = $.cookie("userName"));
-        this.readCookieDataCallbacks.fire();
-    };
 
     function UserController() {
         $.ipc.BaseController.call(this, arguments);
@@ -50,7 +41,7 @@
         };
 
         this.model.password = $("#Password").val();
-        if (!this.model.account) {
+        if (!this.model.password) {
             var displayTips = tips.types.password.cantBeEmpty;
             this.view.showTips(displayTips);
             return;
@@ -94,6 +85,9 @@
                 "-1" : function() {
                     currentController.view.renderLoginError(errCodeTipsMap["-1"]);
                 }
+            },
+            "errorCallback" : function() {
+                currentController.view.renderLoginError(errCodeTipsMap["-1"]);
             }
         };
 
@@ -110,7 +104,7 @@
     };
 
     UserController.prototype.rememberUserLogic = function() {
-        this.model.rememberMe = !$("input.checkbox[name=remember]").is(":checked");
+        this.model.rememberMe = $("input.checkbox[name=remember]").is(":checked");
         if (this.model.rememberMe) {
             var userName = $("#Account").val();
             userName && $.cookie("rmbUser", "true", {expires: 7}) && $.cookie("userName", userName, {expires: 7});
@@ -203,7 +197,7 @@
     UserView.prototype.renderInitRememberMe = function() {
         if(this.model.rememberMe && this.model.account) {
             var rememberMe = this.model.rememberMe == true ? true : false;
-            $("#remember").attr("checked", rememberMe);
+            rememberMe && $("#remember").click();
             $("#Account").val(this.model.account);
             $("#Password").focus().select();
             $("#account-cover").hide();
@@ -318,4 +312,4 @@
 
     u.readDataFromCookie();
 
-})(jQuery);
+});

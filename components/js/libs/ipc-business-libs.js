@@ -10,7 +10,7 @@
 *     jquery-1.8.2.min.js           jquery libs 
 *     ipc-info-libs.js              ipc msg tips library   
 *     ipc-secret-libs.js            ipc encrypt, base64 encode/decode library   
-*     
+*     jquery.cookie.js              cookie management
 *
 * History:
 *     2015-10-20: Jone Xu           File created.
@@ -151,7 +151,8 @@
         this.email = null;
         this.account = null;
         this.password = null;
-        this.oldpassword = null;
+        this.oldPassword = null;
+        this.rememberMe = null;
     };
 
     $.ipc.inheritPrototype(User, $.ipc.Model);
@@ -178,6 +179,21 @@
     };
 
     User.prototype.errorCodeCallbacks = User.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": userErrorCodeInfo});
+    User.prototype.readCookieDataCallbacks = $.Callbacks("unique stopOnFalse");
+
+    User.prototype.readDataFromCookie = function(callbacks) {
+        $.cookie("rmbUser") && (this.rememberMe = true);
+        $.cookie("token") && (this.token = $.cookie("token"));
+        $.cookie("email") && (this.email = $.cookie("email"));
+        
+        if ($.cookie("userName")) {
+            this.account = $.cookie("userName");
+        } else if ($.cookie("account")) {
+            this.account = $.cookie("account");
+        }
+
+        this.readCookieDataCallbacks.fire();
+    };
 
     User.prototype.register = function(inputCallbacks) {
         if (undefined == this.email || undefined == this.username || undefined == this.password) {
@@ -261,7 +277,7 @@
     };
 
     User.prototype.modifyPassword = function(inputCallbacks) {
-        if (undefined == this.email || undefined == this.oldpassword 
+        if (undefined == this.email || undefined == this.oldPassword 
             || undefined == this.password || undefined == this.token) {
             throw "args error in modifyPassword";
             return;
@@ -269,7 +285,7 @@
         
         var data = JSON.stringify({
             "email": this.email,
-            "oldpassword": this.encryptText(this.oldpassword),
+            "oldpassword": this.encryptText(this.oldPassword),
             "password": this.encryptText(this.password),
             "token": this.token
         });
@@ -318,14 +334,14 @@
         return this.validateAttr(validateArgs);
     };
 
-    User.prototype.validatePasswordFormat = function() {
-        if (undefined == this.password) {
+    User.prototype.validatePasswordFormat = function(password) {
+        if (undefined == password) {
             throw "args error in validatePasswordFormat";
             return;
         };
         
         var validateArgs = {
-            "attr": this.password,
+            "attr": password,
             "attrEmptyMsg": tips.types.password.cantBeEmpty,
             "maxLength": 32,
             "minLength": 6,
