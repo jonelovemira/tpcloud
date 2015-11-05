@@ -39,6 +39,9 @@ var tips = {
         },
         "snapshot": {
             "diskFull": "Not enough storage. The recording will stop."
+        },
+        "confirmNewPassword": {
+            "failed": "Passwords don’t match."
         }
     },
     "types": {
@@ -95,7 +98,6 @@ var tips = {
             "outOfLimit": "Password should contain 6 to 32 characters."
         },
         "originPassword": {
-            "invalid": "Old password invalid",
             "notMatch": "Current password is incorrect.",
         }
     }

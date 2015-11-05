@@ -160,11 +160,11 @@ var Lang = (function () {
 				},
 				error: function () {
 					if (callback) { callback(true, lang, self._dynamic[lang]); }
-					throw('Error loading language pack' + self._dynamic[lang]);
+					console.error('Error loading language pack' + self._dynamic[lang]);
 				}
 			});
 		} else {
-			throw('Cannot load language pack, no file path specified!');
+			console.error('Cannot load language pack, no file path specified!');
 		}
 	};
 
@@ -448,7 +448,7 @@ var Lang = (function () {
 				} else if (!this.pack[lang] && !this._dynamic[lang]) {
 					// Pack not loaded and no dynamic entry
 					if (callback) { callback('Language pack not defined for: ' + lang, lang, selector); }
-					throw('Could not change language to ' + lang + ' because no language pack for this language exists!');
+					console.error('Could not change language to ' + lang + ' because no language pack for this language exists!');
 				}
 			}
 			
@@ -491,7 +491,7 @@ var Lang = (function () {
 			if (callback) { callback(false, lang, selector); }
 		} else {
 			if (callback) { callback('No language pack defined for: ' + lang, lang, selector); }
-			throw('Attempt to change language to "' + lang + '" but no language pack for that language is loaded!');
+			console.error('Attempt to change language to "' + lang + '" but no language pack for that language is loaded!');
 		}
 	};
 	

@@ -127,7 +127,7 @@ $(function (){
 
     UserController.prototype.locateTo = function(dst) {
         if (undefined == dst) {
-            throw "args error in locateTo";
+            console.error("args error in locateTo");
             return;
         };
 
@@ -151,7 +151,7 @@ $(function (){
 
     UserView.prototype.renderLoginError = function(errorTips) {
         if (undefined == errorTips) {
-            throw "args error in showLoginError";
+            console.error("args error in showLoginError");
         };
 
         this.clearPasswordInput();
@@ -160,7 +160,7 @@ $(function (){
 
     UserView.prototype.showTips = function(displayTips) {
         if (undefined == displayTips) {
-            throw "args error in showTips";
+            console.error("args error in showTips");
             return;
         };
 
@@ -280,7 +280,7 @@ $(function (){
             $.extend(options, displayOptions);
             $.Msg(options);
         } else {
-            throw "args error in showUpgradeOptions";
+            console.error("args error in showUpgradeOptions");
         };
     };
     

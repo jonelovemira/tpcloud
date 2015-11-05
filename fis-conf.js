@@ -15,28 +15,48 @@ fis.match('*', {
     release: '/$0',
 });
 
-fis.match('/common/*.html', {
-    isBaseTemplateFile: true
-})
+fis.match('*.{tpl,html}', {
+    postprocessor: function(content, file) {
+        var re = /(<a.*?)href=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig;
+        var fileDir = file.dirname;
+
+        var aHrefLocateContent = content.replace(re, function(all, prefix, quote, value, query, queryInner, postfix) {
+            var f = fis.uri(value, fileDir);
+            if(f.file) {
+                all = prefix + 'href=' + quote + f.file.release + query + quote + postfix
+            }
+            return  all
+        });
+
+        var dataUrlLocate = /(<img.*?)data-url=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig; 
+        var dataUrlLocateContent = aHrefLocateContent.replace(dataUrlLocate, function(all, prefix, quote, value, query, queryInner, postfix) {
+            var f = fis.uri(value, fileDir);
+            if(f.file) {
+                all = prefix + 'data-url=' + quote + f.file.getHashRelease() + query + quote + postfix
+            }
+            return  all
+        });
+
+        return dataUrlLocateContent;
+    }
+});
 
 fis.match('/views/pages/{*,**/*}.html', {
-    release: '$0',
-    isChildTemplateFile: true
+    release: '$0'
 });
 
 fis.match('/views/pages/index.html', {
-    release: '/index.html',
-    isChildTemplateFile: true
+    release: '/index.html'
 });
 
 fis.media('build').match('/views/pages/index.html', {
-    release: '$0',
-    isChildTemplateFile: true
+    release: '$0'
 });
 
 fis.media('build').match('*.{js,css,png,ico}', {
     useHash: true
 });
+
 
 fis.media('alpha').match('*.{js,css,png,ico}',{
     domain: ALPHA_CDN_PATH
@@ -59,7 +79,7 @@ fis.match('fis-conf.js',{
  * @param  {[file object]} childFile [file object reference for read file]
  * @return {string}           [path defined in child template file.]
  */
-var getBaseFileId = function (childFile){
+var getBaseFileName = function (childFile){
     var tagArrs = getTagArrKeyValue(childFile);
     return tagArrs["extends"];
 }
@@ -191,27 +211,21 @@ var getTagArrKeyValue = function (fileObj) {
  */
 var templateInheritance = function (ret, conf, settings, opt) {
     // body...
-    var baseFiles = {};
-    var childFiles = {};
-
-    // save base file refernce
-    fis.util.map(ret.src, function(subpath, file){
-        if (file.isBaseTemplateFile) {
-            baseFiles[file.id] = file;
-        };
-    });
+    var releaseFileMap = {};
 
     // inherit template if we flag it as a child template
     fis.util.map(ret.src, function(subpath, file){
-        if (file.isChildTemplateFile) {
-            var baseFileId = getBaseFileId(file);
-            if (baseFileId != undefined) {
-                var content = templateInherit(file, baseFiles[baseFileId]);
-                file.setContent(content);
-            };
+        if (file.isHtmlLike) {
+            var baseFileName = getBaseFileName(file);
+            if(baseFileName) {
+                var baseFile = fis.uri(baseFileName, file.dirname);
+                if(baseFile.file) {
+                    var content = templateInherit(file, ret.src[baseFile.file.release]);
+                    file.setContent(content);
+                }
+            }
         };
     });
-
 }
 
 fis.config.set('modules.postpackager', [templateInheritance]);

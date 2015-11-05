@@ -23,19 +23,19 @@
 
     function ieXDomainAjax(options){    
         if (window.XDomainRequest == undefined) {
-            throw "no XDomainRequest in current browser";
+            console.error("no XDomainRequest in current browser");
             return;
         }
         var xdr = new XDomainRequest();
         if (xdr == undefined) {
-            throw "can not create XDomainRequest instance";
+            console.error("can not create XDomainRequest instance");
             return;
         };
 
         var newOptions = $.extend({}, $.xAjax.ieXDomainAjaxDefaults, options);
 
         if (newOptions.url == undefined) {
-            throw "no url in ieXDomainAjax";
+            console.error("no url in ieXDomainAjax");
             return;
         };
 
@@ -65,7 +65,7 @@
         var newOptions = $.extend({}, $.xAjax.normalAjaxDefaults, options);
     
         if (newOptions.url == undefined) {
-            throw "options.url in undefined in normalAjax";
+            console.error("options.url in undefined in normalAjax");
             return;
         }
 

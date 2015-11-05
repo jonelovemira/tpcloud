@@ -37,26 +37,84 @@ $(function () {
                     currentController.gotoPage(indexPage);
                 },
                 "-1" : function() {
-                    currentController.view.renderLogoutError(errCodeTipsMap["-1"]);
+                    currentController.view.renderError(errCodeTipsMap["-1"]);
                 }
             },
             "errorCallback" : function() {
-                currentController.view.renderLoginError(errCodeTipsMap["-1"]);
+                currentController.view.renderError(errCodeTipsMap["-1"]);
             }
         };
 
-        currentController.model.login(inputCallbacks);
+        currentController.model.logout(inputCallbacks);
     };
 
     UserController.prototype.changePassword = function() {
-        this.model.password = $('#newpwd').val();
-        this.model.oldPassword = $('#oldpwd').val();
+        this.model.password = $('#oldpwd').val();
+        this.model.newPassword = $('#newpwd').val();
         var confirmPassword = $("#cfpwd").val();
 
-        var passwordValidateResult = this.model.validatePasswordFormat(this.model.password);
-        
+        var passwordValidateArgs = {
+            "attrEmptyMsg": tips.types.password.cantBeEmpty,
+            "attrOutOfLimitMsg": tips.types.password.outOfLimit,
+            "patternTestFailMsg": tips.types.password.invalidLong, 
+        };
 
-        if (confirmPassword) {};
+        var curPwdValidRslt = this.model.validatePasswordFormat(this.model.password, passwordValidateArgs);
+        var e = new $.ipc.Error();
+        e.code = true;
+        e.msg = "ok";
+        if (!curPwdValidRslt.code) {
+            e = curPwdValidRslt;
+        } else {
+            var newPwdValidRslt = this.model.validatePasswordFormat(this.model.newPassword, passwordValidateArgs);
+            if (!newPwdValidRslt.code) {
+                e = newPwdValidRslt;
+            } else {
+                if (confirmPassword != this.model.newPassword) {
+                    e.code = false;
+                    e.msg = tips.actions.confirmNewPassword.failed;
+                };
+            }
+        }
+
+        if (!e.code) {
+            this.view.renderError(e.msg);
+        } else {
+
+            var errCodeTipsMap = {
+                "-1": tips.actions.changePassword.failed
+            };
+
+            var inputCallbacks = {
+                "errorCodeCallbackMap": {
+                    0: function() {
+                        currentController.changePasswordSuccess();
+                    },
+                    "-1" : function() {
+                        currentController.view.renderError(errCodeTipsMap["-1"]);
+                    }
+                },
+                "errorCallback" : function() {
+                    currentController.view.renderError(errCodeTipsMap["-1"]);
+                }
+            };
+            this.model.modifyPassword(inputCallbacks);
+        }
+    
+    };
+
+    UserController.prototype.changePasswordSuccess = function() {
+        var currentController = this;
+        var alertOptions = {
+            "info": tips.actions.changePassword.success,
+            ok : function(){
+                currentController.gotoPage("/");
+            },
+            cancel : function(){
+                currentController.gotoPage("/");
+            }
+        };
+        this.view.renderAlert(alertOptions);
     };
 
     UserController.prototype.gotoChangePassword = function() {
@@ -69,7 +127,7 @@ $(function () {
 
     UserController.prototype.gotoPage = function(page) {
         if (undefined == page) {
-            throw "error in gotoPage";
+            console.error("error in gotoPage");
         };
         window.location.href = page;
     };
@@ -81,7 +139,7 @@ $(function () {
 
     UserView.prototype.showWelcomeInfo = function() {
         if(undefined == this.model.email) {
-            throw "args error in showWelcomeInfo";
+            console.error("args error in showWelcomeInfo");
             return;
         };
 
@@ -102,15 +160,24 @@ $(function () {
         $("#toplink").after(a);
     };
 
-    UserView.prototype.renderLogoutError = function(errorMsg) {
+    UserView.prototype.renderError = function(errorMsg) {
         if (undefined == errorMsg) {
-            throw "args error in renderLogoutError";
+            console.error("args error in renderError");
         };
 
-        $.ipc.Msg({
-            "type": "alert",
-            "info": errorMsg
-        });
+        this.renderAlert({"info": errorMsg});
+    };
+
+    UserView.prototype.renderAlert = function(options) {
+        if (undefined == options) {
+            console.error("args error in renderAlert");
+        };
+
+        var alertOptions = {
+            "type": "alert"
+        };
+        $.extend(alertOptions, options);
+        $.ipc.Msg(alertOptions);
     };
 
     UserView.prototype.hideMainBoardSon = function() {
@@ -138,5 +205,6 @@ $(function () {
     User.prototype.readCookieDataCallbacks.add(contextRememberUserFunc);
 
     uc.initHandler();
+    u.readDataFromCookie();
 
 });

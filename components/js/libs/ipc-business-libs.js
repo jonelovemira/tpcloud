@@ -36,7 +36,7 @@
 
     $.ipc.create = function (p) {
         if (p == null) {
-            throw "unknown type, cannot create";
+            console.error("unknown type, cannot create");
         };
 
         if (Object.create) {
@@ -45,7 +45,7 @@
 
         var t = typeof p;
         if (t !== "object" && t !== "function" ) {
-            throw "not a object or function";
+            console.error("not a object or function");
         };
 
         function f() {};
@@ -55,7 +55,7 @@
 
     $.ipc.inheritPrototype = function (subType, baseType) {
         if (undefined == baseType || undefined == subType) {
-            throw "args error in inherit";
+            console.error( "args error in inherit");
         };
 
         subType.prototype = $.ipc.create(baseType.prototype);
@@ -80,7 +80,7 @@
     Model.prototype.makeAjaxRequest = function(inputArgs) {
 
         if (undefined == inputArgs["url"] || undefined == inputArgs["data"] || undefined == inputArgs["changeState"]) {
-            throw "args error in makeAjaxRequest";
+            console.error( "args error in makeAjaxRequest");
             return;
         };
 
@@ -115,21 +115,21 @@
             undefined == inputArgs["maxLength"] || undefined == inputArgs["minLength"] ||
             undefined == inputArgs["attrOutOfLimitMsg"] || undefined == inputArgs["pattern"] ||
             undefined == inputArgs["patternTestFailMsg"]) {
-            throw "args error in validateAttr";
+            console.error( "args error in validateAttr");
             return;
         };
         var e = new $.ipc.Error();
         if (0 == inputArgs["attr"].length) {
-            e.code = -1;
+            e.code = false;
             e.msg = inputArgs["attrEmptyMsg"];
         } else if (inputArgs["attr"].length > inputArgs["maxLength"] || inputArgs["attr"].length < inputArgs["minLength"]) {
-            e.code = -1;
+            e.code = false;
             e.msg = inputArgs["attrOutOfLimitMsg"];
         } else if (!inputArgs["pattern"].test(inputArgs["attr"])) {
-            e.code = -1;
+            e.code = false;
             e.msg = inputArgs["patternTestFailMsg"];
         } else {
-            e.code = 0;
+            e.code = true;
             e.msg = "OK";
         };
         return e;
@@ -151,7 +151,7 @@
         this.email = null;
         this.account = null;
         this.password = null;
-        this.oldPassword = null;
+        this.newPassword = null;
         this.rememberMe = null;
     };
 
@@ -197,7 +197,7 @@
 
     User.prototype.register = function(inputCallbacks) {
         if (undefined == this.email || undefined == this.username || undefined == this.password) {
-            throw "args error in register";
+            console.error( "args error in register");
             return;
         };
         
@@ -212,7 +212,7 @@
 
     User.prototype.login = function(inputCallbacks){
         if (undefined == this.account || undefined == this.password) {
-            throw "args error in login";
+            console.error( "args error in login");
             return;
         };
         
@@ -231,7 +231,7 @@
 
     User.prototype.logout = function(inputCallbacks) {
         if (undefined == this.email) {
-            throw "args error in logout";
+            console.error( "args error in logout");
             return;
         };
 
@@ -248,7 +248,7 @@
 
     User.prototype.sendActiveEmail = function(inputCallbacks) {
         if (undefined == this.email) {
-            throw "args error in sendActiveEmail";
+            console.error( "args error in sendActiveEmail");
             return;
         };
 
@@ -261,7 +261,7 @@
 
     User.prototype.resetPassword = function(inputCallbacks) {
         if (undefined == this.email) {
-            throw "args error in resetPassword";
+            console.error( "args error in resetPassword");
             return;
         };
         
@@ -277,16 +277,16 @@
     };
 
     User.prototype.modifyPassword = function(inputCallbacks) {
-        if (undefined == this.email || undefined == this.oldPassword 
+        if (undefined == this.email || undefined == this.newPassword 
             || undefined == this.password || undefined == this.token) {
-            throw "args error in modifyPassword";
+            console.error("args error in modifyPassword");
             return;
         };
         
         var data = JSON.stringify({
             "email": this.email,
-            "oldpassword": this.encryptText(this.oldPassword),
-            "password": this.encryptText(this.password),
+            "oldpassword": this.encryptText(this.password),
+            "password": this.encryptText(this.newPassword),
             "token": this.token
         });
 
@@ -300,7 +300,7 @@
 
     User.prototype.getUser = function(inputCallbacks){
         if (undefined == this.email) {
-            throw "error when get username due to args error";
+            console.error("error when get username due to args error");
             return;
         };
 
@@ -317,7 +317,7 @@
 
     User.prototype.validateUsernameFormat = function() {
         if (undefined == this.username) {
-            throw "args error in validateUsernameFormat";
+            console.error("args error in validateUsernameFormat");
             return;
         };
 
@@ -334,27 +334,29 @@
         return this.validateAttr(validateArgs);
     };
 
-    User.prototype.validatePasswordFormat = function(password) {
-        if (undefined == password) {
-            throw "args error in validatePasswordFormat";
+    User.prototype.validatePasswordFormat = function(password, msg) {
+        if (undefined == password || undefined == msg || 
+            undefined == msg["attrEmptyMsg"] || 
+            undefined == msg["attrOutOfLimitMsg"] || 
+            undefined == msg["patternTestFailMsg"]) {
+            console.error("args error in validatePasswordFormat");
             return;
         };
         
         var validateArgs = {
             "attr": password,
-            "attrEmptyMsg": tips.types.password.cantBeEmpty,
             "maxLength": 32,
             "minLength": 6,
-            "attrOutOfLimitMsg": tips.types.password.outOfLimit,
             "pattern": /^[\x21-\x7e]{6,32}$/,
-            "patternTestFailMsg": tips.types.password.invalid, 
         };
+
+        $.extend(validateArgs, msg);
         return this.validateAttr(validateArgs);
     };
 
     User.prototype.validateEmailFormat = function() {
         if (undefined == this.email) {
-            throw "args error in validateEmailFormat";
+            console.error("args error in validateEmailFormat");
             return;
         };
         
@@ -372,7 +374,7 @@
 
     User.prototype.encryptText = function(text) {
         if (text == undefined) {
-            throw "error in encryptText";
+            console.error("error in encryptText");
             return;
         };
         
@@ -425,7 +427,7 @@
 
     Device.prototype.getCamera = function(inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.email || undefined == this.id) {
-            throw "args error in getcamera";
+            console.error("args error in getcamera");
             return;
         };
 
@@ -446,7 +448,7 @@
         if (undefined == newName || undefined == this.id
             || undefined == this.appServerUrl || undefined == this.owner
             || undefined == this.owner.token) {
-            throw "error when change device name due to args error";
+            console.error("error when change device name due to args error");
             return;
         };
         var currentDevice = this;
@@ -518,7 +520,7 @@
 
     DeviceList.prototype.getUpgradeList = function(inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.email || undefined == this.owner.token) {
-            throw "args error in getUpgradeList";
+            console.error("args error in getUpgradeList");
             return;
         };
 
@@ -545,7 +547,7 @@
 
     DeviceList.prototype.upgradeAll = function(inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.email || undefined == this.owner.token || undefined == this.upgradeList) {
-            throw "args error in upgradeAll";
+            console.error("args error in upgradeAll");
             return;
         };
     
@@ -611,7 +613,7 @@
     BaseController.prototype.batchInitHandler = function(appendedSelectorHandlerMap, selectorMsgProduceFuncMap){
         if (undefined == appendedSelectorHandlerMap || 
             undefined == selectorMsgProduceFuncMap) {
-            throw "args error in batchInitHandler";
+            console.error("args error in batchInitHandler");
         };
 
         $.extend(this.selectorHandlerMap, appendedSelectorHandlerMap);
