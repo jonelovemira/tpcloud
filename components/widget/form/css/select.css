@@ -8,6 +8,7 @@
 	background:#FAFAFA;
 	cursor: pointer;
 	position: relative;
+    top: 0px;
 	bottom:5px;
 
 	-webkit-touch-callout: none;

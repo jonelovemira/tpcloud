@@ -176,7 +176,7 @@ $(function () {
         var alertOptions = {
             "type": "alert"
         };
-        $.extend(alertOptions, options);
+        $.extend(true, alertOptions, options);
         $.ipc.Msg(alertOptions);
     };
 

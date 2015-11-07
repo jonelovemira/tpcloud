@@ -277,7 +277,7 @@ $(function (){
                 "btnConfirm": "Update",
                 "btnCancel": "Later"
             };
-            $.extend(options, displayOptions);
+            $.extend(true, options, displayOptions);
             $.Msg(options);
         } else {
             console.error("args error in showUpgradeOptions");

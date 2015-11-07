@@ -50,7 +50,7 @@
 
     $.ipc.Msg = function(options){
 
-        var _options = $.extend({}, $.ipc.Msg.defaults, options);
+        var _options = $.extend(true, {}, $.ipc.Msg.defaults, options);
 
         var id = "Msg-1";
         if ($("#" + id).length > 0) {

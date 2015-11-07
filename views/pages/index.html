@@ -28,7 +28,7 @@
         <div class="rememberpwd">
             <div class="remeberaccount-holder">
                 <div class="checkbox-holder">
-                    <input type="checkbox" id="remember" class="checkbox" name="remember"/>
+                    <input type="checkbox" id="remember" tabindex="3" class="checkbox" name="remember"/>
                 </div>
                 <label class="choice remelabel" lang="en" for="remember">Remember account</label>
             </div>
@@ -311,7 +311,6 @@
         }
         backtotop();
 
-        $("#remember").siblings(".checkbox").attr("tabindex", 3);
 
         $("#account-cover").bind({
             click: function(){

@@ -13,7 +13,7 @@
 			container: $(window),
 			callback: $.noop
 		};
-		var params = $.extend({}, defaults, options || {});
+		var params = $.extend(true, {}, defaults, options || {});
 		params.cache = [];
 		$(this).each(function() {
 			var node = this.nodeName.toLowerCase(), url = $(this).attr(params["attr"]);

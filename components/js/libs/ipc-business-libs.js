@@ -63,17 +63,18 @@
     }
 
     function Model () {
-        this.errorCodeCallbacks = {
-            errorCodeCallbackMap : {
-                "0": function(){console.log("OK");},
-                "-1": function(){console.log("unknow error");},
-            },
-            errorCallback : function(xhr){console.log("xhr error: ", xhr)},
-        };
+    };
+
+    Model.prototype.errorCodeCallbacks = {
+        errorCodeCallbackMap : {
+            "0": function(){console.log("OK");},
+            "-1": function(){console.log("unknow error");},
+        },
+        errorCallback : function(xhr){console.log("xhr error: ", xhr)},
     };
 
     Model.prototype.extendErrorCodeCallback = function(inputCallbacks) {
-        var tmpCallbacks =  $.extend({}, this.errorCodeCallbacks, inputCallbacks);
+        var tmpCallbacks =  $.extend(true, {}, this.errorCodeCallbacks, inputCallbacks);
         return tmpCallbacks;
     };
 
@@ -105,7 +106,7 @@
             error : function(xhr){tmpCallbacks.errorCallback(xhr)}
         };
 
-        $.extend(ajaxOptions, inputArgs["extendAjaxOptions"]);
+        $.extend(true, ajaxOptions, inputArgs["extendAjaxOptions"]);
 
         $.xAjax(ajaxOptions);
     };
@@ -350,7 +351,7 @@
             "pattern": /^[\x21-\x7e]{6,32}$/,
         };
 
-        $.extend(validateArgs, msg);
+        $.extend(true, validateArgs, msg);
         return this.validateAttr(validateArgs);
     };
 
@@ -616,7 +617,7 @@
             console.error("args error in batchInitHandler");
         };
 
-        $.extend(this.selectorHandlerMap, appendedSelectorHandlerMap);
+        $.extend(true, this.selectorHandlerMap, appendedSelectorHandlerMap);
 
         for (var selector in appendedSelectorHandlerMap) {
             var args = {};
@@ -631,4 +632,107 @@
 
     $.ipc.BaseController = BaseController;
 
+})(jQuery);
+
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function Plugin () {
+        $.ipc.Model.call(this, arguments);
+        this.OS = null;
+        this.version = null;
+        this.name = null;
+        this.supportedModels = [];
+        this.downloadPath = null;
+    };
+
+    $.ipc.inheritPrototype(Plugin, $.ipc.Model);
+
+    var pluginErrorCodeInfo = {
+        10000: function(){console.log("No update for the application you want");}
+    };
+
+    Plugin.prototype.errorCodeCallbacks = Plugin.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": pluginErrorCodeInfo});
+
+    Plugin.prototype.checkUpdate = function(inputCallbacks) {
+        if (undefined == this.OS || undefined == this.version ||
+            undefined == this.name) {
+            console.error("args error when checkUpdate");
+        } else {
+            var data = JSON.stringify({
+                "OS": this.OS,
+                "Version": this.version,
+                "Model": this.name
+            });
+
+            var changeStateFunc = function(response){
+                this.downloadPath = response.msg;
+            }
+
+            this.makeAjaxRequest({url: "/pluginUpdate", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        }
+    };
+
+    $.ipc.Plugin = Plugin;
+
+    function Product () {
+        this.released = null;
+        this.name = null;
+        this.faqPath = null;
+    }
+
+    $.ipc.Product = Product;
+
+    function Software () {
+        $.ipc.Model.call(this, arguments);
+        this.products = [];
+        this.plugins = [];
+    }
+
+    $.ipc.inheritPrototype(Software, $.ipc.Model);
+    
+    Software.prototype.getUpdateInfos = function(inputCallbacks) {
+        
+        var changeStateFunc = function(response){
+            var productNameObjMap = {};
+
+            for (var i = 0; i < response.msg.product.length; i++) {
+                var newProduct = new $.ipc.Product();
+                newProduct.released = response.msg.product[i].released;
+                newProduct.name = response.msg.product[i].model;
+                newProduct.faqPath = response.msg.product[i].href;
+                this.products.push(newProduct);
+                if (productNameObjMap[newProduct.name]) {
+                    console.error("duplicate product");
+                } else {
+                    productNameObjMap[newProduct.name] = this.products[i];
+                }
+            };
+
+            for (var i = 0; i < response.msg.software.length; i++) {
+                var newPlugin = new $.ipc.Plugin();
+                newPlugin.OS = response.msg.software[i].tags;
+                newPlugin.version = response.msg.software[i].version;
+                newPlugin.name = response.msg.software[i].name;
+
+                var supportedModelsArr = response.msg.software[i].model.split(";");
+                for (var j = 0; j < supportedModelsArr.length; j++) {
+                    if (undefined == productNameObjMap[supportedModelsArr[j]]) {
+                        console.error("unknown model: " + supportedModelsArr[j]);
+                    } else {
+                        newPlugin.supportedModels.push(productNameObjMap[supportedModelsArr[j]]); 
+                    }
+                };
+                
+                newPlugin.downloadPath = response.msg.software[i].path;
+                this.plugins.push(newPlugin);
+            };
+        };
+
+        this.makeAjaxRequest({url: "/updateInfos", data: {}, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
+
+    $.ipc.Software = Software;
 })(jQuery);
