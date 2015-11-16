@@ -1,6 +1,48 @@
 (function($){
 
+    function addScrollbar(obj){
+        obj.find(".slide").Scrollbar({
+            target: obj.find(".slide .slide-item-holder")
+        });
+    };
+
+    function optionHtml($tmpSelectOptions)
+    {
+        var htmlStr = "";
+        $tmpSelectOptions.each(function(i) {
+            if ($(this).css("display") != "none") {
+                htmlStr += " <div class='slide-item' xvalue='" + $(this).attr("value") + "' class='forOption'><span lang=\"en\">" + $(this).html() + "</span></div>";
+            }
+        });
+        return htmlStr;
+    };
+
     $.fn.Select = function(options){
+
+        if( $(this).siblings(".plugin-select").first().length > 0 ) {
+            
+            if (options.addedOptions) {
+                var addedOptionsLength = 0;
+                for (var key in options.addedOptions) {
+                    addedOptionsLength += 1;
+                };
+
+                var _options = $.extend(true, {}, $.fn.Select.defaults, options);
+                var selectPlugin = $(this).siblings(".plugin-select").first();
+                var slideRealHeight = selectPlugin.find(".slide-item").first().outerHeight();
+                var slideContainerHeight = Math.min(_options.slideMaxHeight, (slideRealHeight) * (addedOptionsLength + $(this).find("option").length))
+
+
+                var optionElements = options.addedOptions;
+                var originOptiontags = getOriginOptionTags(optionElements);
+                var htmlStr = optionHtml($(originOptiontags));
+                selectPlugin.find(".slide .slide-item-holder").append(htmlStr);
+                selectPlugin.find(".slide").height(slideContainerHeight);
+                addScrollbar(selectPlugin);
+                $(this).append(originOptiontags);
+            };
+            return selectPlugin;
+        }
 
         var _options = $.extend(true, {}, $.fn.Select.defaults, options);
         var $select = $(this);
@@ -45,16 +87,7 @@
         a += "<div class='slide'>";
         a += "<div class='slide-item-holder'>";
 
-        function optionHtml($tmpSelectOptions)
-        {
-            var htmlStr = "";
-            $tmpSelectOptions.each(function(i) {
-                if ($(this).css("display") != "none") {
-                    htmlStr += " <div class='slide-item' xvalue='" + $(this).attr("value") + "' class='forOption'><span lang=\"en\">" + $(this).html() + "</span></div>";
-                }
-            });
-            return htmlStr;
-        }
+        
 
         a += optionHtml($selectOptions);
 
@@ -124,9 +157,9 @@
             $widgetSelect.find(".selected").width(tmpSelectWidth - 30);
             $widgetSelect.find(".slide").width(tmpSlideWidth).height(tmpSlideHeight);
             $widgetSelect.find(".slide-item").height(tmpOptionHeight);
-            $widgetSelect.find(".slide-item").css({
-                "font-size": tmpOptionHeight - 11,
-            })
+            // $widgetSelect.find(".slide-item").css({
+            //     "font-size": tmpOptionHeight - 11,
+            // })
             $widgetSelect.find(".slide-item-holder").width(tmpSlideWidth).attr({
                 height: (tmpOptionHeight + 8) * $tmpSelectOptions.length
             }); //.height(15*$selectOptions.length);
@@ -136,12 +169,8 @@
 
 
         // add scrollbar
-        function addScrollbar(){
-            $widgetSelect.find(".slide").Scrollbar({
-                target: $widgetSelect.find(".slide .slide-item-holder")
-            });
-        }
-        addScrollbar();
+        
+        addScrollbar($widgetSelect);
         
 
         // initially hide element
@@ -182,9 +211,22 @@
             addScrollbar();
         }
 
-
+        $widgetSelect.originalSelect = $select;
         return $widgetSelect;
-    }
+    };
+
+    function getOriginOptionTags(optionElements) {
+        if (undefined == optionElements) {
+            return "";
+        };
+        var optionPrefix = "<option lang=\"en\">";
+        var optionPostfix = "</option>";
+        var htmlStr = "";
+        for (var key in optionElements) {
+            htmlStr += optionPrefix + key + optionPostfix;
+        };
+        return htmlStr;
+    };
 
     $.fn.Select.defaults = {
         width: 200,
@@ -193,10 +235,10 @@
     }
 
     $(function(){
-        $('select.select').each(function(){
-            var ref = $(this).Select({});
-            $(this)[0]["widgetRef"] = ref;
-        });
+        // $('select.select').each(function(){
+        //     var ref = $(this).Select({});
+        //     $(this)[0]["widgetRef"] = ref;
+        // });
     })
 })(jQuery)
 

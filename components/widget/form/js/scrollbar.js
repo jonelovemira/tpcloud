@@ -154,6 +154,18 @@
                     width: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
                 });
             } else { //有滚动条，block位置重置
+                $holder.find(".scrollBar-horizontal").remove();
+                var a = "<div class='scrollBar scrollBar-horizontal' onmousedown='stopBubble(event)'>";
+                a += "  <div class='scroll-area'>";
+                a += "      <div class='scroll-block'></div>";
+                a += "  </div>";
+                a += "</div>";
+                $holder.prepend(a);
+
+                var scrollBlockPercent = Math.floor(($target.width() - $holder.width()) / 1000) * 100
+                $holder.find(".scrollBar-horizontal .scroll-block").css({
+                    width: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
+                });
             }
         } else {
             $target.css({
