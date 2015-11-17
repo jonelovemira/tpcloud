@@ -17,6 +17,20 @@ $(function(){
         this.model.getUpdateInfos(inputCallbacks);
     };
 
+    SoftwareController.prototype.initHandler = function() {
+        var appendedSelectorHandlerMap = {
+            "#submit": {"click": this.sendFeedBack},
+        };
+
+        var selectorMsgProduceFuncMap = {};
+
+        this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    SoftwareController.prototype.sendFeedBack = function() {
+        
+    };
+
     function SoftwareView () {
         this.model = null;
     };
@@ -29,4 +43,12 @@ $(function(){
         $("#model_select").Select({addedOptions: addedOptions});
     };
 
+    var sc = new SoftwareController();
+    var s = new $.ipc.Software();
+    var sv = new SoftwareView();
+    sc.model = s;
+    sc.view = sv;
+    sv.model = s;
+
+    sc.getUpdateInfos();
 });

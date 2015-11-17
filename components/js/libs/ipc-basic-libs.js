@@ -56,6 +56,10 @@
             (options.onprogress || function(xdr){})(xdr);
         }
 
+        if (newOptions.contentType.indexOf("x-www-form-urlencoded")>=0) {
+            newOptions.data = $.param(newOptions.data);
+        };
+
         xdr.timeout = newOptions.timeout;
         xdr.open(newOptions.type, newOptions.url);
         xdr.send(newOptions.data);

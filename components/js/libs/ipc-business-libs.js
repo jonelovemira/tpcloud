@@ -736,3 +736,74 @@
 
     $.ipc.Software = Software;
 })(jQuery);
+
+
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function Feedback () {
+        $.ipc.Model.call(this, arguments);
+        this.account = null;
+        this.product = null;
+        this.country = null;
+        this.subject = null;
+        this.description = null;
+    };
+
+    $.ipc.inheritPrototype(Plugin, $.ipc.Model);
+
+    var feedbackErrorCodeInfo = {
+        1000: function(){console.log("account cannot be empty")},
+        1003: function(){console.log("email address is invalid")},
+        1006: function(){console.log("email address is not exist")}
+        1011: function(){console.log("email address is empty")},
+    };
+
+    Feedback.prototype.errorCodeCallbacks = Feedback.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": feedbackErrorCodeInfo});
+
+    Feedback.prototype.send = function(inputCallbacks) {
+        if (undefined == this.account || undefined == this.product || 
+            undefined == this.country || undefined == this.subject || 
+            undefined == this.description) {
+            console.error("error in args of Feedback.send");
+        };
+
+        var data = JSON.stringify({
+            'REQUEST': 'EMAILSERVICE',
+            'DATA': {
+                "email": this.account,
+                "subject": "User Feedback",
+                "content": "From:" + this.account + "<br/>" +
+                            "Model: " + this.product +  "<br/>" +
+                            "Country: " + this.country + "<br/>" +
+                            "Problem: " + this.subject + "<br/>" +
+                            "Description: " + this.description,
+                "service": "Feedback"
+            }
+        });
+
+        this.makeAjaxRequest({url: "/updateInfos", data: data, callbacks: inputCallbacks, changeState: $.noop});
+    };
+
+    Feedback.prototype.validateAccount = function(tmpAccount) {
+        if (undefined == tmpAccount) {
+            console.error("args error in validateAccount");
+            return;
+        };
+
+        var validateArgs = {
+            "attr": tmpAccount,
+            "attrEmptyMsg": tips.types.account.cantBeEmpty,
+            "maxLength": 32,
+            "minLength": 1,
+            "attrOutOfLimitMsg": tips.types.account.outOfLimit,
+            "pattern": /^*$/,
+            "patternTestFailMsg": tips.types.account.invalid, 
+        };
+
+        return this.validateAttr(validateArgs);
+    };
+
+})(jQuery);
