@@ -316,14 +316,15 @@
         this.makeAjaxRequest({url: "/getUser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.validateUsernameFormat = function() {
-        if (undefined == this.username) {
+    User.prototype.validateUsernameFormat = function(tmpUsername) {
+        var testUsername = tmpUsername || this.username;
+        if (undefined == testUsername) {
             console.error("args error in validateUsernameFormat");
             return;
         };
 
         var validateArgs = {
-            "attr": this.username,
+            "attr": testUsername,
             "attrEmptyMsg": tips.types.username.cantBeEmpty,
             "maxLength": 32,
             "minLength": 1,
@@ -333,6 +334,16 @@
         };
 
         return this.validateAttr(validateArgs);
+    };
+
+    User.prototype.validatePasswordFormat = function(tmpPassword, msg) {
+        var testPassword = tmpPassword || this.password;
+        var extendMsg = msg || {"attrEmptyMsg": tips.types.password.cantBeEmpty,
+                                "attrOutOfLimitMsg": tips.types.password.outOfLimit,
+                                "patternTestFailMsg": tips.types.password.invalidLong}
+        if (undefined == tmpPassword || undefined == msg) {
+            console.error("args error in validatePasswordFormat");
+        };
     };
 
     User.prototype.validatePasswordFormat = function(password, msg) {
@@ -799,8 +810,26 @@
             "maxLength": 32,
             "minLength": 1,
             "attrOutOfLimitMsg": tips.types.account.outOfLimit,
-            "pattern": /^*$/,
+            "pattern": /^.*$/,
             "patternTestFailMsg": tips.types.account.invalid, 
+        };
+
+        return this.validateAttr(validateArgs);
+    };
+
+    Feedback.prototype.validateDescription = function(tmpDescription) {
+        if (undefined == tmpDescription) {
+            console.error("args error in validateDescription");
+        };
+
+        var validateArgs = {
+            "attr": tmpDescription,
+            "attrEmptyMsg": tips.types.contact.description.cantBeEmpty,
+            "maxLength": 32,
+            "minLength": 1,
+            "attrOutOfLimitMsg": tips.types.contact.description.outOfLimit,
+            "pattern": /.*/,
+            "patternTestFailMsg": tips.types.contact.description.invalid, 
         };
 
         return this.validateAttr(validateArgs);

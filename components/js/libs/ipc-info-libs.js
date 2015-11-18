@@ -68,18 +68,10 @@ var tips = {
             "alreadyExist": "Username already exists."
         },
         "contact": {
-            "account": {
-                "cantBeEmpty": "Please enter an E-mail address or username."
-            },
-            "subject": {
-                "shouldSelect": "Please select a subject."
-            },
-            "model": {
-                "shouldSelect": "Please select a product model.",
-            },
             "description": {
                 "cantBeEmpty": "Please describe your questions or suggestions.",
-                "outOfLimit": "Please enter a description within 500 characters."
+                "outOfLimit": "Please enter a description within 500 characters.",
+                "invalid": "Please enter a valid description"
             }
         },
         "account": {
