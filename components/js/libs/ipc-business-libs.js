@@ -341,29 +341,20 @@
         var extendMsg = msg || {"attrEmptyMsg": tips.types.password.cantBeEmpty,
                                 "attrOutOfLimitMsg": tips.types.password.outOfLimit,
                                 "patternTestFailMsg": tips.types.password.invalidLong}
-        if (undefined == tmpPassword || undefined == msg) {
-            console.error("args error in validatePasswordFormat");
-        };
-    };
-
-    User.prototype.validatePasswordFormat = function(password, msg) {
-        if (undefined == password || undefined == msg || 
-            undefined == msg["attrEmptyMsg"] || 
-            undefined == msg["attrOutOfLimitMsg"] || 
-            undefined == msg["patternTestFailMsg"]) {
-            console.error("args error in validatePasswordFormat");
-            return;
-        };
-        
         var validateArgs = {
-            "attr": password,
+            "attr": testPassword,
             "maxLength": 32,
             "minLength": 6,
-            "pattern": /^[\x21-\x7e]{6,32}$/,
+            "pattern": /^[\x21-\x7e]{6,32}$/
         };
 
         $.extend(true, validateArgs, msg);
         return this.validateAttr(validateArgs);
+    };
+
+    User.prototype.validateConfirmPassword = function(tmpConfirmPassword) {
+        var testConfirmPassword = tmpConfirmPassword || this.newPassword;
+        return this.validatePasswordFormat(testConfirmPassword);
     };
 
     User.prototype.validateEmailFormat = function() {
