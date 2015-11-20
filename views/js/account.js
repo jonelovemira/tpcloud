@@ -49,9 +49,10 @@ $(function () {
     };
 
     UserController.prototype.changePassword = function() {
-        this.model.password = $('#oldpwd').val();
-        this.model.newPassword = $('#newpwd').val();
+        var password = $('#oldpwd').val();
+        var newPassword = $('#newpwd').val();
         var confirmPassword = $("#cfpwd").val();
+        var args = {password: password, newPassword: newPassword, confirmPassword: confirmPassword};
 
         var passwordValidateArgs = {
             "attrEmptyMsg": tips.types.password.cantBeEmpty,
@@ -59,18 +60,18 @@ $(function () {
             "patternTestFailMsg": tips.types.password.invalidLong, 
         };
 
-        var curPwdValidRslt = this.model.validatePasswordFormat(this.model.password, passwordValidateArgs);
+        var curPwdValidRslt = this.model.validatePasswordFormat(password, passwordValidateArgs);
         var e = new $.ipc.Error();
         e.code = true;
         e.msg = "ok";
         if (!curPwdValidRslt.code) {
             e = curPwdValidRslt;
         } else {
-            var newPwdValidRslt = this.model.validatePasswordFormat(this.model.newPassword, passwordValidateArgs);
+            var newPwdValidRslt = this.model.validatePasswordFormat(newPassword, passwordValidateArgs);
             if (!newPwdValidRslt.code) {
                 e = newPwdValidRslt;
             } else {
-                if (confirmPassword != this.model.newPassword) {
+                if (confirmPassword != newPassword) {
                     e.code = false;
                     e.msg = tips.actions.confirmNewPassword.failed;
                 };
@@ -98,7 +99,7 @@ $(function () {
                     currentController.view.renderError(errCodeTipsMap["-1"]);
                 }
             };
-            this.model.modifyPassword(inputCallbacks);
+            this.model.modifyPassword(args, inputCallbacks);
         }
     
     };

@@ -196,33 +196,34 @@
         this.readCookieDataCallbacks.fire();
     };
 
-    User.prototype.register = function(inputCallbacks) {
-        if (undefined == this.email || undefined == this.username || undefined == this.password) {
+    User.prototype.register = function(args, inputCallbacks) {
+        if (undefined == args.email || undefined == args.username || undefined == args.password) {
             console.error( "args error in register");
             return;
         };
         
         var data = JSON.stringify({
-            "email": this.email,
-            "username": this.username,
-            "password": this.encryptText(this.password)
+            "email": args.email,
+            "username": args.username,
+            "password": args.encryptText(args.password)
         });
 
         this.makeAjaxRequest({url: "/register", data: data, callbacks: inputCallbacks, changeState: $.noop});
     };
 
-    User.prototype.login = function(inputCallbacks){
-        if (undefined == this.account || undefined == this.password) {
+    User.prototype.login = function(args, inputCallbacks){
+        if (undefined == args.account || undefined == args.password) {
             console.error( "args error in login");
             return;
         };
         
         var data = JSON.stringify({
-            "username" : this.account,
-            "password" : this.encryptText(this.password)
+            "username" : args.account,
+            "password" : this.encryptText(args.password)
         });
 
         var changeStateFunc = function(response){
+            this.account = args.account;
             this.token = response.msg.token;
             this.email = response.msg.email;
         }
@@ -230,14 +231,14 @@
         this.makeAjaxRequest({url: "/login", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.logout = function(inputCallbacks) {
-        if (undefined == this.email) {
+    User.prototype.logout = function(args, inputCallbacks) {
+        if (undefined == args.email) {
             console.error( "args error in logout");
             return;
         };
 
         var data = JSON.stringify({
-            "email": this.email
+            "email": args.email
         });
 
         var changeStateFunc = function(response){
@@ -247,27 +248,27 @@
         this.makeAjaxRequest({url: "/logout", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.sendActiveEmail = function(inputCallbacks) {
-        if (undefined == this.email) {
+    User.prototype.sendActiveEmail = function(args, inputCallbacks) {
+        if (undefined == args.email) {
             console.error( "args error in sendActiveEmail");
             return;
         };
 
         var data = JSON.stringify({
-            "email": this.email
+            "email": args.email
         });
 
         this.makeAjaxRequest({url: "/sendActiveEmail", data: data, callbacks: inputCallbacks, changeState: $.noop});
     };
 
-    User.prototype.resetPassword = function(inputCallbacks) {
-        if (undefined == this.email) {
+    User.prototype.resetPassword = function(args, inputCallbacks) {
+        if (undefined == args.email) {
             console.error( "args error in resetPassword");
             return;
         };
         
         var data = JSON.stringify({
-            "email": this.email
+            "email": args.email
         });
 
         var changeStateFunc = function(response){
@@ -277,17 +278,17 @@
         this.makeAjaxRequest({url: "/forgetPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.modifyPassword = function(inputCallbacks) {
-        if (undefined == this.email || undefined == this.newPassword 
-            || undefined == this.password || undefined == this.token) {
+    User.prototype.modifyPassword = function(args, inputCallbacks) {
+        if (undefined == args.email || undefined == args.newPassword 
+            || undefined == args.password || undefined == this.token) {
             console.error("args error in modifyPassword");
             return;
         };
         
         var data = JSON.stringify({
-            "email": this.email,
-            "oldpassword": this.encryptText(this.password),
-            "password": this.encryptText(this.newPassword),
+            "email": args.email,
+            "oldpassword": this.encryptText(args.password),
+            "password": this.encryptText(args.newPassword),
             "token": this.token
         });
 
@@ -299,14 +300,14 @@
         this.makeAjaxRequest({url: "/modifyPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.getUser = function(inputCallbacks){
-        if (undefined == this.email) {
+    User.prototype.getUser = function(args, inputCallbacks){
+        if (undefined == args.email) {
             console.error("error when get username due to args error");
             return;
         };
 
         var data = JSON.stringify({
-            "email": this.email  
+            "email": args.email  
         });
 
         var changeStateFunc = function(response){
@@ -344,7 +345,7 @@
         var validateArgs = {
             "attr": testPassword,
             "maxLength": 32,
-            "minLength": 6,
+            "minLength": 6, 
             "pattern": /^[\x21-\x7e]{6,32}$/
         };
 
@@ -382,8 +383,13 @@
         };
         
         return text;
-        // return $.ipc.Secret.rsaEncrypt(text);
-    }
+    };
+
+    User.prototype.setRememberMe = function(rememberMe) {
+        if (undefined == rememberMe) {
+            this.rememberMe = rememberMe;
+        };
+    };
 
     $.ipc.User = User;
 
@@ -658,18 +664,19 @@
 
     Plugin.prototype.errorCodeCallbacks = Plugin.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": pluginErrorCodeInfo});
 
-    Plugin.prototype.checkUpdate = function(inputCallbacks) {
-        if (undefined == this.OS || undefined == this.version ||
-            undefined == this.name) {
+    Plugin.prototype.checkUpdate = function(args, inputCallbacks) {
+        if (undefined == args.OS || undefined == args.version ||
+            undefined == args.name) {
             console.error("args error when checkUpdate");
         } else {
             var data = JSON.stringify({
-                "OS": this.OS,
-                "Version": this.version,
-                "Model": this.name
+                "OS": args.OS,
+                "Version": args.version,
+                "Model": args.name
             });
 
             var changeStateFunc = function(response){
+                $.extend(true, this, args);
                 this.downloadPath = response.msg;
             }
 
@@ -765,28 +772,32 @@
 
     Feedback.prototype.errorCodeCallbacks = Feedback.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": feedbackErrorCodeInfo});
 
-    Feedback.prototype.send = function(inputCallbacks) {
-        if (undefined == this.account || undefined == this.product || 
-            undefined == this.country || undefined == this.subject || 
-            undefined == this.description) {
+    Feedback.prototype.send = function(args, inputCallbacks) {
+        if (undefined == args.account || undefined == args.product || 
+            undefined == args.country || undefined == args.subject || 
+            undefined == args.description) {
             console.error("error in args of Feedback.send");
         };
 
         var data = JSON.stringify({
             'REQUEST': 'EMAILSERVICE',
             'DATA': {
-                "email": this.account,
+                "email": args.account,
                 "subject": "User Feedback",
-                "content": "From:" + this.account + "<br/>" +
-                            "Model: " + this.product +  "<br/>" +
-                            "Country: " + this.country + "<br/>" +
-                            "Problem: " + this.subject + "<br/>" +
-                            "Description: " + this.description,
+                "content": "From:" + args.account + "<br/>" +
+                            "Model: " + args.product +  "<br/>" +
+                            "Country: " + args.country + "<br/>" +
+                            "Problem: " + args.subject + "<br/>" +
+                            "Description: " + args.description,
                 "service": "Feedback"
             }
         });
 
-        this.makeAjaxRequest({url: "/updateInfos", data: data, callbacks: inputCallbacks, changeState: $.noop});
+        var changeStateFunc = function(response){
+            $.extend(true, this, args);
+        }
+
+        this.makeAjaxRequest({url: "/updateInfos", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
     Feedback.prototype.validateAccount = function(tmpAccount) {

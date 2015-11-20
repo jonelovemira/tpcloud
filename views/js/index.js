@@ -33,19 +33,21 @@ $(function (){
         this.rememberUserLogic();
 
         var account = $("#Account").val();
-        this.model.account = account;
-        if (!this.model.account) {
+        if (!account) {
             var displayTips = tips.types.account.cantBeEmpty;
             this.view.showTips(displayTips);
             return;
         };
 
-        this.model.password = $("#Password").val();
-        if (!this.model.password) {
+        var password = $("#Password").val();
+        if (!password) {
             var displayTips = tips.types.password.cantBeEmpty;
             this.view.showTips(displayTips);
             return;
         };
+        
+        var args = {account: account, password: password};
+
         var currentController = this;
 
         var errCodeTipsMap = {
@@ -91,7 +93,7 @@ $(function (){
             }
         };
 
-        currentController.model.login(inputCallbacks);
+        currentController.model.login(args, inputCallbacks);
 
     };
 
@@ -104,7 +106,7 @@ $(function (){
     };
 
     UserController.prototype.rememberUserLogic = function() {
-        this.model.rememberMe = $("input.checkbox[name=remember]").is(":checked");
+        this.model.setRememberMe($("input.checkbox[name=remember]").is(":checked"));
         if (this.model.rememberMe) {
             var userName = $("#Account").val();
             userName && $.cookie("rmbUser", "true", {expires: 7}) && $.cookie("userName", userName, {expires: 7});
