@@ -197,6 +197,11 @@
     };
 
     User.prototype.register = function(args, inputCallbacks) {
+
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
+            (!this.validateUsernameFormat(args.email).code && this.validateUsernameFormat(args.email)) ||
+            (!this.validateUsernameFormat(args.email).code && this.validateUsernameFormat(args.email));
+
         if (undefined == args.email || undefined == args.username || undefined == args.password) {
             console.error( "args error in register");
             return;
@@ -318,14 +323,13 @@
     };
 
     User.prototype.validateUsernameFormat = function(tmpUsername) {
-        var testUsername = tmpUsername || this.username;
-        if (undefined == testUsername) {
+        if (undefined == tmpUsername) {
             console.error("args error in validateUsernameFormat");
             return;
         };
 
         var validateArgs = {
-            "attr": testUsername,
+            "attr": tmpUsername,
             "attrEmptyMsg": tips.types.username.cantBeEmpty,
             "maxLength": 32,
             "minLength": 1,
@@ -338,34 +342,46 @@
     };
 
     User.prototype.validatePasswordFormat = function(tmpPassword, msg) {
-        var testPassword = tmpPassword || this.password;
+        if (undefined == tmpPassword) {
+            console.error("args error in validatePasswordFormat");
+            return;
+        };
         var extendMsg = msg || {"attrEmptyMsg": tips.types.password.cantBeEmpty,
                                 "attrOutOfLimitMsg": tips.types.password.outOfLimit,
                                 "patternTestFailMsg": tips.types.password.invalidLong}
         var validateArgs = {
-            "attr": testPassword,
+            "attr": tmpPassword,
             "maxLength": 32,
             "minLength": 6, 
             "pattern": /^[\x21-\x7e]{6,32}$/
         };
 
-        $.extend(true, validateArgs, msg);
+        $.extend(true, validateArgs, extendMsg);
         return this.validateAttr(validateArgs);
     };
 
-    User.prototype.validateConfirmPassword = function(tmpConfirmPassword) {
-        var testConfirmPassword = tmpConfirmPassword || this.newPassword;
-        return this.validatePasswordFormat(testConfirmPassword);
+    User.prototype.validateNewPassword = function(tmpNewPassword, tmpNewPasswordSecond) {
+        if (undefined == tmpNewPassword || undefined == tmpNewPasswordSecond) {
+            console.error("args error in validateNewPassword");
+            return;
+        };
+        if (tmpNewPassword != tmpNewPasswordSecond) {
+            var err = new $.ipc.Error();
+            err.code = false;
+            err.msg = tips.types.newPassword.notSame;
+            return err;
+        };
+        return this.validatePasswordFormat(tmpNewPassword);
     };
 
-    User.prototype.validateEmailFormat = function() {
-        if (undefined == this.email) {
+    User.prototype.validateEmailFormat = function(tmpEmail) {
+        if (undefined == tmpEmail) {
             console.error("args error in validateEmailFormat");
             return;
         };
         
         var validateArgs = {
-            "attr": this.email,
+            "attr": tmpEmail,
             "attrEmptyMsg": tips.types.email.cantBeEmpty,
             "maxLength": 64,
             "minLength": 1,
