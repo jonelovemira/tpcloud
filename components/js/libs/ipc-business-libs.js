@@ -170,7 +170,7 @@
         1011: function(){console.log("username is needed");},
         1012: function(){console.log("username can not contain any illegal char")},
         1013: function(){console.log("username have been used");},
-        1015: function(){console.log("username format is invalid");},
+        1015: function(){console.log("password format is invalid");},
         1020: function(){console.log("password is needed");},
         1022: function(){console.log("password length is invalid");},
         1023: function(){console.log("decrypt password failed");},
@@ -199,13 +199,9 @@
     User.prototype.register = function(args, inputCallbacks) {
 
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
-            (!this.validateUsernameFormat(args.email).code && this.validateUsernameFormat(args.email)) ||
-            (!this.validateUsernameFormat(args.email).code && this.validateUsernameFormat(args.email));
-
-        if (undefined == args.email || undefined == args.username || undefined == args.password) {
-            console.error( "args error in register");
-            return;
-        };
+            (!this.validateUsernameFormat(args.username).code && this.validateUsernameFormat(args.username)) ||
+            (!this.validatePasswordFormat(args.password).code && this.validatePasswordFormat(args.password));
+        if (!validateResult.code) {return validateResult;};
         
         var data = JSON.stringify({
             "email": args.email,
@@ -217,10 +213,10 @@
     };
 
     User.prototype.login = function(args, inputCallbacks){
-        if (undefined == args.account || undefined == args.password) {
-            console.error( "args error in login");
-            return;
-        };
+        
+        var validateResult = (!this.validatePasswordFormat(args.password).code 
+            && this.validatePasswordFormat(args.password, {"patternTestFailMsg": tips.types.password.invalidShort}));
+        if (validateResult.code == false) {return validateResult;};
         
         var data = JSON.stringify({
             "username" : args.account,
@@ -237,10 +233,8 @@
     };
 
     User.prototype.logout = function(args, inputCallbacks) {
-        if (undefined == args.email) {
-            console.error( "args error in logout");
-            return;
-        };
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
+        if (validateResult.code == false) {return validateResult;};
 
         var data = JSON.stringify({
             "email": args.email
@@ -254,10 +248,8 @@
     };
 
     User.prototype.sendActiveEmail = function(args, inputCallbacks) {
-        if (undefined == args.email) {
-            console.error( "args error in sendActiveEmail");
-            return;
-        };
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
+        if (validateResult.code == false) {return validateResult;};
 
         var data = JSON.stringify({
             "email": args.email
@@ -267,10 +259,8 @@
     };
 
     User.prototype.resetPassword = function(args, inputCallbacks) {
-        if (undefined == args.email) {
-            console.error( "args error in resetPassword");
-            return;
-        };
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
+        if (validateResult.code == false) {return validateResult;};
         
         var data = JSON.stringify({
             "email": args.email
@@ -284,12 +274,11 @@
     };
 
     User.prototype.modifyPassword = function(args, inputCallbacks) {
-        if (undefined == args.email || undefined == args.newPassword 
-            || undefined == args.password || undefined == this.token) {
-            console.error("args error in modifyPassword");
-            return;
-        };
-        
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
+                            (!this.validatePasswordFormat(args.password).code && this.validatePasswordFormat(args.password)) ||
+                            (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
+        if (validateResult.code == false) {return validateResult;};
+
         var data = JSON.stringify({
             "email": args.email,
             "oldpassword": this.encryptText(args.password),
@@ -306,10 +295,8 @@
     };
 
     User.prototype.getUser = function(args, inputCallbacks){
-        if (undefined == args.email) {
-            console.error("error when get username due to args error");
-            return;
-        };
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
+        if (validateResult.code == false) {return validateResult;};
 
         var data = JSON.stringify({
             "email": args.email  
@@ -346,9 +333,11 @@
             console.error("args error in validatePasswordFormat");
             return;
         };
-        var extendMsg = msg || {"attrEmptyMsg": tips.types.password.cantBeEmpty,
-                                "attrOutOfLimitMsg": tips.types.password.outOfLimit,
-                                "patternTestFailMsg": tips.types.password.invalidLong}
+        var defaultMsg = {"attrEmptyMsg": tips.types.password.cantBeEmpty,
+                        "attrOutOfLimitMsg": tips.types.password.outOfLimit,
+                        "patternTestFailMsg": tips.types.password.invalidLong};
+
+        var extendMsg = $.extend(true, defaultMsg, msg);
         var validateArgs = {
             "attr": tmpPassword,
             "maxLength": 32,
@@ -403,8 +392,10 @@
 
     User.prototype.setRememberMe = function(rememberMe) {
         if (undefined == rememberMe) {
-            this.rememberMe = rememberMe;
+            console.error("args error in rememberMe");
+            return;
         };
+        this.rememberMe = rememberMe;
     };
 
     $.ipc.User = User;
@@ -663,7 +654,7 @@
 
     $.ipc = $.ipc || {};
 
-    function Plugin () {
+    function IpcPlugin () {
         $.ipc.Model.call(this, arguments);
         this.OS = null;
         this.version = null;
@@ -672,15 +663,15 @@
         this.downloadPath = null;
     };
 
-    $.ipc.inheritPrototype(Plugin, $.ipc.Model);
+    $.ipc.inheritPrototype(IpcPlugin, $.ipc.Model);
 
-    var pluginErrorCodeInfo = {
+    var ipcPluginErrorCodeInfo = {
         10000: function(){console.log("No update for the application you want");}
     };
 
-    Plugin.prototype.errorCodeCallbacks = Plugin.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": pluginErrorCodeInfo});
+    IpcPlugin.prototype.errorCodeCallbacks = IpcPlugin.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": ipcPluginErrorCodeInfo});
 
-    Plugin.prototype.checkUpdate = function(args, inputCallbacks) {
+    IpcPlugin.prototype.checkUpdate = function(args, inputCallbacks) {
         if (undefined == args.OS || undefined == args.version ||
             undefined == args.name) {
             console.error("args error when checkUpdate");
@@ -700,7 +691,7 @@
         }
     };
 
-    $.ipc.Plugin = Plugin;
+    $.ipc.IpcPlugin = IpcPlugin;
 
     function Product () {
         this.released = null;
@@ -737,7 +728,7 @@
             };
 
             for (var i = 0; i < response.msg.software.length; i++) {
-                var newPlugin = new $.ipc.Plugin();
+                var newPlugin = new $.ipc.IpcPlugin();
                 newPlugin.OS = response.msg.software[i].tags;
                 newPlugin.version = response.msg.software[i].version;
                 newPlugin.name = response.msg.software[i].name;
@@ -773,27 +764,29 @@
         this.account = null;
         this.product = null;
         this.country = null;
-        this.subject = null;
+        this.problemType = null;
         this.description = null;
     };
 
-    $.ipc.inheritPrototype(Plugin, $.ipc.Model);
+    $.ipc.inheritPrototype(Feedback, $.ipc.Model);
 
     var feedbackErrorCodeInfo = {
-        1000: function(){console.log("account cannot be empty")},
-        1003: function(){console.log("email address is invalid")},
-        1006: function(){console.log("email address is not exist")}
-        1011: function(){console.log("email address is empty")},
+        1000: function(){console.log("email address cannot be empty")},
+        1006: function(){console.log("account is not exist")},
+        1011: function(){console.log("username cannot be empty")},
     };
 
     Feedback.prototype.errorCodeCallbacks = Feedback.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": feedbackErrorCodeInfo});
 
     Feedback.prototype.send = function(args, inputCallbacks) {
-        if (undefined == args.account || undefined == args.product || 
-            undefined == args.country || undefined == args.subject || 
-            undefined == args.description) {
-            console.error("error in args of Feedback.send");
-        };
+        var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
+            (!this.validateDescription(args.description).code && this.validateDescription(args.description));
+        if (validateResult.code == false) {return validateResult;}; 
+
+        if (undefined == args.product || undefined == args.problemType) {
+            console.error("args error in send");
+            return;
+        };       
 
         var data = JSON.stringify({
             'REQUEST': 'EMAILSERVICE',
@@ -803,7 +796,7 @@
                 "content": "From:" + args.account + "<br/>" +
                             "Model: " + args.product +  "<br/>" +
                             "Country: " + args.country + "<br/>" +
-                            "Problem: " + args.subject + "<br/>" +
+                            "Problem: " + args.problemType + "<br/>" +
                             "Description: " + args.description,
                 "service": "Feedback"
             }
@@ -813,7 +806,7 @@
             $.extend(true, this, args);
         }
 
-        this.makeAjaxRequest({url: "/updateInfos", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({url: "/feedback", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
     Feedback.prototype.validateAccount = function(tmpAccount) {
@@ -824,10 +817,10 @@
 
         var validateArgs = {
             "attr": tmpAccount,
-            "attrEmptyMsg": tips.types.account.cantBeEmpty,
+            "attrEmptyMsg": tips.types.contact.account.cantBeEmpty,
             "maxLength": 32,
             "minLength": 1,
-            "attrOutOfLimitMsg": tips.types.account.outOfLimit,
+            "attrOutOfLimitMsg": "account out of limit",
             "pattern": /^.*$/,
             "patternTestFailMsg": tips.types.account.invalid, 
         };
@@ -853,4 +846,5 @@
         return this.validateAttr(validateArgs);
     };
 
+    $.ipc.Feedback = Feedback;
 })(jQuery);

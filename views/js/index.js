@@ -31,22 +31,8 @@ $(function (){
     UserController.prototype.loginUser = function() {
         
         this.rememberUserLogic();
-
-        var account = $("#Account").val();
-        if (!account) {
-            var displayTips = tips.types.account.cantBeEmpty;
-            this.view.showTips(displayTips);
-            return;
-        };
-
-        var password = $("#Password").val();
-        if (!password) {
-            var displayTips = tips.types.password.cantBeEmpty;
-            this.view.showTips(displayTips);
-            return;
-        };
         
-        var args = {account: account, password: password};
+        var args = {account: $("#Account").val(), password: $("#Password").val()};
 
         var currentController = this;
 
@@ -93,7 +79,10 @@ $(function (){
             }
         };
 
-        currentController.model.login(args, inputCallbacks);
+        var validateResult = currentController.model.login(args, inputCallbacks);
+        if (validateResult != undefined && !validateResult.code) {
+            this.view.showTips(validateResult.msg);
+        };
 
     };
 
@@ -199,7 +188,7 @@ $(function (){
     UserView.prototype.renderInitRememberMe = function() {
         if(this.model.rememberMe && this.model.account) {
             var rememberMe = this.model.rememberMe == true ? true : false;
-            rememberMe && $("#remember").click();
+            rememberMe && !$("input.checkbox[name=remember]").is(":checked") && $("#remember").click();
             $("#Account").val(this.model.account);
             $("#Password").focus().select();
             $("#account-cover").hide();

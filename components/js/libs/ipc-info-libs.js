@@ -39,6 +39,10 @@ var tips = {
         },
         "snapshot": {
             "diskFull": "Not enough storage. The recording will stop."
+        },
+        "sendFeedback": {
+            "success": "E-mail sent successfully.",
+            "failed": "Operation failed. Please try again later."
         }
     },
     "types": {
@@ -69,6 +73,9 @@ var tips = {
                 "cantBeEmpty": "Please describe your questions or suggestions.",
                 "outOfLimit": "Please enter a description within 500 characters.",
                 "invalid": "Please enter a valid description"
+            },
+            "account": {
+                "cantBeEmpty": "Please enter an E-mail address or username."
             }
         },
         "account": {
@@ -84,7 +91,7 @@ var tips = {
             "invalidShort": "Please enter a valid Password.",
             "invalidLong": "Invalid password. Only digits, letters, and other printable symbols on the keyboard are permitted",
             "cantBeEmpty": "Password can't be empty.",
-            "outOfLimit": "Password should contain 6 to 32 characters."
+            "outOfLimit": "Password should contain 6 to 32 characters.",
             "wrongForChange": "Current password is incorrect."
         },
         "newPassword": {

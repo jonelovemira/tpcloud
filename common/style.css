@@ -363,3 +363,29 @@ ul {
     width: 95px;
     margin-right: 15px;
 }
+
+.welcomeinfo-cell{
+	float: right;
+	color:#323232;
+	font-size:1.4em;
+}
+#logout{
+	color:#323232!important;
+}
+#welcome_username{
+	float:right;
+	position: relative;
+	padding:0 15px 0 0px;
+}
+.logoutcontain{
+	float: right;
+	height: 11px;
+	width: 45px;
+}
+#welcomeinfo{
+	float: right;
+	left: 265px;
+	position: relative;
+	top: 30px;
+	font-family:'MYRIADPRO-LIGHTSEMIEXT';
+}

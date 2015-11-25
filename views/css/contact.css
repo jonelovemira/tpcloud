@@ -223,3 +223,20 @@ td > label{
     color: #aaa;
     font-size: 13.33333px;
 }
+
+#contraint-time-left {
+    font-weight:normal;
+}
+
+#unusable-cover {
+    background-color: #fff;
+    opacity: 0.6;
+    width: 130px;
+    cursor: auto;
+    left: 90px;
+    top: 405px;
+    height: 32px;
+    position: absolute;
+    z-index: 1;
+    display: none;
+}

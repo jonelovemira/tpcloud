@@ -25,6 +25,8 @@ $(function () {
     UserController.prototype.logoutUser = function() {
         var currentController = this;
 
+        var args = {email: currentController.model.email};
+
         var errCodeTipsMap = {
             "-1": tips.actions.logout.failed
         };
@@ -45,62 +47,41 @@ $(function () {
             }
         };
 
-        currentController.model.logout(inputCallbacks);
+        var validateResult = currentController.model.logout(args, inputCallbacks);
+        if (validateResult != undefined && !validateResult.code) {
+            console.error(validateResult.msg);
+        };
     };
 
     UserController.prototype.changePassword = function() {
+        var currentController = this;
+        var email = currentController.model.email;
         var password = $('#oldpwd').val();
         var newPassword = $('#newpwd').val();
-        var confirmPassword = $("#cfpwd").val();
-        var args = {password: password, newPassword: newPassword, confirmPassword: confirmPassword};
+        var newPasswordSecond = $("#cfpwd").val();
+        var args = {email: email, password: password, newPassword: newPassword, newPasswordSecond: newPasswordSecond};
 
-        var passwordValidateArgs = {
-            "attrEmptyMsg": tips.types.password.cantBeEmpty,
-            "attrOutOfLimitMsg": tips.types.password.outOfLimit,
-            "patternTestFailMsg": tips.types.password.invalidLong, 
+        var errCodeTipsMap = {
+            "-1": tips.actions.changePassword.failed
         };
 
-        var curPwdValidRslt = this.model.validatePasswordFormat(password, passwordValidateArgs);
-        var e = new $.ipc.Error();
-        e.code = true;
-        e.msg = "ok";
-        if (!curPwdValidRslt.code) {
-            e = curPwdValidRslt;
-        } else {
-            var newPwdValidRslt = this.model.validatePasswordFormat(newPassword, passwordValidateArgs);
-            if (!newPwdValidRslt.code) {
-                e = newPwdValidRslt;
-            } else {
-                if (confirmPassword != newPassword) {
-                    e.code = false;
-                    e.msg = tips.actions.confirmNewPassword.failed;
-                };
-            }
-        }
-
-        if (!e.code) {
-            this.view.renderError(e.msg);
-        } else {
-
-            var errCodeTipsMap = {
-                "-1": tips.actions.changePassword.failed
-            };
-
-            var inputCallbacks = {
-                "errorCodeCallbackMap": {
-                    0: function() {
-                        currentController.changePasswordSuccess();
-                    },
-                    "-1" : function() {
-                        currentController.view.renderError(errCodeTipsMap["-1"]);
-                    }
+        var inputCallbacks = {
+            "errorCodeCallbackMap": {
+                0: function() {
+                    currentController.changePasswordSuccess();
                 },
-                "errorCallback" : function() {
+                "-1" : function() {
                     currentController.view.renderError(errCodeTipsMap["-1"]);
                 }
-            };
-            this.model.modifyPassword(args, inputCallbacks);
-        }
+            },
+            "errorCallback" : function() {
+                currentController.view.renderError(errCodeTipsMap["-1"]);
+            }
+        };
+        var validateResult = currentController.model.modifyPassword(args, inputCallbacks);
+        if (validateResult != undefined && !validateResult.code) {
+            currentController.view.renderError(validateResult.msg);
+        };
     
     };
 
@@ -143,22 +124,8 @@ $(function () {
             console.error("args error in showWelcomeInfo");
             return;
         };
-
-        var a = "";
-        a += "<div id='welcomeinfo'>",
-        a += "<span class='logoutcontain welcomeinfo-cell'>",
-        a += "<a href='#' id ='logout'title='End tpCamera journey?' class='lang'>",
-        a += "Logout",
-        a += "</a>",
-        a += "</span>",
-        a += "<span id='welcome_username' class='welcomeinfo-cell'>",
-        a += this.model.email;
-        a += "</span>",
-        a += "<span id='wn' class='welcomeinfo-cell'>",
-        a += "Welcome,&nbsp;",
-        a += "</span>",
-        a += "</div>";
-        $("#toplink").after(a);
+        $("#welcomeinfo").show();
+        $("#welcome_username").text(this.model.email);
     };
 
     UserView.prototype.renderError = function(errorMsg) {
