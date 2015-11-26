@@ -1,0 +1,117 @@
+#downloadshow {
+    width: 100%;
+    height: 225px;
+}
+
+#download-img-content{
+    width:1000px;
+    height:100%;
+    margin:0 auto;
+}
+
+#ipc-arrow-left {
+    float: left;
+    display: none;
+}
+
+.ipc-arrow {
+    height: 79px;
+    width: 50px;
+    cursor: pointer;
+    z-index: 10;
+    margin-top: 70px;
+}
+
+#img-arrow-left {
+    background: url("../img/download/left.png") no-repeat;
+    height: 60px;
+    width: 31px;
+    float: left;
+    margin: 10px;
+    z-index: 11;
+}
+
+#ipc-arrow-right {
+    float: right;
+    display: none;
+}
+
+#img-arrow-right {
+    background: url("../img/download/right.png") no-repeat;
+    height: 60px;
+    width: 31px;
+    float: right;
+    margin: 10px;
+    z-index: 11;
+}
+
+#download-img-inner{
+    margin: 0 auto;
+    height: 100%;
+    position: relative;
+    width: 800px;
+}
+
+.download-menu-cell{
+    position: absolute;
+    cursor: pointer;
+    text-align: center;
+    display: none;
+    width:120px;
+    padding: 40px 30px 10px;
+}
+
+.download-menu-cell:hover{
+    color:#26ADE4;
+}
+
+.cell-mid {
+    margin-left: 310px;
+}
+
+.cell-right {
+    right: 0px;
+}
+
+.downloadshow-img{
+    width:64px;
+    display: block;
+    margin:0 auto;
+    height:122px;
+}
+
+.downloadshow-font{
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    float: left;
+    width: 100%;
+    padding-top:15px;
+    font-size: 1.3em;
+}
+
+.img-NC200 {
+    background: url("../images/NC200.png") no-repeat scroll; 
+}
+
+.img-NC210 {
+    background: url("../images/NC210.png") no-repeat scroll; 
+}
+
+.img-NC220 {
+    background: url("../images/NC220.png") no-repeat scroll; 
+}
+
+.img-NC230 {
+    background: url("../images/NC230.png") no-repeat scroll; 
+}
+
+.img-NC250 {
+    background: url("../images/NC250.png") no-repeat scroll; 
+}
+
+.img-NC350 {
+    background: url("../images/NC350.png") no-repeat scroll; 
+}
+
+.img-NC450 {
+    background: url("../images/NC450.png") no-repeat scroll; 
+}

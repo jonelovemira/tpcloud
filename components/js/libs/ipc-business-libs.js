@@ -717,7 +717,7 @@
             for (var i = 0; i < response.msg.product.length; i++) {
                 var newProduct = new $.ipc.Product();
                 newProduct.released = response.msg.product[i].released;
-                newProduct.name = response.msg.product[i].model;
+                newProduct.name = response.msg.product[i].model.toUpperCase();
                 newProduct.faqPath = response.msg.product[i].href;
                 this.products.push(newProduct);
                 if (productNameObjMap[newProduct.name]) {
@@ -818,7 +818,7 @@
         var validateArgs = {
             "attr": tmpAccount,
             "attrEmptyMsg": tips.types.contact.account.cantBeEmpty,
-            "maxLength": 32,
+            "maxLength": 64,
             "minLength": 1,
             "attrOutOfLimitMsg": "account out of limit",
             "pattern": /^.*$/,
@@ -836,7 +836,7 @@
         var validateArgs = {
             "attr": tmpDescription,
             "attrEmptyMsg": tips.types.contact.description.cantBeEmpty,
-            "maxLength": 32,
+            "maxLength": 500,
             "minLength": 1,
             "attrOutOfLimitMsg": tips.types.contact.description.outOfLimit,
             "pattern": /.*/,

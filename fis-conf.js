@@ -15,32 +15,6 @@ fis.match('*', {
     release: '/$0',
 });
 
-fis.match('*.{tpl,html}', {
-    postprocessor: function(content, file) {
-        var re = /(<a.*?)href=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig;
-        var fileDir = file.dirname;
-
-        var aHrefLocateContent = content.replace(re, function(all, prefix, quote, value, query, queryInner, postfix) {
-            var f = fis.uri(value, fileDir);
-            if(f.file) {
-                all = prefix + 'href=' + quote + f.file.release + query + quote + postfix
-            }
-            return  all
-        });
-
-        var dataUrlLocate = /(<img.*?)data-url=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig; 
-        var dataUrlLocateContent = aHrefLocateContent.replace(dataUrlLocate, function(all, prefix, quote, value, query, queryInner, postfix) {
-            var f = fis.uri(value, fileDir);
-            if(f.file) {
-                all = prefix + 'data-url=' + quote + f.file.getHashRelease() + query + quote + postfix
-            }
-            return  all
-        });
-
-        return dataUrlLocateContent;
-    }
-});
-
 fis.match('/views/pages/{*,**/*}.html', {
     release: '$0'
 });
@@ -57,6 +31,22 @@ fis.media('build').match('*.{js,css,png,ico}', {
     useHash: true
 });
 
+fis.media('build').match('*.js', {
+    optimizer: fis.plugin('uglify-js')
+});
+
+fis.media('build').match('*.css', {
+    optimizer: fis.plugin('clean-css')
+});
+
+fis.media('build').match('*.png', {
+    optimizer: fis.plugin('png-compressor')
+});
+
+fis.media('build').match('*.min.{js,css}', {
+    optimizer: false
+});
+
 
 fis.media('alpha').match('*.{js,css,png,ico}',{
     domain: ALPHA_CDN_PATH
@@ -71,7 +61,8 @@ fis.media('product').match('*.{js,css,png,ico}',{
 });
 
 fis.match('fis-conf.js',{
-    useHash: false
+    useHash: false,
+    optimizer: false
 });
 
 /**
@@ -226,6 +217,44 @@ var templateInheritance = function (ret, conf, settings, opt) {
             }
         };
     });
+};
+
+var replaceResourceLocation = function(fileSrc, file) {
+    if (file) {
+        var content = file.getContent();
+        var fileDir = file.dirname;
+
+        var aHrefPattern = /(<a.*?)href=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig;
+        var afterReplaceAHrefContent = content.replace(aHrefPattern, function(all, prefix, quote, value, query, queryInner, postfix) {
+            var f = fis.uri(value, fileDir);
+            if(f.file) {
+                var releasePath = fileSrc[f.file.release].getHashRelease();
+                all = prefix + 'href=' + quote + releasePath + query + quote + postfix;
+            }
+            return  all;
+        });
+
+        var dateUrlPattern = /(<img.*?)data-url=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig;
+        var dataUrlLocateContent = afterReplaceAHrefContent.replace(dateUrlPattern, function(all, prefix, quote, value, query, queryInner, postfix) {
+            var f = fis.uri(value, fileDir);
+            if(f.file) {
+                var releasePath = fileSrc[f.file.release].getHashRelease();
+                all = prefix + 'data-url=' + quote + releasePath + query + quote + postfix;
+            }
+            return  all;
+        });
+
+        return dataUrlLocateContent;
+    };
+    
 }
 
-fis.config.set('modules.postpackager', [templateInheritance]);
+var myResourceLocate = function (ret, conf, settings, opt) {
+    fis.util.map(ret.src, function(subpath, file){
+        if (file.isHtmlLike) {
+            file.setContent(replaceResourceLocation(ret.src, file)); 
+        };
+    });
+}
+
+fis.config.set('modules.postpackager', [myResourceLocate, templateInheritance]);
