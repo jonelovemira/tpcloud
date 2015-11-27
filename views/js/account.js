@@ -59,7 +59,7 @@ $(function () {
         var password = $('#oldpwd').val();
         var newPassword = $('#newpwd').val();
         var newPasswordSecond = $("#cfpwd").val();
-        var args = {email: email, password: password, newPassword: newPassword, newPasswordSecond: newPasswordSecond};
+        var args = {password: password, newPassword: newPassword, newPasswordSecond: newPasswordSecond};
 
         var errCodeTipsMap = {
             "-1": tips.actions.changePassword.failed
@@ -126,6 +126,7 @@ $(function () {
         };
         $("#welcomeinfo").show();
         $("#welcome_username").text(this.model.email);
+        $('#userinfo-email').text($.cookie("email"));
     };
 
     UserView.prototype.renderError = function(errorMsg) {

@@ -219,7 +219,7 @@
         if (validateResult.code == false) {return validateResult;};
         
         var data = JSON.stringify({
-            "username" : args.account,
+            "account" : args.account,
             "password" : this.encryptText(args.password)
         });
 
@@ -242,6 +242,7 @@
 
         var changeStateFunc = function(response){
             this.token = null;
+            $.removeCookie("token");
         }
 
         this.makeAjaxRequest({url: "/logout", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
@@ -274,16 +275,17 @@
     };
 
     User.prototype.modifyPassword = function(args, inputCallbacks) {
-        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
-                            (!this.validatePasswordFormat(args.password).code && this.validatePasswordFormat(args.password)) ||
+        var validateResult = (!this.validatePasswordFormat(args.password).code && this.validatePasswordFormat(args.password)) ||
                             (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
         if (validateResult.code == false) {return validateResult;};
+        if (undefined == this.account) {
+            console.error("args error in modifyPassword");
+        };
 
         var data = JSON.stringify({
-            "email": args.email,
-            "oldpassword": this.encryptText(args.password),
+            "account": this.account,
+            "oldPassword": this.encryptText(args.password),
             "password": this.encryptText(args.newPassword),
-            "token": this.token
         });
 
         var changeStateFunc = function(response){

@@ -228,7 +228,7 @@ var replaceResourceLocation = function(fileSrc, file) {
         var afterReplaceAHrefContent = content.replace(aHrefPattern, function(all, prefix, quote, value, query, queryInner, postfix) {
             var f = fis.uri(value, fileDir);
             if(f.file) {
-                var releasePath = fileSrc[f.file.release].getHashRelease();
+                var releasePath = fileSrc["/" + f.file.id].getHashRelease();
                 all = prefix + 'href=' + quote + releasePath + query + quote + postfix;
             }
             return  all;
@@ -238,7 +238,7 @@ var replaceResourceLocation = function(fileSrc, file) {
         var dataUrlLocateContent = afterReplaceAHrefContent.replace(dateUrlPattern, function(all, prefix, quote, value, query, queryInner, postfix) {
             var f = fis.uri(value, fileDir);
             if(f.file) {
-                var releasePath = fileSrc[f.file.release].getHashRelease();
+                var releasePath = fileSrc["/" + f.file.id].getHashRelease();
                 all = prefix + 'data-url=' + quote + releasePath + query + quote + postfix;
             }
             return  all;

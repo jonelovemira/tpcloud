@@ -11,7 +11,7 @@ $(function(){
         var inputCallbacks = {
             "errorCodeCallbackMap": {
                 0: function() {
-                    this.view.feedModelSelect();
+                    currentController.view.feedModelSelect();
                 }
             },
             "errorCallback": function() {

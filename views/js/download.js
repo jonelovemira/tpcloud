@@ -10,7 +10,7 @@ $(function (){
         var inputCallbacks = {
             "errorCodeCallbackMap": {
                 0: function() {
-                    this.view.initProductMenu();
+                    currentController.view.initProductMenu();
                 }
             },
             "errorCallback": function() {
@@ -23,11 +23,24 @@ $(function (){
     SoftwareController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
             "#ipc-arrow-left": {"click": this.turnMenuLeft},
-            "#ipc-arrow-right": {"click": this.turnMenuRight}
+            "#ipc-arrow-right": {"click": this.turnMenuRight},
+            ".download-menu-cell": {"click": this.gotoFaq}
         };
 
-        var selectorMsgProduceFuncMap = {};
+        var selectorMsgProduceFuncMap = {
+            ".download-menu-cell": function() {
+                return $(this).attr("faq-path");
+            }
+        };
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    SoftwareController.prototype.gotoFaq = function(faqPath) {
+        if (undefined == faqPath) {
+            console.error("faqPath is empty");
+            return;
+        };
+        window.open(faqPath, "_blank");
     };
 
     SoftwareController.prototype.turnMenuLeft = function() {
@@ -44,10 +57,10 @@ $(function (){
         this.currentMenuPageIndex = 0;
         this.totalMenuPageCount = 0;
         this.currentDisplayProductArr = [];
-        this.indexImgContainerMap = {
-            "0": "#nc-img-left",
-            "1": "#nc-img-mid",
-            "2": "#nc-img-right"
+        this.indexCellMap = {
+            "0": ".cell-left",
+            "1": ".cell-mid",
+            "2": ".cell-right"
         };
     };
 
@@ -56,7 +69,7 @@ $(function (){
             console.error("there is no products from server");
             return;
         };
-        this.totalMenuPageCount = Math.ceil(this.model.products / this.maxDisplayProductNum);
+        this.totalMenuPageCount = Math.ceil(this.model.products.length / this.maxDisplayProductNum);
         this.currentMenuPageIndex = 0;
         this.updateProductMenu();
     };
@@ -77,7 +90,7 @@ $(function (){
         for (var i = 0; i < this.currentDisplayProductArr.length; i++) {
             var p = this.currentDisplayProductArr[i];
             if (p) {
-                $(this.indexImgContainerMap[i]).removeClass(this.productToCssClass(p));
+                $(this.indexCellMap[i] + " > " + ".downloadshow-img").removeClass(this.productToCssClass(p));
             };
         };
     };
@@ -91,7 +104,10 @@ $(function (){
         for (var i = 0; i < this.currentDisplayProductArr.length; i++) {
             var p = this.currentDisplayProductArr[i];
             if (p) {
-                $(this.indexImgContainerMap[i]).addClass(this.productToCssClass(p));
+                $(this.indexCellMap[i]).show();
+                $(this.indexCellMap[i]).attr("faq-path", p.faqPath);
+                $(this.indexCellMap[i] + " > " + ".downloadshow-img").addClass(this.productToCssClass(p));
+                $(this.indexCellMap[i] + " > " + ".downloadshow-font").text(p.name);
             };
         };
     };
@@ -115,8 +131,8 @@ $(function (){
             return;
         };
         var currentView = this;
-        $("#img-arrow-left").toggle(currentView.currentMenuPageIndex > 0);
-        $("#img-arrow-right").toggle(currentView.currentMenuPageIndex < currentView.totalMenuPageCount - 1);
+        $("#ipc-arrow-left").toggle(currentView.currentMenuPageIndex > 0);
+        $("#ipc-arrow-right").toggle(currentView.currentMenuPageIndex < currentView.totalMenuPageCount - 1);
     };
 
     SoftwareView.prototype.turnMenuLeft = function() {
@@ -135,5 +151,15 @@ $(function (){
         };
         this.currentMenuPageIndex += 1;
         this.updateProductMenu();
-    }
+    };
+
+    var sc = new SoftwareController();
+    var sv = new SoftwareView();
+    var s = new $.ipc.Software();
+    sc.view = sv;
+    sc.model = s;
+    sv.model = s;
+
+    sc.getUpdateInfos();
+    sc.initHandler();
 });

@@ -31,6 +31,7 @@ $(function (){
     UserController.prototype.loginUser = function() {
         
         this.rememberUserLogic();
+        var account = $("#Account").val();
         
         var args = {account: $("#Account").val(), password: $("#Password").val()};
 
@@ -49,9 +50,12 @@ $(function (){
             "errorCodeCallbackMap": {
                 0: function(response) {
                     var result = response.msg;
-                    document.cookie = "email=" + result.email + "; domain=.tplinkcloud.com";
-                    document.cookie = "token=" + result.token + "; domain=.tplinkcloud.com";
-                    document.cookie = "account=" + account + "; domain=.tplinkcloud.com";
+                    // document.cookie = "email=" + result.email + "; domain=.tplinkcloud.com";
+                    // document.cookie = "token=" + result.token + "; domain=.tplinkcloud.com";
+                    // document.cookie = "account=" + account + "; domain=.tplinkcloud.com";
+                    $.cookie("email", result.email);
+                    $.cookie("token", result.token);
+                    $.cookie("account", account);
                     
                     currentController.model.successLoginCallbacks.fire();
                 },
