@@ -29,16 +29,6 @@
     margin-right: 15px;
 }
 
-.content-cell {
-    width: 100%;
-}
-
-.content-title {
-    width: 100%;
-    height: 40px;
-    padding-bottom: 30px;
-}
-
 .userinfo {
     height: 222px;
     position: relative;
@@ -61,14 +51,6 @@
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     color: #323232;
     font-size: 1.5em;
-}
-
-.content-title-font {
-    color: #26ADE4;
-    float: left;
-    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
-    font-size: 1.8em;
-    padding: 5px 0 0;
 }
 
 #userinfo-title-changepwd {

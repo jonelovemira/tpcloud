@@ -296,6 +296,17 @@
         this.makeAjaxRequest({url: "/modifyPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
+    User.prototype.forgotPassword = function(args, inputCallbacks) {
+        var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
+        if (validateResult.code == false) {return validateResult;};
+
+        var data = JSON.stringify({
+            "email": args.email
+        });
+
+        this.makeAjaxRequest({url: "/forgetPassword", data: data, callbacks: inputCallbacks, changeState: $.noop});
+    };
+
     User.prototype.getUser = function(args, inputCallbacks){
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
         if (validateResult.code == false) {return validateResult;};

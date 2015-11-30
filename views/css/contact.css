@@ -174,26 +174,8 @@ td > label{
     width:350px!important;
 }
 
-.content-cell {
-    width: 100%;
-}
-
-.content-title {
-    width: 100%;
-    height: 40px;
-    padding-bottom: 30px;
-}
-
 .padding-bottom12 {
     padding-bottom: 12px;
-}
-
-.content-title-font {
-    color: #26ADE4;
-    float: left;
-    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
-    font-size: 1.8em;
-    padding: 5px 0 0;
 }
 
 #account-cover {
