@@ -1,0 +1,198 @@
+{% extends "../../common/base.html" %}
+
+{% block title %}
+<title lang="en">Cloud Admin</title>
+{% endblock %}
+
+{% block link %}
+<link type="text/css" href="../css/admin.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="../../components/widget/window/css/msg.css">
+{% endblock %}
+
+{% block body %}
+<div id="maincontainer">
+    <div class="navcontain">
+        <div class= "navcontain-inner">
+            <ul class="navstitle">
+                <li class="navstitle-cell ">
+                    <span id="device" class="navstitle-title navselected"  title="Live View" >
+                        <a href="./admin.html" class=" accountinnertext">Device</a>
+                    </span>
+                </li>
+                <li class="navstitle-cell">
+                    <span id="account" class="navstitle-title" title="Account" >
+                        <a href="./account.html" class="accountinnertext">Account</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="display-main-board">
+        <div id="maincontent" >
+            <div class="voidobj">
+                <div class="objchangetitle">
+                    <ul class="objchangetitle-ul">
+                        <li id="liveviewshow" class="objchangetitle-li objchangetitle-li-select">
+                            <span class="objchangetitle-li-font">Live View</span>
+                            <span class="objchangetitle-li-split"></span>
+                        </li>
+                        <li id="settingshow" class="objchangetitle-li">
+                            <span class="objchangetitle-li-font">Settings</span>
+                        </li>
+                    </ul>
+                </div>
+                <div id="watch" class="admin-content">
+                    <div id="objouter" class="objouter warningwindow">
+                        <div id ="yjobject"class="pad20"></div>
+                        <div id="videoloading"> <img id="videoloadingimg" src="../img/admin/loadings.gif"  alt="loading" /> <span id="videoloadingfont">Loading</span> </div>
+                        <div class="controlpanelouter">
+                            <div id="cpdisable"></div>
+                            <div id="controlpanel" >
+                                <ul>
+                                    <li class="videocorl tooltips" title="Take a picture" id="videocut"></li>
+                                    <li class="videocorl tooltips" title="Recording" id="videovid"></li>
+                                    <li class="videocorl tooltips" title="Recording" id="videovidon"></li>
+                                </ul>
+                                <div id = "videovolumectrl"> <span id="videovolumestart" class="videocorl"> <span class="videoimg videovolumestartimg" title="Mute"></span> </span> <span id="videovolumestop" class="videocorl" style="display: none;"> <span class="videoimg videovolumestopimg" title="Recover"></span> </span> </div>
+                                <div class="toolbar-volumeset volume-offon-show">
+                                    <div id="volume-bar" class="tpcamera-bar watchmode-bar"></div>
+                                </div>
+                            </div>
+                            <div id="controlpanelplus">
+                                <div id="resolution-readjust-out" class="watchmode">
+                                    <label for="Resolution">Resolution:</label>
+                                    <select id="resolution-readjust" name="cbr" style="display: none;">
+                                        <option value="1" name="VGA" selected="true">640*480</option>
+                                        <option name="QVGA" value="2">320*240</option>
+                                    </select>
+                                </div>
+                                <div id="videozoomul" class="watchmode">
+                                    <div id="zoomulreduse" class="videocorl"> <span class="videoimg zoomulreduseimg" title="Zoom"></span> </div>
+                                    <div id="zoom-bar" class="tpcamera-bar watchmode-bar"></div>
+                                    <div id="zoomulplus" class="videocorl videorightimg"> <span class="videoimg zoomulplusimg" title="Zoom"></span> </div>
+                                </div>
+                            </div>
+                            
+                            
+                        </div>
+                    </div>
+                    <div id="flash-player-container" class="live-view-content">
+                        <div id="flash-player"></div>
+                    </div>
+                    <div class="pad20 warningwindow" id="refreshtips">
+                        <p class="offline tipslang">
+                            Your <b class="ipcsetting-curipcname">Baby Cam</b>
+                            is offline!
+                        </p>
+                        <p class="blackstep tipslang">Please try the following:</p>
+                        <p class="tipslang">1. Make sure the System LED is solid green on you camera.</p>
+                        <p class="tipslang">2. Try rebooting your camera and router.</p>
+                        <p class="tipslang">3. Unplug your camera and then plug it back in.</p>
+                        <p class="tipslang">
+                            4. Make sure your camera uses the latest firmware version. To download the latest firmware,
+                            <a id="downloadpage" href="./download.html">click here</a>
+                            .
+                        </p>
+                        <p class="tipslang">
+                            5. Reset your camera, and register it again by using Setup Wizard. To download the Setup Wizard,
+                            <a id="downloadpage" href="./download.html">click here</a>
+                            .
+                        </p>
+                        <p class="tipslang"></p>
+                        <p class="blackstep tipslang">
+                            Please click <b>Refresh</b>
+                            to reconnect to your camera.
+                        </p>
+                        <input class="btn refresh-btn" id="refresh"type="button" value="Refresh" />
+                    </div>
+                    <div class="pad20 warningwindow" id="reloadtips">
+                        <p class="offline tipslang">Liveview Break</p>
+                        <p class="blackstep tipslang">
+                            The connection to your camera has been lost, please check your network and click the reload button to reconnect to your camera.
+                        </p>
+                        <p class="tipslang">Do you want to reload the viewing?</p>
+                        <input class="btn reload-btn" id="reload" type="button" value="Reload" />
+                    </div>
+                    <div class="pad20 warningwindow" id="continuetips">
+                        <p class="offline tipslang">Liveview Time Up</p>
+                        <p class="blackstep tipslang">You have viewed the live video for 10 minutes.</p>
+                        <p class="tipslang">Do you want to continue the viewing?</p>
+                        <input class="btn continue-btn" id="continue" type="button" value="Continue" />
+                    </div>
+                </div>
+                <div id="setting" class="admin-content">
+                    <div class="settingcontent">
+                        <div class="settingcell-title">
+                            <span class="settingcell-title-img"></span>
+                            <span class="settingcell-title-font">Camera Information</span>
+                        </div>
+                        <div class="settingcell-body">
+                            <div class="settingcell">
+                                <div class="settingcell-dd padding-right-75">
+                                    <span class="settingcell-td">Camera Name:</span>
+                                    <span class="settingcell-td">
+                                        <input id="devicename" maxlength="30" class="infocus settingcell-td-info" type="text"/>
+                                    </span>
+                                </div>
+                                <div class="settingcell-dd">
+                                    <span class="settingcell-td">Model:</span>
+                                    <span id="ipcsetting-model" class="settingcell-td settingcell-td-info">NC200</span>
+                                </div>
+                            </div>
+                            <div class="settingcell">
+                                <div class="settingcell-dd padding-right-75">
+                                    <span class="settingcell-td">IP Address:</span>
+                                    <span id="ipcsetting-ip" class="settingcell-td settingcell-td-info">-</span>
+                                </div>
+                                <div class="settingcell-dd">
+                                    <span class="settingcell-td">MAC Address:</span>
+                                    <span id="ipcsetting-mac" class="settingcell-td settingcell-td-info">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settingcontent">
+                        <div class="settingcell-body">
+                            <div class="advancesettingcell">
+                                <div class="settingcell-dd widthauto">
+                                    <span class="settingcell-td height25">
+                                        Please click the below button to remove your
+                                        <b class="ipcsetting-curipcname">Baby Cam</b>
+                                        from your account.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="advancesettingcell">
+                                <div class="settingcell-dd padding-right-75">
+                                    <span  class="settingcell-td height25">
+                                        <input id="ipcsetting-delipc" type="button" class="ipcsetting-btn btn" value="Delete Camera"/>
+                                    </span>
+                                </div>
+                            </div>
+                            <input id="ipcsetting-save" type="button" class="ipcsetting-btn btn" value="Save"/>
+                        </div>
+                    </div>
+                </div>
+                <div id="no-camera" class="pad20 warningwindow nocameratips admin-content">
+                    <p class="offline">No camera exists in this account!</p>
+                    <p>
+                        <span id="nocameratips" class="tipslang">Please add a camera by using the tpCamera app.</span>
+                    </p>
+                </div>
+            </div>
+            <div id="sidebar" class="scrollable">
+                <div id="ipcpaging">
+                    <span id="ipcpagpre" class="ipcpag-cell"></span>
+                    <span id="ipcpagnext" class="ipcpag-cell"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" src="../../components/js/libs/ipc-business-libs.js"></script>
+<script type="text/javascript" src="../../components/widget/window/js/msg.js"></script>
+<script type="text/javascript" src="../js/admin.js"></script>
+{% endblock %}

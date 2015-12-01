@@ -1,0 +1,534 @@
+#maincontent{
+    height: inherit;
+    margin: 0 auto;
+    width: 100%;
+}
+#Player{
+    height:480px;
+    width:640px;
+}
+#Player_220{
+    height:480px;
+    width:640px;
+    position:absolute;
+    left:0px;
+    top:0px;
+}
+#Player_250 {
+    height:1px;
+    width:1px;
+}
+
+.reload-btn{
+    background: none repeat scroll 0 0 #46AFEB;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    color: #FFFFFF !important;
+    cursor: pointer;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 18px !important;
+    font-weight: 500;
+    height: 32px;
+    width: 97px;
+}
+.refresh-btn{
+    background: none repeat scroll 0 0 #46AFEB;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    color: #FFFFFF !important;
+    cursor: pointer;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT' ;
+    font-size: 14px !important;
+    font-weight: 500;
+    height: 32px;
+    width: 97px;
+}
+.continue-btn{
+    background: none repeat scroll 0 0 #46AFEB;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    color: #FFFFFF !important;
+    cursor: pointer;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT' !important;
+    font-size: 18px !important;
+    font-weight: 500;
+    height: 32px;
+    width: 97px;
+}
+
+#sidebar {
+    float: left;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    height: inherit;
+    min-height: 522px;
+    overflow: hidden;
+    position: relative;
+    width: 220px;
+    margin-left: 22px;
+}
+
+.ipcstate{
+    float:left;
+    border-bottom: 1px solid #DADADA;
+    cursor:pointer;
+    position: relative;
+    height:128px;
+    width:100%;
+    color: #323232;
+    font-size:12px;
+}
+.ipcstate:hover{
+    background:#DEDEDE;
+}
+.ipcselected{
+    border-bottom: 1px solid #26ADE4;
+    color:#26ade4;
+}
+
+.ipcname{
+    cursor: text;
+    float: left;
+    font-size: 1.3em;
+    left: 90px;
+    position: relative;
+    top: -45px;
+    width: 128px;
+    word-wrap: break-word;
+    z-index: 0;
+}
+
+.ipcpic_200{
+    float:left;
+    width:101px;
+    position:relative;
+    top:32px;
+    left:30px;
+    height:101px;
+    background: url("../img/admin/NC200.png") no-repeat scroll transparent;
+}
+.ipcpic_220{
+    float:left;
+    width:101px;
+    position:relative;
+    top:32px;
+    left:30px;
+    height:101px;
+    background: url("../img/admin/NC220.png") no-repeat scroll transparent;
+}
+.ipcpic_250{
+    float:left;
+    width:101px;
+    position:relative;
+    top:32px;
+    left:30px;
+    height:101px;
+    background: url("../img/admin/NC220.png") no-repeat scroll transparent;
+}
+
+.ipctype{
+    position:absolute;
+    left:62px;
+    top:16px;
+    font-size:13px;
+}
+.ipcclick{
+    position:absolute;
+    left:0px;
+    top:0px;
+    height:100%;
+    z-index:1;
+    width:100%;
+}
+
+.voidobj {
+    float: right;
+    height: inherit;
+    position:relative;
+    width: 808px;
+    margin-right: 140px;
+}
+
+.controlpanelouter{
+    height: auto;
+    position: relative;
+    width: 640px;
+}
+.objouter{
+    width:640px;
+    margin-left: 103px;
+    height: 480px;
+}
+#yjobject{
+    background: none repeat scroll 0 0 #333333;
+    height: 100%;
+    width: 100%;
+}
+.objchangetitle{
+    height:50px;
+    width:100%;
+    margin-left: 40px;
+}
+.objchangetitle-ul{
+    position: relative;
+    height:40px;
+}
+.objchangetitle-li-font{
+    cursor: pointer;
+    float: left;
+}
+.objchangetitle-li{
+    color: #323232;
+    float: left;
+    padding-top:10px;
+    font-size: 1.8em;
+    margin-right:22px;
+    height: 25px;
+    width: 100px;
+}
+.objchangetitle-li-split{
+    background:#DADADA;
+    float: right;
+    height: 20px;
+    position: relative;
+    top: 2px;
+    width: 1px;
+}
+.objchangetitle-li-select{
+    color:#2D9AD8;
+}
+
+#controlpanel{
+    background:#000;
+    height: 39px;
+    width: 100%;
+}
+#controlpanelplus{
+    height: 39px;
+    margin-top: 20px;
+    width: 100%;
+}
+.resolution-readjust-out{
+    padding-right:8px;
+    width:220px;
+}
+.watchmode {
+    float: left;
+    font-size:1.4em;
+    font-family:'MYRIADPRO-LIGHTSEMIEXT';
+}
+#videozoomul{
+    position: relative;
+    top:4px;
+}
+#resolution-readjust-out label{
+    float: left;
+    padding: 0 10px 0 0;
+    position: relative;
+    width: 70px;
+}
+#resolution-readjust{
+    float: left;
+    left:15px;
+    position: relative;
+    width:137px;
+}
+#controlpanel ul{
+    float: left;
+    height: 30px;
+    padding-left: 8px;
+    padding-top: 12px;
+    width: 154px;
+}
+.videoctrl{
+    width:21px;
+    cursor:pointer;
+    -webkit-user-select:none;
+    height:17px;
+    float:left;
+    margin-left:22px;
+    position:relative;
+}
+#videocut{
+    background: url("../img/admin/admin.png")  0 -999px;
+}
+#videocut:hover{
+    background: url("../img/admin/admin.png") 0 -1066px;
+}
+#videovid{
+    background: url("../img/admin/admin.png") repeat-x scroll 0 -1131px;
+}
+#videovid:hover{
+    background:  url('../img/admin/admin.png') repeat-x scroll 0 -1195px transparent;
+}
+#videovidon{
+    display: none;
+    background: url("../img/admin/admin.png") repeat-x scroll 0 -793px;
+}
+#videovolumectrl{
+    position: absolute;
+    right: 116px;
+    top: 13px;
+}
+.videoimg {
+    float: left;
+    height: 18px;
+    position: relative;
+    width: 22px;
+}
+.videovolumestartimg {
+    background: url("../img/admin/admin.png") 0 0 no-repeat;
+}
+.videovolumestopimg {
+    background: url("../img/admin/admin.png") 0 -246px no-repeat;
+}
+.tpcamera-bar{
+    background: #AAAAAA;
+    border: 0 none;
+    border-radius: 0;
+    float: left;
+    height: 4px!important;
+    margin-left: 5px;
+    position: relative;
+    margin-top: 6px;
+    width: 72px;
+}
+#volume-bar {
+    float: left;
+    height: 4px !important;
+    left: 6px;
+    position: relative;
+    width: 75px;
+}
+.offline{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.4em;
+    margin-top:7px;
+    font-weight: bold;
+}
+.downloadplugin{
+    color:#2D9AD8!important;
+    display: none;
+}
+.downloadplugin:hover{
+    text-decoration: underline;
+}
+#downloadpage{
+    color:#2D9AD8;
+}
+#downloadpage:hover{
+    text-decoration: underline;
+}
+.tipslang{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+.tpcamera-bar .ui-widget-header{
+    background: #26ADE4!important;
+}
+.tpcamera-bar .ui-slider-handle{
+    width:10px;
+    height:10px;
+    border:0;
+    border-radius:0;
+    background: url("../img/admin/admin.png") 0 -66px no-repeat;
+}
+.tpcamera-bar .ui-slider-handle
+{
+    margin-left:-0.4em;
+    top:-0.25em;
+}
+.videorightimg{
+    margin-left:5px;
+}
+#objectplayer{
+    width:auto;
+    height:auto;
+    position: relative;
+}
+.zoomulreduseimg{
+    background: url("../img/admin/admin.png") 0 -859px no-repeat;
+}
+.zoomulplusimg{
+    background: url("../img/admin/admin.png") 0 -595px no-repeat;
+}
+#watch{
+    display: block;
+}
+#flash-player {
+    display: none;
+    width: 640px;
+    height: 480px; 
+    background-color: rgb(170, 170, 170);
+}
+#setting{
+    display: none;
+    width:670px;
+    margin-left: 40px
+}
+.settingcell-title-img{
+    background: url("../img/admin/admin.png") 0 -927px no-repeat;
+    float: left;
+    height: 22px;
+    margin: 5px 5px 5px 8px;
+    width: 22px;
+}
+.settingcell-title-font{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.5em;
+    float: left;
+    margin-top:7px;
+}
+.settingcell-title{
+    width:100%;
+    background: #F5F5F5;
+    height:32px;
+    border-bottom:1px solid #DADADA;
+}
+.settingcell-td{
+    float: left;
+    font-size:1.3em;
+    height:35px;
+    padding-right:8px;
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+}
+.settingcell-dd{
+    
+    padding-left:20px;
+    float: left;
+    width:260px;
+}
+.settingcell-body{
+    padding-top:28px;
+}
+#devicename{
+    color: #323232;
+    padding: 2px 0 2px 5px;
+    width: 140px;
+    position: relative;
+    bottom:5px;
+}
+.settingcell{
+    width:100%;
+    height:35px;
+}
+.widthauto{
+    width:auto;
+}
+.advancesettingcell{
+    height:25px;
+    width:100%;
+}
+.height25{
+    height:25px;
+}
+.ipcsetting-btn{
+    width:145px;
+    height:25px;
+}
+.padding-right-75{
+    padding-right:75px;
+}
+#ipcpaging{
+    bottom: 20px;
+    height: 20px;
+    position: absolute;
+    right: 0;
+    display: none;
+    width: 45px;
+}
+.ipclistcell{
+    display: none;
+}
+.ipcpag-cell{
+    width:10px;
+    height:20px;
+    cursor: pointer;
+}
+#ipcpagpre{
+    float: left;
+    background: url("../img/admin/admin.png") 0 -729px no-repeat;
+}
+#ipcpagpre:hover{
+    background: url("../img/admin/admin.png") 0 -663px no-repeat;
+}
+#ipcpagnext{
+    float: right;
+    background: url("../img/admin/admin.png") 0 -378px no-repeat;
+}
+#ipcpagnext:hover{
+    background: url("../img/admin/admin.png") 0 -312px no-repeat;
+}
+
+.settingcell-td-info{
+    font-family:'MYRIADPRO-LIGHTSEMIEXT';
+}
+.ipcunusable{
+    background: #fff;
+    opacity: 0.6;
+    filter: Alpha(opacity=60);
+}
+.ipcunclick{
+    background: #eee;
+    opacity: 0.6;
+    filter: Alpha(opacity=60);
+    z-index: 1;
+}
+#videoloading{
+    display: none;
+    height: 32px;
+    left: 350px;
+    position: absolute;
+    top: 290px;
+    width: 32px;
+}
+#cpdisable{
+    position: absolute;
+    z-index: 2;
+    width:100%;
+    height:100%;
+}
+#videoloadingfont{
+    font-size: 1.6em;
+    color:#ccc;
+    position: relative;
+    right: 8px;
+}
+#ipcsetting-save{
+    position: relative;
+    width:95px;
+    height:30px;
+    border-radius: 2px;
+    top:40px;
+    font-size:1.6em;
+    left:20px;
+}
+#detection {
+    margin-left: 80px;
+}
+#nocamera {
+    display:none; 
+    margin-left:80px;
+}
+
+#display-main-board {
+    background: #fff;
+    height: 712px;
+    margin: 0 auto;
+    width: 1200px;
+    padding-top: 12px;
+}
+.refreshtips {
+    display:none; 
+    height:580px
+}
+.reloadtips {
+    display:none
+}
+.continuetips {
+    display:none
+}
