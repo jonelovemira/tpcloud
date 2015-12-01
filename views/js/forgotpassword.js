@@ -58,4 +58,14 @@ $(function() {
         $.ipc.Msg(alertOptions);
     };
 
+    var uc = new UserController();
+    var u = new $.ipc.User();
+    var uv = new UserView();
+
+    uc.model = u;
+    uv.model = u;
+    uc.view = uv;
+
+    uc.initHandler();
+
 });

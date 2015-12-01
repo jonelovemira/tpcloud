@@ -1,4 +1,8 @@
 (function($){
+    "use strict";
+    
+    $.ipc = $.ipc || {};
+
     var Msg = {
         ID : 0,
         mainTemplate :  '<div >' + 
