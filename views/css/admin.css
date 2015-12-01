@@ -532,3 +532,10 @@
 .continuetips {
     display:none
 }
+
+.toolbar-volumeset {
+    position: absolute;
+    right: 25px;
+    top: 13px;
+    width: 90px;
+}
