@@ -100,6 +100,11 @@ var tips = {
         },
         "newPassword": {
             "notSame": "Passwords don’t match."
+        },
+        "deviceName": {
+            "cantBeEmpty": "Camera name can't be empty.",
+            "invalid": "Camera name cannot contain the following characters:\\ / : = & \' \" < > { }",
+            "outOfLimit": "Camera name should contain 1 to 31 characters."
         }
     }
 };

@@ -1,8 +1,100 @@
-#maincontent{
+.maincontent{
     height: inherit;
+    width: 100%;
+    padding-bottom: 50px;
     margin: 0 auto;
+    position: relative;
+}
+.content-title-img{
+    float: left;
+    width:50px;
+    height:30px;
+    padding-left: 10px;
+    padding-top: 5px;
+    background: url("../img/admin/account.png") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+}
+#userinfo-username{
+    padding-left:5px;
+    border:1px solid #aaa;
+    background: #fafafa;
+    height: 17px;
+    width: 302px;
+}
+#userinfo-username{
+    padding-left:5px;
+    border:1px solid #aaa;
+    background: #fafafa;
+    height: 17px;
+    width: 302px;
+}
+#userinfo-title-changepwd{
+    color:#26ADE4;
+    width:auto;
+    cursor: pointer;
+}
+#userinfo-title-changepwd:hover{
+    text-decoration: underline;
+}
+
+.account-btn{
+    width:95px;
+    font-size:1.5em;
+    height:32px;
+    margin-right: 15px;
+}
+
+.userinfo {
+    height: 222px;
+    position: relative;
+    padding-left: 60px;
+    width: 400px;
+}
+
+.userinfo-cell {
+    width: 100%;
+    height: 80px;
+}
+
+.userinfo-cell-span {
+    float: left;
+    height: 25px;
     width: 100%;
 }
+
+.userinfo-title {
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    color: #323232;
+    font-size: 1.5em;
+}
+
+#userinfo-title-changepwd {
+    color: #26ADE4;
+    width: auto;
+    cursor: pointer;
+}
+
+.change-password-form {
+    display: none;
+}
+
+.userinfo-title {
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    color: #323232;
+    font-size: 1.5em;
+}
+
+.userinfo-input {
+    height: 17px;
+    padding-left: 5px;
+    width: 302px;
+}
+
+.btncontent {
+    clear: both;
+    margin: 10px;
+    margin-left: 60px;
+}
+
 #Player{
     height:480px;
     width:640px;
@@ -154,6 +246,7 @@
     width: 640px;
 }
 .objouter{
+    display: none;
     width:640px;
     margin-left: 103px;
     height: 480px;
@@ -355,10 +448,11 @@
     background: url("../img/admin/admin.png") 0 -595px no-repeat;
 }
 #watch{
+    margin-left: 80px;
+    margin-top: 40px;
     display: block;
 }
 #flash-player {
-    display: none;
     width: 640px;
     height: 480px; 
     background-color: rgb(170, 170, 170);
@@ -510,25 +604,47 @@
 #detection {
     margin-left: 80px;
 }
-#nocamera {
+#no-camera {
     display:none; 
     margin-left:80px;
 }
 
 #display-main-board {
     background: #fff;
-    height: 712px;
     margin: 0 auto;
     width: 1200px;
     padding-top: 12px;
+    height: 712px;
 }
-.refreshtips {
+#refreshtips {
     display:none; 
     height:580px
 }
-.reloadtips {
+#reloadtips {
     display:none
 }
-.continuetips {
+#continuetips {
     display:none
+}
+#no-camera {
+    margin-left: 80px;
+}
+
+.tips-title {
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.4em;
+    margin-top: 7px;
+    font-weight: bold;
+}
+
+.tips-body {
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+
+.account-content {
+    display: none;
 }

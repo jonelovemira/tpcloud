@@ -78,7 +78,7 @@
         return tmpCallbacks;
     };
 
-    Model.prototype.makeAjaxRequest = function(inputArgs) {
+    Model.prototype.makeAjaxRequest = function(inputArgs, xDomain) {
 
         if (undefined == inputArgs["url"] || undefined == inputArgs["data"] || undefined == inputArgs["changeState"]) {
             console.error( "args error in makeAjaxRequest");
@@ -108,7 +108,7 @@
 
         $.extend(true, ajaxOptions, inputArgs["extendAjaxOptions"]);
 
-        $.xAjax(ajaxOptions);
+        $.xAjax(ajaxOptions, xDomain);
     };
 
     Model.prototype.validateAttr = function (inputArgs) {
@@ -415,12 +415,13 @@
 
 })(jQuery);
 
-/*(function ($){
+(function ($){
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function Device(){
+    function Device() {
+        $.ipc.Model.call(this, arguments);
         this.owner = null;
         this.id = null;
         this.type = null;
@@ -430,85 +431,156 @@
         this.appServerUrl = null;
         this.name = null;
         this.isSameRegion = null;
+        this.webServerUrl = null;
         this.azIP = null;
         this.azDNS = null;
         this.systemStatus = null;
         this.needForceUpgrade = null;
         this.fwUrl = null;
-    }
+    };
 
-    Device.prototype = $.ipc.create($.ipc.Model.prototype);
-    Device.prototype.constructor = Device;
+    $.ipc.inheritPrototype(User, $.ipc.Model);
 
     var deviceErrorCodeInfo = {
-        ""
-        OWNER_NOT_LOGIN : new $.ipc.Error({code:-20651, msg: "owner doesn't logged in"}),
-        BELONG_TO_ANOTHER_USER: new $.ipc.Error({code: -20506, msg: "this device belong to another user"}),
-        NO_OWNER: new Error({code: -20507, msg: "this device is not binded to any user"}),
-        DEVICE_OFFLINE: new Error({code: -20571, msg: "this device is offline"}),
-        ALIAS_FORMAT_ERROR: new Error({code: -20572, msg: "device alias format error"}),
+        "-20501": function(){console.log("device id does not exists");},
+        "-20506": function(){console.log("device was binded to another account");},
+        "-20507": function(){console.log("device is not binded to any account");},
+        "-20571": function(){console.log("device is offline now");},
+        "-20572": function(){console.log("alias format is incorrect");},
+        "-20651": function(){console.log("token is invalid, plz relogin");},
+        "-20675": function(){console.log("account is login at another place");},
     };
 
-    var deviceModel = new $.ipc.Model();
-    deviceModel.extendErrorCodeCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
+    Device.prototype.errorCodeCallbacks = Device.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
 
-    Device.prototype = deviceModel;
-
-    Device.prototype.getCamera = function(inputCallbacks) {
-        if (undefined == this.owner || undefined == this.owner.email || undefined == this.id) {
-            console.error("args error in getcamera");
-            return;
-        };
+    Device.prototype.get = function(args, inputCallbacks) {
+        if (this.owner == undefined) {console.error("owner is undefined");}
+        var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email)) ||
+                            (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {return validateResult;};
 
         var data = JSON.stringify({
-            "email": this.owner.email,
-            "Id": this.id  
+            "email": args.email,
+            "Id": args.id
         });
 
-        var changeStateFunc = function(response){
-            this.username = response.msg.username;
+        var changeStateFunc = function(response) {
             $.extend(true, this, response.msg);
         };
-        
-        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+
+        this.makeAjaxRequest({url: "/getCamera_lr", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
     };
 
-    Device.prototype.changeName = function(newName, inputCallbacks) {
-        if (undefined == newName || undefined == this.id
-            || undefined == this.appServerUrl || undefined == this.owner
-            || undefined == this.owner.token) {
-            console.error("error when change device name due to args error");
-            return;
-        };
-        var currentDevice = this;
-        var callbacks = $.ipc.PublicMethod.extendDefaultCallbacksForModel(currentDevice, inputCallbacks);
+    Device.prototype.changeName = function(args, inputCallbacks) {
+        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {console.error("args error in changeName")};
+        var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id)) ||
+                            (!this.validateNameFormat(args.name).code && this.validateNameFormat(args.name));
+        if (validateResult.code == false) {return validateResult;};
+        
         var data = JSON.stringify({
             "method": "setAlias",
             "params": {
-                "alias": newName,
-                "deviceId": currentDevice.id
+                "alias": args.name,
+                "deviceId": args.id
             }
         });
-        $.xAjax({
-            url : currentDevice.appServerUrl + "?token=" + currentDevice.owner.token,
-            data : data,
-            context: {newName: newName},
-            success : function(response){
-                if (response.errorCode == Device.errorCodeInfo.NO_ERROR.code) {
-                    currentDevice.name = this.newName;
-                };
-                
-                var callbackFunc = callbacks.errorCodeCallBackMap[response.errorCode] || callbacks.errorCodeCallBackMap[-1];
-                callbackFunc(response);
-            },
-            error : function(xhr){callbacks.errorCallback(xhr)}
-        });
+
+        var changeStateFunc = function(response) {
+            this.name = args.name;
+        };
+
+        this.makeAjaxRequest({
+            url: this.appServerUrl + "?token=" + this.owner.token,
+            data: data,
+            changeState: changeStateFunc,
+            errCodeStrIndex: "error_code",
+        }, $.xAjax.defaults.xType);
     };
 
+    Device.prototype.unbind = function(args, inputCallbacks) {
+        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {console.error("args error in unbind");}
+        var validateResult = (!this.owner.validateAccount(args.account).code && this.owner.validateAccount(args.account)) ||
+                            (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {return validateResult;};
+
+        var data = JSON.stringify({
+            "method": "unbindDevice",
+            "params": {
+                "cloudUserName": args.account,
+                "deviceId": args.id
+            }
+        });
+
+        this.makeAjaxRequest({
+            url: this.appServerUrl + "?token=" + this.owner.token,
+            data: data,
+            changeState: $.noop,
+            errCodeStrIndex: "error_code",
+        }, $.xAjax.defaults.xType);
+    };
+
+    Device.prototype.getLocalInfo = function(args, inputCallbacks) {
+        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {console.error("args error in getLocalInfo");}
+        var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {return validateResult;};
+
+        var data = JSON.stringify({
+            "method": "passthrough",
+            "params": {
+                "requestData": {
+                    "command": "GET_EXTRA_INFO",
+                    "content": 0
+                },
+                "deviceId": args.id
+            }
+        });
+
+        var changeStateFunc = function (response) {
+            var passthroughResult = response.result.responseData;
+            if (0 == passthroughResult.errCode) {
+                $.extend(true, this, passthroughResult.msg);
+            };
+        }
+
+        this.makeAjaxRequest({
+            url: this.appServerUrl + "?token=" + this.owner.token,
+            data: data,
+            changeState: changeStateFunc,
+            errCodeStrIndex: "error_code",
+        }, $.xAjax.defaults.xType);
+    };
+
+    Device.prototype.validateIdFormat = function(tmpId) {
+        if (undefined == tmpId) {
+            console.error("args error in validateIdFormat");
+            return;
+        };
+        var e = new $.ipc.Error();
+        e.code = true;
+        e.msg = "OK";
+        return e;
+    };
+
+    Device.prototype.validateNameFormat = function(tmpName) {
+        if (undefined == tmpName) {
+            console.error("args error in validateNameFormat");
+            return;
+        };
+        
+        var validateArgs = {
+            "attr": tmpName,
+            "attrEmptyMsg": tips.types.deviceName.cantBeEmpty,
+            "maxLength": 31,
+            "minLength": 1,
+            "attrOutOfLimitMsg": tips.types.deviceName.outOfLimit,
+            "pattern": /^[^\x00-\x1F\x7F{}<>'"=:&\x2f\x5c]{1,31}$/,
+            "patternTestFailMsg": tips.types.deviceName.invalid, 
+        };
+        return this.validateAttr(validateArgs);
+    };
     $.ipc.Device = Device;
 
-    
-})(jQuery);*/
+})(jQuery);
 
 (function ($){
     "use strict";
@@ -541,7 +613,15 @@
         var data = {};
 
         var changeStateFunc = function(response){
-            this.devices = response.msg;
+            for (var i = 0; i < this.devices.length; i++) {
+                delete this.devices[i];
+            };
+            this.devices = [];
+            for (var i = 0; i < response.msg.length; i++) {
+                var newDevice = new $.ipc.Device();
+                $.extend(true, newDevice, response.msg[i]);
+                this.devices.push(newDevice);
+            };
         };
         
         this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});

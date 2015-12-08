@@ -1,7 +1,7 @@
 {% extends "../../common/base.html" %}
 
 {% block title %}
-<title lang="en">Cloud Admin</title>
+<title lang="en">Account</title>
 {% endblock %}
 
 {% block link %}
@@ -14,21 +14,21 @@
     <div class="navcontain">
         <div class= "navcontain-inner">
             <ul class="navstitle">
-                <li class="navstitle-cell ">
+                <li class="navstitle-cell">
                     <span id="device" class="navstitle-title navselected"  title="Live View" >
-                        <a href="./admin.html" class=" accountinnertext">Device</a>
+                        <a class="accountinnertext" lang="en">Device</a>
                     </span>
                 </li>
                 <li class="navstitle-cell">
                     <span id="account" class="navstitle-title" title="Account" >
-                        <a href="./account.html" class="accountinnertext">Account</a>
+                        <a class="accountinnertext" lang="en">Account</a>
                     </span>
                 </li>
             </ul>
         </div>
     </div>
     <div id="display-main-board">
-        <div id="maincontent" >
+        <div class="maincontent device-content">
             <div class="voidobj">
                 <div class="objchangetitle">
                     <ul class="objchangetitle-ul">
@@ -80,43 +80,43 @@
                         <div id="flash-player"></div>
                     </div>
                     <div class="pad20 warningwindow" id="refreshtips">
-                        <p class="offline tipslang">
+                        <p class="tips-title tips-body">
                             Your <b class="ipcsetting-curipcname">Baby Cam</b>
                             is offline!
                         </p>
-                        <p class="blackstep tipslang">Please try the following:</p>
-                        <p class="tipslang">1. Make sure the System LED is solid green on you camera.</p>
-                        <p class="tipslang">2. Try rebooting your camera and router.</p>
-                        <p class="tipslang">3. Unplug your camera and then plug it back in.</p>
-                        <p class="tipslang">
+                        <p class="blackstep tips-body">Please try the following:</p>
+                        <p class="tips-body">1. Make sure the System LED is solid green on you camera.</p>
+                        <p class="tips-body">2. Try rebooting your camera and router.</p>
+                        <p class="tips-body">3. Unplug your camera and then plug it back in.</p>
+                        <p class="tips-body">
                             4. Make sure your camera uses the latest firmware version. To download the latest firmware,
                             <a id="downloadpage" href="./download.html">click here</a>
                             .
                         </p>
-                        <p class="tipslang">
+                        <p class="tips-body">
                             5. Reset your camera, and register it again by using Setup Wizard. To download the Setup Wizard,
                             <a id="downloadpage" href="./download.html">click here</a>
                             .
                         </p>
-                        <p class="tipslang"></p>
-                        <p class="blackstep tipslang">
+                        <p class="tips-body"></p>
+                        <p class="blackstep tips-body">
                             Please click <b>Refresh</b>
                             to reconnect to your camera.
                         </p>
                         <input class="btn refresh-btn" id="refresh"type="button" value="Refresh" />
                     </div>
                     <div class="pad20 warningwindow" id="reloadtips">
-                        <p class="offline tipslang">Liveview Break</p>
-                        <p class="blackstep tipslang">
+                        <p class="tips-title tips-body">Liveview Break</p>
+                        <p class="blackstep tips-body">
                             The connection to your camera has been lost, please check your network and click the reload button to reconnect to your camera.
                         </p>
-                        <p class="tipslang">Do you want to reload the viewing?</p>
+                        <p class="tips-body">Do you want to reload the viewing?</p>
                         <input class="btn reload-btn" id="reload" type="button" value="Reload" />
                     </div>
                     <div class="pad20 warningwindow" id="continuetips">
-                        <p class="offline tipslang">Liveview Time Up</p>
-                        <p class="blackstep tipslang">You have viewed the live video for 10 minutes.</p>
-                        <p class="tipslang">Do you want to continue the viewing?</p>
+                        <p class="tips-title tips-body">Liveview Time Up</p>
+                        <p class="blackstep tips-body">You have viewed the live video for 10 minutes.</p>
+                        <p class="tips-body">Do you want to continue the viewing?</p>
                         <input class="btn continue-btn" id="continue" type="button" value="Continue" />
                     </div>
                 </div>
@@ -174,9 +174,9 @@
                     </div>
                 </div>
                 <div id="no-camera" class="pad20 warningwindow nocameratips admin-content">
-                    <p class="offline">No camera exists in this account!</p>
+                    <p class="tips-title">No camera exists in this account!</p>
                     <p>
-                        <span id="nocameratips" class="tipslang">Please add a camera by using the tpCamera app.</span>
+                        <span id="nocameratips" class="tips-body">Please add a camera by using the tpCamera app.</span>
                     </p>
                 </div>
             </div>
@@ -187,11 +187,59 @@
                 </div>
             </div>
         </div>
+        <div class="maincontent account-content">
+            <div class="account-information">
+                <div class="content-title content-cell">
+                    <span class="content-title-img"></span>
+                    <span id="account-title" class="content-title-font" lang="en">Account Information</span>
+                </div>
+                <div class="userinfo content-cell">
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-email" class="userinfo-title userinfo-cell-span" lang="en">E-mail Address:</span>
+                        <span id="userinfo-email" class=" userinfo-title userinfo-cell-span"></span>
+                    </div>
+                    <div class="userinfo-cell">
+                        <span  class="userinfo-title userinfo-cell-span" lang="en">Password:</span>
+                        <a id="userinfo-title-changepwd" class="userinfo-title userinfo-cell-span" lang="en">Change Your Password</a>
+                    </div>
+                </div>
+            </div>
+            <div class="change-password-form">
+                <div class="content-title content-cell">
+                    <span class="content-title-img"></span>
+                    <span id="account-title" class="content-title-font" lang="en">Change Password</span>
+                </div>
+                <div class="userinfo content-cell">
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span" lang="en">Current Password:</span>
+                        <span class="userinfo-cell-span">
+                            <input id="oldpwd" maxlength="32" type="password" class="userinfo-input infocus" />
+                        </span>
+                    </div>
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span" lang="en">New Password:</span>
+                        <span class=" userinfo-cell-span">
+                            <input id="newpwd"  maxlength="32" type="password" class="userinfo-input infocus" />
+                        </span>
+                    </div>
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span" lang="en">Confirm Password:</span>
+                        <span class="userinfo-cell-span">
+                            <input id="cfpwd"  maxlength="32" type="password" class="userinfo-input infocus" />
+                        </span>
+                    </div>
+                </div>
+                <div class="content-cell btncontent">
+                    <input id="changepwd" type="button" class="btn account-btn" value="OK">
+                    <input type="button" id="backaccount"class="btn account-btn" value="Cancel"></div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block script %}
+<script type="text/javascript" src="../../components/js/libs/ipc-secret-libs.js"></script>
 <script type="text/javascript" src="../../components/js/libs/ipc-business-libs.js"></script>
 <script type="text/javascript" src="../../components/widget/window/js/msg.js"></script>
 <script type="text/javascript" src="../js/admin.js"></script>
