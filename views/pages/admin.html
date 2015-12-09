@@ -7,6 +7,8 @@
 {% block link %}
 <link type="text/css" href="../css/admin.css" rel="stylesheet" />
 <link rel="stylesheet" type="text/css" href="../../components/widget/window/css/msg.css">
+<link rel="stylesheet" type="text/css" href="../../components/widget/form/css/scrollbar.css">
+<link rel="stylesheet" type="text/css" href="../../components/widget/form/css/select.css">
 {% endblock %}
 
 {% block body %}
@@ -49,11 +51,11 @@
                             <div id="cpdisable"></div>
                             <div id="controlpanel" >
                                 <ul>
-                                    <li class="videocorl tooltips" title="Take a picture" id="videocut"></li>
-                                    <li class="videocorl tooltips" title="Recording" id="videovid"></li>
-                                    <li class="videocorl tooltips" title="Recording" id="videovidon"></li>
+                                    <li class="videoctrl tooltips" title="Take a picture" id="videocut"></li>
+                                    <li class="videoctrl tooltips" title="Recording" id="videovid"></li>
+                                    <li class="videoctrl tooltips" title="Recording" id="videovidon"></li>
                                 </ul>
-                                <div id = "videovolumectrl"> <span id="videovolumestart" class="videocorl"> <span class="videoimg videovolumestartimg" title="Mute"></span> </span> <span id="videovolumestop" class="videocorl" style="display: none;"> <span class="videoimg videovolumestopimg" title="Recover"></span> </span> </div>
+                                <div id = "videovolumectrl"> <span id="videovolumestart" class="videoctrl"> <span class="videoimg videovolumestartimg" title="Mute"></span> </span> <span id="videovolumestop" class="videoctrl" style="display: none;"> <span class="videoimg videovolumestopimg" title="Recover"></span> </span> </div>
                                 <div class="toolbar-volumeset volume-offon-show">
                                     <div id="volume-bar" class="tpcamera-bar watchmode-bar"></div>
                                 </div>
@@ -61,15 +63,15 @@
                             <div id="controlpanelplus">
                                 <div id="resolution-readjust-out" class="watchmode">
                                     <label for="Resolution">Resolution:</label>
-                                    <select id="resolution-readjust" name="cbr" style="display: none;">
+                                    <select id="resolution-readjust" name="cbr" class="select">
                                         <option value="1" name="VGA" selected="true">640*480</option>
                                         <option name="QVGA" value="2">320*240</option>
                                     </select>
                                 </div>
                                 <div id="videozoomul" class="watchmode">
-                                    <div id="zoomulreduse" class="videocorl"> <span class="videoimg zoomulreduseimg" title="Zoom"></span> </div>
+                                    <div id="zoomulreduse" class="videoctrl"> <span class="videoimg zoomulreduseimg" title="Zoom"></span> </div>
                                     <div id="zoom-bar" class="tpcamera-bar watchmode-bar"></div>
-                                    <div id="zoomulplus" class="videocorl videorightimg"> <span class="videoimg zoomulplusimg" title="Zoom"></span> </div>
+                                    <div id="zoomulplus" class="videoctrl videorightimg"> <span class="videoimg zoomulplusimg" title="Zoom"></span> </div>
                                 </div>
                             </div>
                             
@@ -241,6 +243,9 @@
 {% block script %}
 <script type="text/javascript" src="../../components/js/libs/ipc-secret-libs.js"></script>
 <script type="text/javascript" src="../../components/js/libs/ipc-business-libs.js"></script>
+<script type="text/javascript" src="../../components/js/libs/jquery-ui-1.11.4.custom.min.js"></script>
 <script type="text/javascript" src="../../components/widget/window/js/msg.js"></script>
+<script type="text/javascript" src="../../components/widget/form/js/scrollbar.js"></script>
+<script type="text/javascript" src="../../components/widget/form/js/select.js"></script>
 <script type="text/javascript" src="../js/admin.js"></script>
 {% endblock %}

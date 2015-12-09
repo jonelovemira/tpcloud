@@ -235,10 +235,9 @@
     }
 
     $(function(){
-        // $('select.select').each(function(){
-        //     var ref = $(this).Select({});
-        //     $(this)[0]["widgetRef"] = ref;
-        // });
+        $('select.select').each(function(){
+            $(this).Select({});
+        });
     })
 })(jQuery)
 
