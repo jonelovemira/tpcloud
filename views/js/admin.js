@@ -60,7 +60,7 @@ $(function () {
         var password = $('#oldpwd').val();
         var newPassword = $('#newpwd').val();
         var newPasswordSecond = $("#cfpwd").val();
-        var args = {password: password, newPassword: newPassword, newPasswordSecond: newPasswordSecond};
+        var args = {account: currentController.model.account, password: password, newPassword: newPassword, newPasswordSecond: newPasswordSecond};
 
         var errCodeTipsMap = {
             "-1": tips.actions.changePassword.failed
@@ -253,7 +253,7 @@ $(function () {
     }
     $.ipc.inheritPrototype(DeviceListController, $.ipc.BaseController);
 
-    DeviceController.prototype.initHandler = function() {
+    DeviceListController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
             "#ipcpagnext": {"click": this.nextIpcPage},
             "#ipcpagpre": {"click": this.preIpcPage},
@@ -261,7 +261,8 @@ $(function () {
             "#ipcsetting-delipc": {"click": this.removeDeviceMsg},
             "#liveviewshow": {"click": this.liveView},
             "#settingshow": {"click": this.settingShow},
-            "#reload" : {"click": this.updateDeviceInfo}
+            "#reload": {"click": this.updateDeviceInfo},
+            ".ipcclick": {"click": this.changeActiveDevice} 
         };
 
         var selectorMsgProduceFuncMap = {};
@@ -269,12 +270,12 @@ $(function () {
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
     };
 
-    DeviceController.prototype.getDeviceList = function() {
+    DeviceListController.prototype.getDeviceList = function(reload) {
         var currentController = this;
         var inputCallbacks = {
             "errorCodeCallbackMap": {
                 0: function() {
-                    
+                    this.view.renderBoard(reload);
                 }
             }
         };
@@ -284,6 +285,18 @@ $(function () {
     function DeviceListView() {
         this.model = null;
     }
+
+    DeviceListView.prototype.renderBoard = function(reload) {
+        reload = reload || false;
+        this.renderLeftListMenu();
+        this.renderRightViewSetting(reload);
+    };
+
+    DeviceListView.prototype.renderLeftListMenu = function() {
+        
+    };
+
+
 
 
 });

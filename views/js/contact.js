@@ -14,8 +14,7 @@ $(function(){
                     currentController.view.feedModelSelect();
                 }
             },
-            "errorCallback": function() {
-            }
+            "errorCallback": $.noop
         };
 
         this.model.getUpdateInfos(inputCallbacks);

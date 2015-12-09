@@ -199,8 +199,8 @@
     User.prototype.register = function(args, inputCallbacks) {
 
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
-            (!this.validateUsernameFormat(args.username).code && this.validateUsernameFormat(args.username)) ||
-            (!this.validatePasswordFormat(args.password).code && this.validatePasswordFormat(args.password));
+            (!this.validateUsername(args.username).code && this.validateUsername(args.username)) ||
+            (!this.validatePassword(args.password).code && this.validatePassword(args.password));
         if (!validateResult.code) {return validateResult;};
         
         var data = JSON.stringify({
@@ -214,8 +214,9 @@
 
     User.prototype.login = function(args, inputCallbacks){
         
-        var validateResult = (!this.validatePasswordFormat(args.password).code 
-            && this.validatePasswordFormat(args.password, {"patternTestFailMsg": tips.types.password.invalidShort}));
+        var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
+        (!this.validatePassword(args.password).code 
+            && this.validatePassword(args.password, {"patternTestFailMsg": tips.types.password.invalidShort}));
         if (validateResult.code == false) {return validateResult;};
         
         var data = JSON.stringify({
@@ -275,7 +276,8 @@
     };
 
     User.prototype.modifyPassword = function(args, inputCallbacks) {
-        var validateResult = (!this.validatePasswordFormat(args.password).code && this.validatePasswordFormat(args.password)) ||
+        var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
+                            (!this.validatePassword(args.password).code && this.validatePassword(args.password)) ||
                             (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
         if (validateResult.code == false) {return validateResult;};
         if (undefined == this.account) {
@@ -322,9 +324,28 @@
         this.makeAjaxRequest({url: "/getUser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    User.prototype.validateUsernameFormat = function(tmpUsername) {
+    User.prototype.validateAccount = function(tmpAccount) {
+        if (undefined == tmpAccount) {
+            console.error("args error in validateAccount");
+            return;
+        };
+
+        var validateArgs = {
+            "attr": tmpAccount,
+            "attrEmptyMsg": tips.types.account.cantBeEmpty,
+            "maxLength": 64,
+            "minLength": 1,
+            "attrOutOfLimitMsg": "account out of limit",
+            "pattern": /^.*$/,
+            "patternTestFailMsg": tips.types.account.invalid, 
+        };
+
+        return this.validateAttr(validateArgs);
+    };
+
+    User.prototype.validateUsername = function(tmpUsername) {
         if (undefined == tmpUsername) {
-            console.error("args error in validateUsernameFormat");
+            console.error("args error in validateUsername");
             return;
         };
 
@@ -341,9 +362,9 @@
         return this.validateAttr(validateArgs);
     };
 
-    User.prototype.validatePasswordFormat = function(tmpPassword, msg) {
+    User.prototype.validatePassword = function(tmpPassword, msg) {
         if (undefined == tmpPassword) {
-            console.error("args error in validatePasswordFormat");
+            console.error("args error in validatePassword");
             return;
         };
         var defaultMsg = {"attrEmptyMsg": tips.types.password.cantBeEmpty,
@@ -373,7 +394,7 @@
             err.msg = tips.types.newPassword.notSame;
             return err;
         };
-        return this.validatePasswordFormat(tmpNewPassword);
+        return this.validatePassword(tmpNewPassword);
     };
 
     User.prototype.validateEmailFormat = function(tmpEmail) {
@@ -439,7 +460,7 @@
         this.fwUrl = null;
     };
 
-    $.ipc.inheritPrototype(User, $.ipc.Model);
+    $.ipc.inheritPrototype(Device, $.ipc.Model);
 
     var deviceErrorCodeInfo = {
         "-20501": function(){console.log("device id does not exists");},

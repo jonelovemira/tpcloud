@@ -1,6 +1,7 @@
 #! /bin/bash
 
-WEB_ROOT=/usr/tomcat/apache-tomcat-7.0.64/webapps/web-3.0
+CATALINA_HOME=/usr/local/tomcat7
+WEB_ROOT=$CATALINA_HOME/webapps/web-3.0
 CDN_PATH="http://cdn.tplinkcloud.com/"
 DEVELOP_PATH=`pwd`
 

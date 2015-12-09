@@ -232,6 +232,9 @@ $(function (){
                         currentController.gotoAdmin();
                     }
                 }
+            },
+            "errorCallback": function() {
+                currentController.gotoAdmin();
             }
         };
 
