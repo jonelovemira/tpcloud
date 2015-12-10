@@ -648,3 +648,18 @@
 .account-content {
     display: none;
 }
+
+#device-li-sample {
+    display: none;
+}
+
+.system-status {
+    cursor: text; 
+    font-size: 1.1em;
+    left: 30px;
+    position: absolute;
+    top: 110px;
+    word-wrap:break-word;
+    z-index: 0;
+    color: red;
+}

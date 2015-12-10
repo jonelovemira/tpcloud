@@ -105,6 +105,11 @@ var tips = {
             "cantBeEmpty": "Camera name can't be empty.",
             "invalid": "Camera name cannot contain the following characters:\\ / : = & \' \" < > { }",
             "outOfLimit": "Camera name should contain 1 to 31 characters."
+        },
+        "upgrade": {
+            "required": "Firmware update required.",
+            "downloading": "Downloading firmware...",
+            "upgrading": "Updating firmware..."
         }
     }
 };

@@ -475,6 +475,12 @@
 
     Device.prototype.errorCodeCallbacks = Device.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
 
+    Device.prototype.init = function(d) {
+        if (undefined == d) {console.error("args error in init");};
+        $.extend(true, this, d);
+        this.product = $.ipc[this.name];
+    };
+
     Device.prototype.get = function(args, inputCallbacks) {
         if (this.owner == undefined) {console.error("owner is undefined");}
         var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email)) ||
@@ -487,8 +493,7 @@
         });
 
         var changeStateFunc = function(response) {
-            $.extend(true, this, response.msg);
-            this.product = new $.ipc.Product();
+            this.init(response.msg);
         };
 
         this.makeAjaxRequest({url: "/getCamera_lr", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
@@ -642,7 +647,7 @@
             this.devices = [];
             for (var i = 0; i < response.msg.length; i++) {
                 var newDevice = new $.ipc.Device();
-                $.extend(true, newDevice, response.msg[i]);
+                newDevice.init(response.msg[i]);
                 this.devices.push(newDevice);
             };
         };

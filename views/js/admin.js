@@ -284,6 +284,12 @@ $(function () {
 
     function DeviceListView() {
         this.model = null;
+        this.maxDisplayNameLength = 16;
+        this.stateTipsMap = {
+            "normal": tips.types.upgrade.required,
+            "downloading": tips.types.upgrade.downloading,
+            "upgrading": tips.types.upgrade.upgrading
+        };
     }
 
     DeviceListView.prototype.renderBoard = function(reload) {
@@ -292,7 +298,25 @@ $(function () {
         this.renderRightViewSetting(reload);
     };
 
+    DeviceListView.prototype.renderDeviceLi = function(device , index) {
+        if (undefined == device || undefined == index || index < 0) {
+            console.error("args error in renderDeviceLi");
+        };
+        var htmlStr = $("#device-li-sample").html();
+        var deviceLi = $(htmlStr);
+        var usable = device.isOnline == 1 ? "ipcunusable" : "ipcusable";
+        var id = index;
+        var cssClass = device.product.prototype.smallCssImgClass;
+        var dot = device.name.length > this.maxDisplayNameLength ? "..." : "";
+        var displayName = device.name.substring(0, this.maxDisplayNameLength - 2);
+        var state = device.needForceUpgrade == 1 ? (stateTipsMap[admin.ipcList[targetIpcIndex]["system_status"]] || "") : "";
+
+        deviceLi.attr("id", id);
+        deviceLi.
+    };
+
     DeviceListView.prototype.renderLeftListMenu = function() {
+        $("#accordion").empty();
         
     };
 
