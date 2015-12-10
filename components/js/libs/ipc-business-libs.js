@@ -458,6 +458,7 @@
         this.systemStatus = null;
         this.needForceUpgrade = null;
         this.fwUrl = null;
+        this.product = null;
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -487,6 +488,7 @@
 
         var changeStateFunc = function(response) {
             $.extend(true, this, response.msg);
+            this.product = new $.ipc.Product();
         };
 
         this.makeAjaxRequest({url: "/getCamera_lr", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
@@ -807,13 +809,87 @@
 
     $.ipc.IpcPlugin = IpcPlugin;
 
-    function Product () {
-        this.released = null;
-        this.name = null;
-        this.faqPath = null;
-    }
+    var resolution = {
+        VGA: "640*480",
+        QVGA: "320*240",
+        HD: "1280*720",
+        FullHD: "1920*1080"
+    };
+    var mimeTypes = {
+        MJPEG: "application/x-tp-camera",
+        H264: "application/x-tp-camera-h264"
+    };
 
-    $.ipc.Product = Product;
+    function NC200() {};
+    NC200.prototype.released = null;
+    NC200.prototype.faqPath = null;
+    NC200.prototype.name = "NC200";
+    NC200.prototype.availableResolutionVals = [resolution.VGA, resolution.QVGA];
+    NC200.prototype.mimeType = mimeTypes.MJPEG;
+    NC200.prototype.smallImgCssClass = "NC200-small-img";
+    NC200.prototype.middleImgCssClass = "NC200-middle-img";
+
+    function NC210() {};
+    NC210.prototype.released = null;
+    NC210.prototype.faqPath = null;
+    NC210.prototype.name = "NC210";
+    NC210.prototype.availableResolutionVals = [resolution.HD];
+    NC210.prototype.mimeType = mimeTypes.H264;
+    NC210.prototype.smallImgCssClass = "NC210-small-img";
+    NC210.prototype.middleImgCssClass = "NC210-middle-img";
+
+    function NC220() {};
+    NC220.prototype.released = null;
+    NC220.prototype.faqPath = null;
+    NC220.prototype.name = "NC220";
+    NC220.prototype.availableResolutionVals = [resolution.VGA, resolution.QVGA];
+    NC220.prototype.mimeType = mimeTypes.H264;
+    NC220.prototype.smallImgCssClass = "NC220-small-img";
+    NC220.prototype.middleImgCssClass = "NC220-middle-img";
+
+    function NC230() {};
+    NC230.prototype.released = null;
+    NC230.prototype.faqPath = null;
+    NC230.prototype.name = "NC230";
+    NC230.prototype.availableResolutionVals = [resolution.HD];
+    NC230.prototype.mimeType = mimeTypes.H264;
+    NC230.prototype.smallImgCssClass = "NC230-small-img";
+    NC230.prototype.middleImgCssClass = "NC230-middle-img";
+
+    function NC250() {};
+    NC250.prototype.released = null;
+    NC250.prototype.faqPath = null;
+    NC250.prototype.name = "NC250";
+    NC250.prototype.availableResolutionVals = [resolution.HD];
+    NC250.prototype.mimeType = mimeTypes.H264;
+    NC250.prototype.smallImgCssClass = "NC250-small-img";
+    NC250.prototype.middleImgCssClass = "NC250-middle-img";
+
+    function NC350() {};
+    NC350.prototype.released = null;
+    NC350.prototype.faqPath = null;
+    NC350.prototype.name = "NC350";
+    NC350.prototype.availableResolutionVals = [resolution.HD];
+    NC350.prototype.mimeType = mimeTypes.H264;
+    NC350.prototype.smallImgCssClass = "NC350-small-img";
+    NC350.prototype.middleImgCssClass = "NC350-middle-img";
+
+    function NC450() {};
+    NC450.prototype.released = null;
+    NC450.prototype.faqPath = null;
+    NC450.prototype.name = "NC450";
+    NC450.prototype.availableResolutionVals = [resolution.HD];
+    NC450.prototype.mimeType = mimeTypes.H264;
+    NC450.prototype.smallImgCssClass = "NC450-small-img";
+    NC450.prototype.middleImgCssClass = "NC450-middle-img";
+
+    $.ipc.NC200 = NC200;
+    $.ipc.NC210 = NC210;
+    $.ipc.NC220 = NC220;
+    $.ipc.NC230 = NC230;
+    $.ipc.NC250 = NC250;
+    $.ipc.NC350 = NC350;
+    $.ipc.NC450 = NC450;
 
     function Software () {
         $.ipc.Model.call(this, arguments);
@@ -829,16 +905,12 @@
             var productNameObjMap = {};
 
             for (var i = 0; i < response.msg.product.length; i++) {
-                var newProduct = new $.ipc.Product();
-                newProduct.released = response.msg.product[i].released;
-                newProduct.name = response.msg.product[i].model.toUpperCase();
-                newProduct.faqPath = response.msg.product[i].href;
-                this.products.push(newProduct);
-                if (productNameObjMap[newProduct.name]) {
-                    console.error("duplicate product");
-                } else {
-                    productNameObjMap[newProduct.name] = this.products[i];
-                }
+                var productName = response.msg.product[i].model.toUpperCase();
+                var product = $.ipc[productName] || console.error("not a supportted product");
+                product.prototype.released = response.msg.product[i].released;
+                product.prototype.faqPath = response.msg.product[i].href;
+                this.products.push(product);
+                productNameObjMap[product.prototype.name] = product;
             };
 
             for (var i = 0; i < response.msg.software.length; i++) {

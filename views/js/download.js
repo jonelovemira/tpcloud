@@ -74,14 +74,6 @@ $(function (){
         this.updateProductMenu();
     };
 
-    SoftwareView.prototype.productToCssClass = function(product) {
-        if (undefined == product) {
-            console.error("args error in productToCssClass");
-            return;
-        };
-        return "img-" + product.name;
-    };
-
     SoftwareView.prototype.clearProductDisplayContainer = function() {
         if (this.currentDisplayProductArr.length == 0) {
             return;
@@ -90,7 +82,8 @@ $(function (){
         for (var i = 0; i < this.currentDisplayProductArr.length; i++) {
             var p = this.currentDisplayProductArr[i];
             if (p) {
-                $(this.indexCellMap[i] + " > " + ".downloadshow-img").removeClass(this.productToCssClass(p));
+                $(this.indexCellMap[i] + " > " + ".downloadshow-img").removeClass(p.prototype.middleImgCssClass);
+                $(this.indexCellMap[i] + " > " + ".downloadshow-font").text("");
             };
         };
     };
@@ -105,9 +98,9 @@ $(function (){
             var p = this.currentDisplayProductArr[i];
             if (p) {
                 $(this.indexCellMap[i]).show();
-                $(this.indexCellMap[i]).attr("faq-path", p.faqPath);
-                $(this.indexCellMap[i] + " > " + ".downloadshow-img").addClass(this.productToCssClass(p));
-                $(this.indexCellMap[i] + " > " + ".downloadshow-font").text(p.name);
+                $(this.indexCellMap[i]).attr("faq-path", p.prototype.faqPath);
+                $(this.indexCellMap[i] + " > " + ".downloadshow-img").addClass(p.prototype.middleImgCssClass);
+                $(this.indexCellMap[i] + " > " + ".downloadshow-font").text(p.prototype.name);
             };
         };
     };
