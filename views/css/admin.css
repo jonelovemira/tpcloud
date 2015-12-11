@@ -168,6 +168,7 @@
     width:100%;
     color: #323232;
     font-size:12px;
+    display: none;
 }
 .ipcstate:hover{
     background:#DEDEDE;
@@ -527,34 +528,32 @@
 .padding-right-75{
     padding-right:75px;
 }
-#ipcpaging{
+#dev-page-ul{
     bottom: 20px;
     height: 20px;
     position: absolute;
     right: 0;
-    display: none;
     width: 45px;
-}
-.ipclistcell{
-    display: none;
 }
 .ipcpag-cell{
     width:10px;
     height:20px;
     cursor: pointer;
 }
-#ipcpagpre{
+#dev-left-arrow{
+    display: none;
     float: left;
     background: url("../img/admin/admin.png") 0 -729px no-repeat;
 }
-#ipcpagpre:hover{
+#dev-left-arrow:hover{
     background: url("../img/admin/admin.png") 0 -663px no-repeat;
 }
-#ipcpagnext{
+#dev-right-arrow{
+    display: none;
     float: right;
     background: url("../img/admin/admin.png") 0 -378px no-repeat;
 }
-#ipcpagnext:hover{
+#dev-right-arrow:hover{
     background: url("../img/admin/admin.png") 0 -312px no-repeat;
 }
 
@@ -662,4 +661,13 @@
     word-wrap:break-word;
     z-index: 0;
     color: red;
+}
+
+.device-img {
+    float: left;
+    width: 101px;
+    position: relative;
+    top: 32px;
+    left: 30px;
+    height: 101px;
 }

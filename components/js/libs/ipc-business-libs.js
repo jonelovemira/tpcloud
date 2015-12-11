@@ -478,7 +478,8 @@
     Device.prototype.init = function(d) {
         if (undefined == d) {console.error("args error in init");};
         $.extend(true, this, d);
-        this.product = $.ipc[this.name];
+        var p = this.name.split(" ")[0];
+        this.product = $.ipc[p];
     };
 
     Device.prototype.get = function(args, inputCallbacks) {
