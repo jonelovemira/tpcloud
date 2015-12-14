@@ -249,7 +249,6 @@ $(function () {
 
     function DeviceList() {
         $.ipc.DeviceList.call(this, arguments);
-        this.activeDeviceIndex = null;
     };
     $.ipc.inheritPrototype(DeviceList, $.ipc.DeviceList);
 
@@ -262,10 +261,10 @@ $(function () {
         var appendedSelectorHandlerMap = {
             "#dev-right-arrow": {"click": this.showNextDevicePage},
             "#dev-left-arrow": {"click": this.showPreDevicePage},
-            "#ipcsetting-save": {"click": this.changeDeviceName},
-            "#ipcsetting-delipc": {"click": this.removeDeviceMsg},
-            "#liveviewshow": {"click": this.liveView},
-            "#settingshow": {"click": this.settingShow},
+            "#dev-setting-save": {"click": this.changeDeviceName},
+            "#dev-setting-delipc": {"click": this.removeDeviceMsg},
+            "#live-view-tab": {"click": this.liveView},
+            "#setting-tab": {"click": this.settingShow},
             "#reload": {"click": this.updateDeviceInfo},
             ".ipcclick": {"click": this.changeActiveDevice} 
         };
@@ -283,13 +282,12 @@ $(function () {
         this.view.renderPreDevicePage();
     };
 
-    DeviceListController.prototype.getDeviceList = function(reload) {
+    DeviceListController.prototype.getDeviceList = function() {
         var currentController = this;
         var inputCallbacks = {
             "errorCodeCallbackMap": {
                 0: function() {
-                    currentController.model.activeDeviceIndex = currentController.model.devices.length - 1;
-                    currentController.view.renderBoard(reload);
+                    currentController.view.renderBoard();
                 }
             }
         };
@@ -308,31 +306,37 @@ $(function () {
             "upgrading": tips.types.upgrade.upgrading
         };
         this.menuContainer = $("#accordion");
+        this.viewDOM = $("#watch");
+        this.settingDOM = $("#setting");
+        this.commonTipsDOM = $("#common-tips");
     }
 
-    DeviceListView.prototype.renderBoard = function(reload) {
-        reload = reload || false;
+    DeviceListView.prototype.renderBoard = function() {
         this.renderLeftListMenu();
-        this.renderRightViewSetting(reload);
+        this.renderRightViewSetting();
     };
 
-    DeviceListView.prototype.renderDeviceLi = function(device , index) {
+    DeviceListView.prototype.getDeviceDisplayName = function(deviceName) {
+        if (undefined == deviceName) {console.error("args error in getDeviceDisplayName")};
+        var dot = deviceName.length > this.maxDisplayNameLength ? "..." : "";
+        return deviceName.substring(0, this.maxDisplayNameLength - 2) + dot;
+    };
+
+    DeviceListView.prototype.renderDeviceLi = function(device, index) {
         if (undefined == device || undefined == index || index < 0) {
             console.error("args error in renderDeviceLi");
         };
         var deviceLi = $("#device-li-sample").clone();
         var imgCssClass = device.product.prototype.smallImgCssClass;
-        var dot = device.name.length > this.maxDisplayNameLength ? "..." : "";
-        var displayName = device.name.substring(0, this.maxDisplayNameLength - 2);
+        var displayName = this.getDeviceDisplayName(device.name);
         var state = device.needForceUpgrade == 1 ? (stateTipsMap[admin.ipcList[targetIpcIndex]["system_status"]] || "") : "";
         var currentPageCssClass = this.getDevicePageCssClass(this.getDevicePageIndex(index));
-
         deviceLi.attr("id", this.getDeviceLiId(index));
         deviceLi.attr("title", device.name);
         deviceLi.addClass(currentPageCssClass);
-        deviceLi.find(".ipcclick").first().toggleClass("ipcunusable", device.isOnline == 0);
+        deviceLi.find(".usable-cover").first().toggleClass("dev-unusable", device.isOnline == 0);
         deviceLi.find("span").first().addClass(imgCssClass);
-        deviceLi.find(".ipcname").first().text(displayName);
+        deviceLi.find(".dev-name").first().text(displayName);
         deviceLi.find(".system-status").first().text(state);
         this.menuContainer.append(deviceLi);
     };
@@ -350,7 +354,7 @@ $(function () {
             || devIndex > this.model.devices.length - 1) {
             console.error("args error in getDevicePageIndex");
         };
-        return "ipc-" + devIndex;
+        return "dev-" + devIndex;
     };
 
     DeviceListView.prototype.getDevicePageIndex = function(devIndex) {
@@ -370,7 +374,7 @@ $(function () {
             for (var i = 0; i < this.model.devices.length; i++) {
                 this.renderDeviceLi(this.model.devices[i], i); 
             };
-            $("#" + this.getDeviceLiId(this.model.activeDeviceIndex)).addClass("ipcselected");
+            $("#" + this.getDeviceLiId(this.model.activeDeviceIndex)).addClass("dev-selected");
             
             this.renderDeviceListPagination();
         };
@@ -402,6 +406,73 @@ $(function () {
         };
         this.curPageIndex -= 1;
         this.renderDeviceListPagination();
+    };
+
+    DeviceListView.prototype.hideViewChild = function() {
+        this.viewDOM.children().hide();
+    };
+
+    DeviceListView.prototype.hideSettingChild = function() {
+        this.settingDOM.children().hide();
+    };
+
+    DeviceListView.prototype.hideCommonTipsChild = function() {
+        this.commonTipsDOM.children().hide();
+    };
+
+    DeviceListView.prototype.hideViewSettingChild = function() {
+        this.hideViewChild();
+        this.hideSettingChild();
+        this.hideCommonTipsChild();
+    };
+
+    DeviceListView.prototype.findActiveNavTab = function() {
+        var tabName = $(".admin-nav-li-select > span").text();
+        return tabName;
+    };
+
+    DeviceListView.prototype.showNoDeviceTips = function() {
+        this.hideViewSettingChild();
+        $("#no-camera").show();
+    };
+
+    DeviceListView.prototype.renderRightViewSetting = function() {
+        if (this.devices.length > 0) {
+            var activeTab = this.findActiveNavTab();
+            if (activeTab == "Settings") {
+                this.renderSetting();
+            } else {
+                this.renderLiveView();
+            }
+        } else {
+            this.showNoDeviceTips();
+        }
+    };
+
+    DeviceListView.prototype.renderSetting = function() {
+        $(".admin-nav-li").removeClass("admin-nav-li-select");
+        $("#setting-tab").addClass("admin-nav-li-select");
+        var activeDev = this.model.devices[this.model.activeDeviceIndex];
+        if (activeDev) {
+            this.hideViewSettingChild();
+            $("#setting .setting-content").show();
+
+            if (undefined == activeDev.name) {
+                console.error("device name is undefined");
+            };
+
+            var deviceName = activeDev.name || "-";
+            var deviceDisplayName = this.getDeviceDisplayName(activeDev.name) || "-";
+            var deviceType = activeDev.type || "-";
+            var deviceMac = activeDev.mac || "-";
+            var deviceLocalIp = activeDev.iip || "-";
+
+            $("#device-name").val(deviceName);
+            $(".dev-setting-name").text(deviceDisplayName);
+            $("#dev-setting-model").text(deviceType);
+            $("#dev-setting-ip").text(deviceLocalIp);
+            $("#dev-setting-mac").text(deviceMac);
+        };
     };
 
 

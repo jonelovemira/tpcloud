@@ -173,12 +173,12 @@
 .ipcstate:hover{
     background:#DEDEDE;
 }
-.ipcselected{
+.dev-selected{
     border-bottom: 1px solid #26ADE4;
     color:#26ade4;
 }
 
-.ipcname{
+.dev-name{
     cursor: text;
     float: left;
     font-size: 1.3em;
@@ -224,7 +224,7 @@
     top:16px;
     font-size:13px;
 }
-.ipcclick{
+.usable-cover{
     position:absolute;
     left:0px;
     top:0px;
@@ -257,20 +257,20 @@
     height: 100%;
     width: 100%;
 }
-.objchangetitle{
+.admin-nav{
     height:50px;
     width:100%;
     margin-left: 40px;
 }
-.objchangetitle-ul{
+.admin-nav-ul{
     position: relative;
     height:40px;
 }
-.objchangetitle-li-font{
+.admin-nav-li-font{
     cursor: pointer;
     float: left;
 }
-.objchangetitle-li{
+.admin-nav-li{
     color: #323232;
     float: left;
     padding-top:10px;
@@ -279,7 +279,7 @@
     height: 25px;
     width: 100px;
 }
-.objchangetitle-li-split{
+.admin-nav-li-split{
     background:#DADADA;
     float: right;
     height: 20px;
@@ -287,7 +287,7 @@
     top: 2px;
     width: 1px;
 }
-.objchangetitle-li-select{
+.admin-nav-li-select{
     color:#2D9AD8;
 }
 
@@ -463,27 +463,27 @@
     width:670px;
     margin-left: 40px
 }
-.settingcell-title-img{
+.setting-cell-title-img{
     background: url("../img/admin/admin.png") 0 -927px no-repeat;
     float: left;
     height: 22px;
     margin: 5px 5px 5px 8px;
     width: 22px;
 }
-.settingcell-title-font{
+.setting-cell-title-font{
     color: #323232;
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     font-size: 1.5em;
     float: left;
     margin-top:7px;
 }
-.settingcell-title{
+.setting-cell-title{
     width:100%;
     background: #F5F5F5;
     height:32px;
     border-bottom:1px solid #DADADA;
 }
-.settingcell-td{
+.setting-cell-td{
     float: left;
     font-size:1.3em;
     height:35px;
@@ -491,37 +491,39 @@
     color: #323232;
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
 }
-.settingcell-dd{
-    
+.setting-cell-dd{
     padding-left:20px;
     float: left;
     width:260px;
 }
-.settingcell-body{
+.setting-cell-body{
     padding-top:28px;
 }
-#devicename{
+.setting-content {
+    padding-bottom: 10px;
+}
+#device-name{
     color: #323232;
     padding: 2px 0 2px 5px;
     width: 140px;
     position: relative;
     bottom:5px;
 }
-.settingcell{
+.setting-cell{
     width:100%;
     height:35px;
 }
 .widthauto{
     width:auto;
 }
-.advancesettingcell{
+.advance-setting{
     height:25px;
     width:100%;
 }
 .height25{
     height:25px;
 }
-.ipcsetting-btn{
+.dev-setting-btn{
     width:145px;
     height:25px;
 }
@@ -557,10 +559,10 @@
     background: url("../img/admin/admin.png") 0 -312px no-repeat;
 }
 
-.settingcell-td-info{
+.setting-cell-td-info{
     font-family:'MYRIADPRO-LIGHTSEMIEXT';
 }
-.ipcunusable{
+.dev-unusable{
     background: #fff;
     opacity: 0.6;
     filter: Alpha(opacity=60);
@@ -591,7 +593,7 @@
     position: relative;
     right: 8px;
 }
-#ipcsetting-save{
+#dev-setting-save{
     position: relative;
     width:95px;
     height:30px;

@@ -33,18 +33,18 @@
     <div id="display-main-board">
         <div class="maincontent device-content">
             <div class="voidobj">
-                <div class="objchangetitle">
-                    <ul class="objchangetitle-ul">
-                        <li id="liveviewshow" class="objchangetitle-li objchangetitle-li-select">
-                            <span class="objchangetitle-li-font">Live View</span>
-                            <span class="objchangetitle-li-split"></span>
+                <div class="admin-nav">
+                    <ul class="admin-nav-ul">
+                        <li id="live-view-tab" class="admin-nav-li admin-nav-li-select">
+                            <span class="admin-nav-li-font">Live View</span>
+                            <span class="admin-nav-li-split"></span>
                         </li>
-                        <li id="settingshow" class="objchangetitle-li">
-                            <span class="objchangetitle-li-font">Settings</span>
+                        <li id="setting-tab" class="admin-nav-li">
+                            <span class="admin-nav-li-font">Settings</span>
                         </li>
                     </ul>
                 </div>
-                <div id="watch" class="admin-content">
+                <div id="watch">
                     <div id="objouter" class="objouter warningwindow">
                         <div id ="yjobject"class="pad20"></div>
                         <div id="videoloading"> <img id="videoloadingimg" src="../img/admin/loadings.gif"  alt="loading" /> <span id="videoloadingfont">Loading</span> </div>
@@ -84,7 +84,7 @@
                     </div>
                     <div class="pad20 warningwindow" id="refreshtips">
                         <p class="tips-title tips-body">
-                            Your <b class="ipcsetting-curipcname">Baby Cam</b>
+                            Your <b class="dev-setting-name">Baby Cam</b>
                             is offline!
                         </p>
                         <p class="blackstep tips-body">Please try the following:</p>
@@ -123,65 +123,69 @@
                         <input class="btn continue-btn" id="continue" type="button" value="Continue" />
                     </div>
                 </div>
-                <div id="setting" class="admin-content">
-                    <div class="settingcontent">
-                        <div class="settingcell-title">
-                            <span class="settingcell-title-img"></span>
-                            <span class="settingcell-title-font">Camera Information</span>
+                <div id="setting">
+                    <div class="setting-content">
+                        <div class="setting-cell-title">
+                            <span class="setting-cell-title-img"></span>
+                            <span class="setting-cell-title-font">Camera Information</span>
                         </div>
-                        <div class="settingcell-body">
-                            <div class="settingcell">
-                                <div class="settingcell-dd padding-right-75">
-                                    <span class="settingcell-td">Camera Name:</span>
-                                    <span class="settingcell-td">
-                                        <input id="devicename" maxlength="30" class="infocus settingcell-td-info" type="text"/>
+                        <div class="setting-cell-body">
+                            <div class="setting-cell">
+                                <div class="setting-cell-dd padding-right-75">
+                                    <span class="setting-cell-td">Camera Name:</span>
+                                    <span class="setting-cell-td">
+                                        <input id="device-name" maxlength="30" class="infocus setting-cell-td-info" type="text"/>
                                     </span>
                                 </div>
-                                <div class="settingcell-dd">
-                                    <span class="settingcell-td">Model:</span>
-                                    <span id="ipcsetting-model" class="settingcell-td settingcell-td-info">NC200</span>
+                                <div class="setting-cell-dd">
+                                    <span class="setting-cell-td">Model:</span>
+                                    <span id="dev-setting-model" class="setting-cell-td setting-cell-td-info">NC200</span>
                                 </div>
                             </div>
-                            <div class="settingcell">
-                                <div class="settingcell-dd padding-right-75">
-                                    <span class="settingcell-td">IP Address:</span>
-                                    <span id="ipcsetting-ip" class="settingcell-td settingcell-td-info">-</span>
+                            <div class="setting-cell">
+                                <div class="setting-cell-dd padding-right-75">
+                                    <span class="setting-cell-td">IP Address:</span>
+                                    <span id="dev-setting-ip" class="setting-cell-td setting-cell-td-info">-</span>
                                 </div>
-                                <div class="settingcell-dd">
-                                    <span class="settingcell-td">MAC Address:</span>
-                                    <span id="ipcsetting-mac" class="settingcell-td settingcell-td-info">-</span>
+                                <div class="setting-cell-dd">
+                                    <span class="setting-cell-td">MAC Address:</span>
+                                    <span id="dev-setting-mac" class="setting-cell-td setting-cell-td-info">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-cell-body">
+                            <div class="advance-setting">
+                                <div class="setting-cell-dd widthauto">
+                                    <span class="setting-cell-td height25">
+                                        Click the button below if you want to remove your <b class="dev-setting-name">Baby Cam</b>
+                                        from your cloud account.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="advance-setting">
+                                <div class="setting-cell-dd padding-right-75">
+                                    <span  class="setting-cell-td height25">
+                                        <input id="dev-setting-delipc" type="button" class="dev-setting-btn btn" value="Remove Camera"/>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="settingcontent">
-                        <div class="settingcell-body">
-                            <div class="advancesettingcell">
-                                <div class="settingcell-dd widthauto">
-                                    <span class="settingcell-td height25">
-                                        Please click the below button to remove your
-                                        <b class="ipcsetting-curipcname">Baby Cam</b>
-                                        from your account.
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="advancesettingcell">
-                                <div class="settingcell-dd padding-right-75">
-                                    <span  class="settingcell-td height25">
-                                        <input id="ipcsetting-delipc" type="button" class="ipcsetting-btn btn" value="Delete Camera"/>
-                                    </span>
-                                </div>
-                            </div>
-                            <input id="ipcsetting-save" type="button" class="ipcsetting-btn btn" value="Save"/>
-                        </div>
+                    <div class="setting-content">
+                        <input id="dev-setting-save" type="button" class="dev-setting-btn btn" value="Save"/>
                     </div>
                 </div>
-                <div id="no-camera" class="pad20 warningwindow nocameratips admin-content">
-                    <p class="tips-title">No camera exists in this account!</p>
-                    <p>
-                        <span id="nocameratips" class="tips-body">Please add a camera by using the tpCamera app.</span>
-                    </p>
+                <div id="common-tips">
+                    <div id="no-camera">
+                        <p class="tips-title">No camera exists in this account!</p>
+                        <p>
+                            <span class="tips-body">Please add a camera by using the tpCamera app.</span>
+                        </p>
+                    </div>
                 </div>
+                
             </div>
             <div id="sidebar" class="scrollable">
                 <div id="dev-page-ul">
@@ -243,8 +247,8 @@
 
 <li id="device-li-sample" class="ipcstate">
     <span class="device-img"></span>
-    <span class="ipcclick"></span>
-    <span class="ipcname">NC220 1.0</span>
+    <span class="usable-cover"></span>
+    <span class="dev-name">NC220 1.0</span>
     <span class="system-status"></span>
 </li>
 {% endblock %}

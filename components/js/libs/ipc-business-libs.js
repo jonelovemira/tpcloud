@@ -459,6 +459,8 @@
         this.needForceUpgrade = null;
         this.fwUrl = null;
         this.product = null;
+
+        this.stateChangeCallbacks = $.Callbacks();
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -495,6 +497,7 @@
 
         var changeStateFunc = function(response) {
             this.init(response.msg);
+            this.stateChangeCallbacks.fire();
         };
 
         this.makeAjaxRequest({url: "/getCamera_lr", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
@@ -516,6 +519,7 @@
 
         var changeStateFunc = function(response) {
             this.name = args.name;
+            this.stateChangeCallbacks.fire();
         };
 
         this.makeAjaxRequest({
@@ -568,6 +572,7 @@
             var passthroughResult = response.result.responseData;
             if (0 == passthroughResult.errCode) {
                 $.extend(true, this, passthroughResult.msg);
+                this.stateChangeCallbacks.fire();
             };
         }
 
@@ -624,6 +629,7 @@
         this.url == null;
         this.upgradeList = [];
         this.devices = [];
+        this.activeDeviceIndex = null;
     };
 
     $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
@@ -639,9 +645,11 @@
     DeviceList.prototype.errorCodeCallbacks = DeviceList.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceListErrorCodeInfo});
 
     DeviceList.prototype.getDeviceList = function(inputCallbacks) {
+        if (undefined == this.owner) {console.error("owner of device list is undefined")};
         var data = {};
 
         var changeStateFunc = function(response){
+            var lastActiveDeviceId = this.findIdForIndex(this.activeDeviceIndex);
             for (var i = 0; i < this.devices.length; i++) {
                 delete this.devices[i];
             };
@@ -649,11 +657,36 @@
             for (var i = 0; i < response.msg.length; i++) {
                 var newDevice = new $.ipc.Device();
                 newDevice.init(response.msg[i]);
+                newDevice.owner = this.owner;
+                !newDevice.isSameRegion && newDevice.get();
                 this.devices.push(newDevice);
             };
+            this.activeDeviceIndex = this.findIndexForId(lastActiveDeviceId);
         };
         
         this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
+
+    DeviceList.prototype.findIdForIndex = function(devIndex) {
+        if (undefined == devIndex) {
+            return undefined;
+        };
+        if (devIndex >= this.devices.length || devIndex < 0) {
+            console.error("args error in findIdForIndex");
+        };
+        return this.devices[devIndex].id;
+    };
+
+    DeviceList.prototype.findIndexForId = function(devId) {
+        if (undefined == devId) {
+            console.error("args error in findIndexForId");
+        };
+        for (var i = 0; i < this.devices.length; i++) {
+            if(this.devices[i].id == devId) {
+                return i;
+            }
+        };
+        return this.devices.length > 0 ? 0 : undefined;
     };
 
     DeviceList.prototype.getUpgradeList = function(inputCallbacks) {
