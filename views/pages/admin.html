@@ -82,7 +82,7 @@
                     <div id="flash-player-container" class="live-view-content">
                         <div id="flash-player"></div>
                     </div>
-                    <div class="pad20 warningwindow" id="refreshtips">
+                    <div id="refreshtips">
                         <p class="tips-title tips-body">
                             Your <b class="dev-setting-name">Baby Cam</b>
                             is offline!
@@ -108,7 +108,7 @@
                         </p>
                         <input class="btn refresh-btn" id="refresh"type="button" value="Refresh" />
                     </div>
-                    <div class="pad20 warningwindow" id="reloadtips">
+                    <div id="reloadtips">
                         <p class="tips-title tips-body">Liveview Break</p>
                         <p class="blackstep tips-body">
                             The connection to your camera has been lost, please check your network and click the reload button to reconnect to your camera.
@@ -116,11 +116,81 @@
                         <p class="tips-body">Do you want to reload the viewing?</p>
                         <input class="btn reload-btn" id="reload" type="button" value="Reload" />
                     </div>
-                    <div class="pad20 warningwindow" id="continuetips">
+                    <div id="continuetips">
                         <p class="tips-title tips-body">Liveview Time Up</p>
                         <p class="blackstep tips-body">You have viewed the live video for 10 minutes.</p>
                         <p class="tips-body">Do you want to continue the viewing?</p>
                         <input class="btn continue-btn" id="continue" type="button" value="Continue" />
+                    </div>
+                    <div id="plugin-unusable">
+                        <div class="plugin-unusable-sorry">
+                            <a id="plugin-unusable-sorry-img" href="javascript:void(0)"></a>
+                        </div>
+                        <div class="plugin-unusable-info">
+                            <div class="plugin-unusable-title">
+                                <span>Um, this browser may not support camera video well</span>
+                            </div>
+                            <div class="plugin-unusable-content">
+                                <span>
+                                    If you couldn’t view the camera video, try the tpCamera app or another browser such as Internet Explorer, Firefox, Safari, or Opera. We will update the software as soon as possible. Sorry for the inconvenience and thanks for your choice.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="firmware-need-upgrade" class="upgrade-state-tips">
+                        <div class="firmware-need-upgrade-tip"> 
+                            <p class="title">
+                                Firmware update is required to support better remote viewing service. If you use the tpCamera app, please update it too.
+                            </p>
+                            <p class="body">
+                                <span>
+                                    Please click
+                                    <span id="upgrade-device">here</span>
+                                    to download and update camera firmware.
+                                </span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/firmware-need-upgrade.png" class="firmware-need-upgrade-img">
+                        <img src="../img/admin/firmware-need-upgrade-arrow.png" class="firmware-need-upgrade-arrow">
+                    </div>
+                    <div id="upgrading" class="upgrade-state-tips">
+                        <div class="upgrading-tip">
+                            <p class="title">Updating firmware...</p>
+                            <p class="body">
+                                <span>
+                                    Do not power off your camera. Otherwise, your camera may be damaged.
+                                </span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrading.png" class="upgrading-img">
+                        <img src="../img/admin/upgrading-progressbar.gif" class="upgrading-progressbar-img">
+                    </div>
+                    <div id="upgrade-failed" class="upgrade-state-tips">
+                        <div class="upgrading-failed-tip">
+                            <p class="body">
+                                <span>Firmware update failed. Please try again later.</span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrade-failed.png" class="upgrade-failed-img">
+                        <input id="failed-back-button" type="button" class="btn account-btn" value="OK">                        
+                    </div>
+                    <div id="device-cross-region" class="upgrade-state-tips">
+                        <div class="upgrading-failed-tip">
+                            <p class="body">
+                                <span>This device is in another Continent, plz wait for a while to view the video</span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrade-failed.png" class="upgrade-failed-img">
+                    </div>
+                    <div id="downloading" class="upgrade-state-tips">
+                        <div class="downloading-tip">
+                            <p class="title">Downloading firmware...</p>
+                            <p class="body">
+                                <span class="tipslang">Do not disconnect the Internet.</span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrading.png" class="downloading-img">
+                        <img src="../img/admin/upgrading-progressbar.gif" class="downloading-progressbar-img">
                     </div>
                 </div>
                 <div id="setting">

@@ -393,7 +393,7 @@
     position: relative;
     width: 75px;
 }
-.offline{
+.watch-tips-p{
     color: #323232;
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     font-size: 1.4em;
@@ -449,8 +449,6 @@
     background: url("../img/admin/admin.png") 0 -595px no-repeat;
 }
 #watch{
-    margin-left: 80px;
-    margin-top: 40px;
     display: block;
 }
 #flash-player {
@@ -459,7 +457,6 @@
     background-color: rgb(170, 170, 170);
 }
 #setting{
-    display: none;
     width:670px;
     margin-left: 40px
 }
@@ -501,6 +498,7 @@
 }
 .setting-content {
     padding-bottom: 10px;
+    display: none;
 }
 #device-name{
     color: #323232;
@@ -672,4 +670,189 @@
     top: 32px;
     left: 30px;
     height: 101px;
+}
+
+#plugin-unusable {
+    margin-left: 124px; 
+    margin-top: 162px; 
+    height: 222px;
+}
+
+.plugin-unusable-sorry {
+    float: left; 
+    width: 166px;
+    height: 100%; 
+}
+
+#plugin-unusable-sorry-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: url("../img/admin/sorry.png") no-repeat ;
+}
+
+.plugin-unusable-info {
+    float: left; 
+    margin-left: 56px; 
+    height: 100%; 
+    width: 460px; 
+}
+
+.plugin-unusable-title{
+    width: 100%;
+    font-size: 20px; 
+    margin-top: 25px; 
+    font-weight: bold; 
+    color: rgb(102,102,102);
+}
+
+.plugin-unusable-content {
+    margin-top: 40px; 
+    font-size: 18px; 
+    color: rgb(102,102,102);
+}
+
+.upgrade-state-tips {
+    display:none;
+    margin-left:80px;
+}
+
+.firmware-need-upgrade-tip {
+    position: relative;
+    top: 40px;
+    left: 200px;
+}
+
+.firmware-need-upgrade-tip > .title {
+    font-size: 1.9em;
+    width: 500px;
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    margin-top:7px;
+    font-weight: bold;
+}
+
+.firmware-need-upgrade-tip > .body > span{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+
+#upgrade-device {
+    color:#2D9AD8; 
+    text-decoration: 
+    underline;cursor:pointer;
+}
+
+.firmware-need-upgrade-img{
+    position: relative;
+    top: 40px;
+    left: 20px;
+}
+
+.firmware-need-upgrade-arrow {
+    position: relative;
+    top: -110px;
+    left: 85px;
+}
+
+#flash-player-container {
+    display: none;
+    margin-left: 80px;
+    margin-top: 40px;
+}
+
+.upgrading-tip {
+    position: relative;
+    top: 200px;
+    left: 286px;
+    width: 450px;
+}
+
+.upgrading-tip > .title {
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.9em;
+    margin-top:7px;
+    font-weight: bold;
+}
+
+.upgrading-tip > .body > span{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+
+.upgrading-img {
+    top: 39px;
+    position: relative;
+    left: 20px;
+}
+
+.upgrading-progressbar-img {
+    position: relative;
+    left: 148px;
+}
+
+.upgrading-failed-tip{
+    position: relative;
+    top: 200px;
+    left: 286px;
+    width: 450px;
+}
+
+.upgrading-failed-tip > .body > span{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+
+.upgrade-failed-img {
+    position: relative;
+    top: 98px; left: 5px;
+}
+
+#failed-back-button {
+    width: 95px;
+    font-size: 1.5em;
+    height: 32px;
+    position: relative; 
+    top: 40px; 
+    left: 300px;
+}
+
+.downloading-tip {
+    position: relative;
+    top: 200px;
+    left: 286px;
+    width: 450px;
+}
+
+.downloading-tip > .title{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.9em;
+    margin-top:7px;
+    font-weight: bold;
+}
+
+.downloading-tip > .body > span{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+
+.downloading-img {
+    position: relative;
+    top: 58px;
+    left: 20px;
+}
+
+.downloading-progressbar-img {
+    position: relative;
+    left: 148px;
 }

@@ -459,8 +459,6 @@
         this.needForceUpgrade = null;
         this.fwUrl = null;
         this.product = null;
-
-        this.stateChangeCallbacks = $.Callbacks();
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -476,11 +474,12 @@
     };
 
     Device.prototype.errorCodeCallbacks = Device.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
+    Device.prototype.stateChangeCallbacks = $.Callbacks("unique stopOnFalse");
 
     Device.prototype.init = function(d) {
         if (undefined == d) {console.error("args error in init");};
         $.extend(true, this, d);
-        var p = this.name.split(" ")[0];
+        var p = this.model.substring(0,5).toUpperCase();
         this.product = $.ipc[p];
     };
 
@@ -492,15 +491,15 @@
 
         var data = JSON.stringify({
             "email": args.email,
-            "Id": args.id
+            "id": args.id
         });
 
         var changeStateFunc = function(response) {
             this.init(response.msg);
-            this.stateChangeCallbacks.fire();
+            this.stateChangeCallbacks.fire(this);
         };
 
-        this.makeAjaxRequest({url: "/getCamera_lr", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
+        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
     };
 
     Device.prototype.changeName = function(args, inputCallbacks) {
@@ -553,7 +552,7 @@
     };
 
     Device.prototype.getLocalInfo = function(args, inputCallbacks) {
-        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {console.error("args error in getLocalInfo");}
+        if (undefined == args.token || undefined == args.appServerUrl) {console.error("args error in getLocalInfo");}
         var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {return validateResult;};
 
@@ -577,7 +576,7 @@
         }
 
         this.makeAjaxRequest({
-            url: this.appServerUrl + "?token=" + this.owner.token,
+            url: args.appServerUrl + "?token=" + args.token,
             data: data,
             changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
@@ -658,10 +657,11 @@
                 var newDevice = new $.ipc.Device();
                 newDevice.init(response.msg[i]);
                 newDevice.owner = this.owner;
-                !newDevice.isSameRegion && newDevice.get();
+                var args = null;
+                !newDevice.isSameRegion && (args = {email: this.owner.email, id: newDevice.id}) && newDevice.get(args);
                 this.devices.push(newDevice);
             };
-            this.activeDeviceIndex = this.findIndexForId(lastActiveDeviceId);
+            this.activeDeviceIndex = lastActiveDeviceId == undefined ? 0 : this.findIndexForId(lastActiveDeviceId);
         };
         
         this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});

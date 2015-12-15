@@ -282,6 +282,14 @@ $(function () {
         this.view.renderPreDevicePage();
     };
 
+    DeviceListController.prototype.settingShow = function() {
+        this.view.renderSetting();
+    };
+
+    DeviceListController.prototype.liveView = function() {
+        this.view.renderLiveView();
+    };
+
     DeviceListController.prototype.getDeviceList = function() {
         var currentController = this;
         var inputCallbacks = {
@@ -316,29 +324,21 @@ $(function () {
         this.renderRightViewSetting();
     };
 
-    DeviceListView.prototype.getDeviceDisplayName = function(deviceName) {
-        if (undefined == deviceName) {console.error("args error in getDeviceDisplayName")};
-        var dot = deviceName.length > this.maxDisplayNameLength ? "..." : "";
-        return deviceName.substring(0, this.maxDisplayNameLength - 2) + dot;
+    DeviceListView.prototype.getDeviceDisplayName = function(device) {
+        if (undefined == device.name) {console.error("args error in getDeviceDisplayName")};
+        var dot = device.name.length > this.maxDisplayNameLength ? "..." : "";
+        return device.name.substring(0, this.maxDisplayNameLength - 2) + dot;
     };
 
-    DeviceListView.prototype.renderDeviceLi = function(device, index) {
-        if (undefined == device || undefined == index || index < 0) {
-            console.error("args error in renderDeviceLi");
+    DeviceListView.prototype.appendDeviceLi = function(device) {
+        if (undefined == device) {
+            console.error("args error in appendDeviceLi");
         };
+        var index = this.model.findIndexForId(device.id);
         var deviceLi = $("#device-li-sample").clone();
-        var imgCssClass = device.product.prototype.smallImgCssClass;
-        var displayName = this.getDeviceDisplayName(device.name);
-        var state = device.needForceUpgrade == 1 ? (stateTipsMap[admin.ipcList[targetIpcIndex]["system_status"]] || "") : "";
-        var currentPageCssClass = this.getDevicePageCssClass(this.getDevicePageIndex(index));
-        deviceLi.attr("id", this.getDeviceLiId(index));
-        deviceLi.attr("title", device.name);
-        deviceLi.addClass(currentPageCssClass);
-        deviceLi.find(".usable-cover").first().toggleClass("dev-unusable", device.isOnline == 0);
-        deviceLi.find("span").first().addClass(imgCssClass);
-        deviceLi.find(".dev-name").first().text(displayName);
-        deviceLi.find(".system-status").first().text(state);
+        deviceLi.attr("id", this.getDeviceLiDOMId(index));
         this.menuContainer.append(deviceLi);
+        this.updateDeviceLi(device);
     };
 
     DeviceListView.prototype.getDevicePageCssClass = function(pageIndex) {
@@ -349,7 +349,7 @@ $(function () {
         return "dev-page-" + pageIndex;
     };
 
-    DeviceListView.prototype.getDeviceLiId = function(devIndex) {
+    DeviceListView.prototype.getDeviceLiDOMId = function(devIndex) {
         if (undefined == devIndex || devIndex < 0 
             || devIndex > this.model.devices.length - 1) {
             console.error("args error in getDevicePageIndex");
@@ -372,9 +372,9 @@ $(function () {
             this.curPageIndex = this.getDevicePageIndex(this.model.activeDeviceIndex);
 
             for (var i = 0; i < this.model.devices.length; i++) {
-                this.renderDeviceLi(this.model.devices[i], i); 
+                this.appendDeviceLi(this.model.devices[i], i); 
             };
-            $("#" + this.getDeviceLiId(this.model.activeDeviceIndex)).addClass("dev-selected");
+            $("#" + this.getDeviceLiDOMId(this.model.activeDeviceIndex)).addClass("dev-selected");
             
             this.renderDeviceListPagination();
         };
@@ -420,10 +420,10 @@ $(function () {
         this.commonTipsDOM.children().hide();
     };
 
-    DeviceListView.prototype.hideViewSettingChild = function() {
-        this.hideViewChild();
-        this.hideSettingChild();
-        this.hideCommonTipsChild();
+    DeviceListView.prototype.hideViewSettingContent = function() {
+        this.viewDOM.hide();
+        this.settingDOM.hide();
+        this.commonTipsDOM.hide();
     };
 
     DeviceListView.prototype.findActiveNavTab = function() {
@@ -432,12 +432,14 @@ $(function () {
     };
 
     DeviceListView.prototype.showNoDeviceTips = function() {
-        this.hideViewSettingChild();
+        this.hideViewSettingContent();
+        this.commonTipsDOM.show();
+        this.hideCommonTipsChild();
         $("#no-camera").show();
     };
 
     DeviceListView.prototype.renderRightViewSetting = function() {
-        if (this.devices.length > 0) {
+        if (this.model.devices.length > 0) {
             var activeTab = this.findActiveNavTab();
             if (activeTab == "Settings") {
                 this.renderSetting();
@@ -449,29 +451,113 @@ $(function () {
         }
     };
 
-    DeviceListView.prototype.renderSetting = function() {
+    DeviceListView.prototype.renderUnsupporttedBrowserTips = function() {
+        this.hideViewSettingContent();
+        this.viewDOM.show();
+        this.hideViewChild();
+        $("#plugin-unusable").show();
+    };
+
+    DeviceListView.prototype.renderUpgradeState = function(device) {
+        if (undefined == device) {
+            console.error("args error in renderUpgradeState");
+        };
+
+        
+    };
+
+    DeviceListView.prototype.renderLiveView = function() {
         $(".admin-nav-li").removeClass("admin-nav-li-select");
-        $("#setting-tab").addClass("admin-nav-li-select");
+        $("#live-view-tab").addClass("admin-nav-li-select");
+        var device = this.model.devices[this.model.activeDeviceIndex];
+        if (device.isSameRegion) {
+            if (device.needForceUpgrade == 1) {
+                this.renderUpgradeState(device)
+            } else {
+                var browser = $.BrowserTypeVersion.split(" ");
+                if ((browser[0] == "Chrome" && parseInt(browser[1]) >= 42) || browser[0].indexOf("Edge") >= 0) {
+                    this.renderUnsupporttedBrowserTips();
+                } else {
+                    this.renderVideoPlaying();
+                }
+            }
+        } else {
+            this.renderCrossRegionTip(device);
+        }
+
+        
+    };
+
+    DeviceListView.prototype.renderCrossRegionTip = function(device) {
+        if (undefined == device) {
+            console.error("args error in renderCrossRegionTip");
+        };
+
+        this.hideViewSettingContent();
+        this.viewDOM.show();
+        this.hideViewChild();
+        $("#device-cross-region").show();
+    };
+
+    DeviceListView.prototype.updateDeviceLi = function(device) {
+        if (undefined == device) {
+            console.error("device args error in updateDeviceLi");
+        };
+        var deviceIndex = this.model.findIndexForId(device.id);
+        var deviceLi = $("#" + this.getDeviceLiDOMId(deviceIndex));
+        var imgCssClass = device.product.prototype.smallImgCssClass;
+        var displayName = this.getDeviceDisplayName(device);
+        var state = device.needForceUpgrade == 1 ? (this.stateTipsMap[device.systemStatus] || "") : "";
+        var currentPageCssClass = this.getDevicePageCssClass(this.getDevicePageIndex(deviceIndex));
+
+        deviceLi.attr("title", device.name);
+        deviceLi.addClass(currentPageCssClass);
+        deviceLi.find(".usable-cover").first().toggleClass("dev-unusable", device.isOnline == 0);
+        deviceLi.find("span").first().addClass(imgCssClass);
+        deviceLi.find(".dev-name").first().text(displayName);
+        deviceLi.find(".system-status").first().text(state);
+
+    };
+
+    DeviceListView.prototype.updateDeviceSetting = function(device) {
+        if (undefined == device) {
+            console.error("args error in updateDeviceSetting");
+        };
+        if (device.id == this.model.devices[this.model.activeDeviceIndex].id) {
+            var deviceName = device.name || "-";
+            var deviceType = device.model || "-";
+            var deviceMac = device.mac || "-";
+            var localIp = device.iip || "-";
+            $("#device-name").val(deviceName);
+            $(".dev-setting-name").text(deviceName);
+            $("#dev-setting-model").text(deviceType);
+            $("#dev-setting-mac").text(deviceMac);
+            $("#dev-setting-ip").text(localIp);
+        };
+    };
+
+    DeviceListView.prototype.updateDeviceInfo = function(device) {
+        if (undefined == device) {
+            console.error("args error in updateDeviceInfo");
+        };
+
+        this.updateDeviceLi(device);
+        this.updateDeviceSetting(device);
+    };
+
+    DeviceListView.prototype.renderSetting = function() {
+        
         var activeDev = this.model.devices[this.model.activeDeviceIndex];
         if (activeDev) {
-            this.hideViewSettingChild();
+            this.hideViewSettingContent();
+            this.settingDOM.show();
+            this.hideSettingChild();
             $("#setting .setting-content").show();
-
-            if (undefined == activeDev.name) {
-                console.error("device name is undefined");
+            this.updateDeviceInfo(activeDev);
+            if (activeDev.iip == undefined) {
+                var args = {id: activeDev.id, token: activeDev.owner.token, appServerUrl: activeDev.appServerUrl};
+                activeDev.getLocalInfo(args);
             };
-
-            var deviceName = activeDev.name || "-";
-            var deviceDisplayName = this.getDeviceDisplayName(activeDev.name) || "-";
-            var deviceType = activeDev.type || "-";
-            var deviceMac = activeDev.mac || "-";
-            var deviceLocalIp = activeDev.iip || "-";
-
-            $("#device-name").val(deviceName);
-            $(".dev-setting-name").text(deviceDisplayName);
-            $("#dev-setting-model").text(deviceType);
-            $("#dev-setting-ip").text(deviceLocalIp);
-            $("#dev-setting-mac").text(deviceMac);
         };
     };
 
@@ -482,8 +568,12 @@ $(function () {
     dlc.model = dl;
     dlc.view = dlv;
     dlv.model = dl;
+    dl.owner = u;
 
     dlc.initHandler();
     dlc.getDeviceList();
+
+    var contextRenderDeviceInfo = $.proxy(dlv.updateDeviceInfo, dlv);
+    $.ipc.Device.prototype.stateChangeCallbacks.add(contextRenderDeviceInfo);
 
 });
