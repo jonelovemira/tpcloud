@@ -452,10 +452,61 @@ $(function () {
     };
 
     DeviceListView.prototype.renderUnsupporttedBrowserTips = function() {
+        this.renderViewWithElement($("#plugin-unusable"));
+    };
+
+    DeviceListView.prototype.renderNeedOrFailedUpgrade = function(device) {
+        if (device.hasUpgradOnce) {
+            this.renderFirmwareUpgradeFailed(device);
+        } else {
+            this.renderFirmwareUpgradeNeeded(device);
+        }
+    };
+
+    DeviceListView.prototype.renderFirmwareUpgradeNeeded = function(device) {
+        if (undefined == device) {console.error("args error in renderFirmwareUpgradeNeeded")};
+
+        if (this.model.findIndexForId(device.id) == this.model.activeDeviceIndex) {
+            this.renderViewWithElement($("#firmware-need-upgrade"));
+        };
+    };
+
+    DeviceListView.prototype.renderViewWithElement = function(dom) {
+        if (undefined == dom) {console.error("args error in renderViewWithElement")};
         this.hideViewSettingContent();
         this.viewDOM.show();
         this.hideViewChild();
-        $("#plugin-unusable").show();
+        dom.show();
+    };
+
+    DeviceListView.prototype.renderFirmwareUpgradeFailed = function(device) {
+        if (undefined == device) {
+            console.error("args error in renderFirmwareUpgradeFailed");
+        };
+
+        if (this.model.findIndexForId(device.id) == this.model.activeDeviceIndex) {
+            this.renderViewWithElement($("#upgrade-failed"));
+        };
+    };
+
+    DeviceListView.prototype.renderFirmwareDownloading = function(device) {
+        if (undefined == device) {
+            console.error("args error in renderFirmwareDownloading");
+        };
+
+        if (this.model.findIndexForId(device.id) == this.model.activeDeviceIndex) {
+            this.renderViewWithElement($("#downloading"));
+        };
+    };
+
+    DeviceListView.prototype.renderFirmwareUpgrading = function(device) {
+        if (undefined == device) {
+            console.error("args error in renderFirmwareUpgrading");
+        };
+
+        if (this.model.findIndexForId(device.id) == this.model.activeDeviceIndex) {
+            this.renderViewWithElement($("#upgrading"));
+        };
     };
 
     DeviceListView.prototype.renderUpgradeState = function(device) {
@@ -463,7 +514,16 @@ $(function () {
             console.error("args error in renderUpgradeState");
         };
 
-        
+        if (this.model.findIndexForId(device.id) == this.model.activeDeviceIndex) {
+            var statusFuncMap = {
+                "normal": this.renderNeedOrFailedUpgrade,
+                "downloading": this.renderFirmwareDownloading,
+                "upgrading": this.renderFirmwareUpgrading
+            };
+            var func = statusFuncMap[device.systemStatus] || $.noop;
+            var contextFunc = $.proxy(func, this);
+            contextFunc(device);
+        };
     };
 
     DeviceListView.prototype.renderLiveView = function() {
@@ -492,11 +552,9 @@ $(function () {
         if (undefined == device) {
             console.error("args error in renderCrossRegionTip");
         };
-
-        this.hideViewSettingContent();
-        this.viewDOM.show();
-        this.hideViewChild();
-        $("#device-cross-region").show();
+        if (this.model.findIndexForId(device.id) == this.model.activeDeviceIndex) {
+            this.renderViewWithElement($("#device-cross-region"));
+        };
     };
 
     DeviceListView.prototype.updateDeviceLi = function(device) {

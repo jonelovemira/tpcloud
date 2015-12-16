@@ -458,6 +458,8 @@
         this.systemStatus = null;
         this.needForceUpgrade = null;
         this.fwUrl = null;
+
+        this.hasUpgradOnce = null;
         this.product = null;
     };
 
@@ -489,17 +491,57 @@
                             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {return validateResult;};
 
-        var data = JSON.stringify({
-            "email": args.email,
-            "id": args.id
-        });
+        var urlPrefix = args.urlPrefix || "";
+
+        var data = {
+            "REQUEST": 'GETCAMERA',
+            "DATA": {
+                "email": args.email,
+                "id": args.id,
+                "token": this.owner.token
+            }
+        };
 
         var changeStateFunc = function(response) {
             this.init(response.msg);
             this.stateChangeCallbacks.fire(this);
         };
 
-        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
+        var extendAjaxOptions = {
+            contentType: "application/x-www-form-urlencoded;charset=utf-8"
+        };
+
+        this.makeAjaxRequest({url: urlPrefix + "/init3.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions}, $.xAjax.defaults.xType);
+    };
+
+    Device.prototype.upgrade = function(args, inputCallbacks) {
+        if (this.owner == undefined) {console.error("owner is undefined");}
+        var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email));
+        if (validateResult.code == false) {return validateResult;};
+
+        var urlPrefix = args.urlPrefix || "";
+
+        var data = {
+            "REQUEST": "FIRMWAREUPGRADE",
+            "DATA": {
+                "account": args.email,
+                "User-Agent": "Web-ffx86-2.0",
+                "command": "UPGRADE\n" + args.downloadUrl + "\n",
+                "dev_address": args.mac + "@" + args.azIp + "@" + args.azDns,
+                "token": this.owner.token,
+            },
+        };
+
+        var changeStateFunc = function(response) {
+            this.systemStatus = "downloading";
+            this.hasUpgradOnce = true;
+        };
+
+        var extendAjaxOptions = {
+            contentType: "application/x-www-form-urlencoded;charset=utf-8"
+        };
+
+        this.makeAjaxRequest({url: urlPrefix + "/init3.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions}, $.xAjax.defaults.xType);
     };
 
     Device.prototype.changeName = function(args, inputCallbacks) {
@@ -649,18 +691,41 @@
 
         var changeStateFunc = function(response){
             var lastActiveDeviceId = this.findIdForIndex(this.activeDeviceIndex);
-            for (var i = 0; i < this.devices.length; i++) {
-                delete this.devices[i];
-            };
+            var oldDevices = this.devices;
+            
             this.devices = [];
             for (var i = 0; i < response.msg.length; i++) {
                 var newDevice = new $.ipc.Device();
                 newDevice.init(response.msg[i]);
                 newDevice.owner = this.owner;
-                var args = null;
-                !newDevice.isSameRegion && (args = {email: this.owner.email, id: newDevice.id}) && newDevice.get(args);
                 this.devices.push(newDevice);
             };
+
+            for (var i = 0; i < oldDevices.length; i++) {
+                var tmpIndex = this.findIndexForId(oldDevices[i].id);
+                if (tmpIndex >= 0 && tmpIndex < this.devices.length) {
+                    var tmpDevice = this.devices[tmpIndex];
+                    this.devices[tmpIndex] = oldDevices[i];
+                };
+            };
+
+            for (var i = 0; i < this.devices.length; i++) {
+                var device = this.devices[i];
+                var args = null;
+                !device.isSameRegion && (args = {email: this.owner.email, id: device.id}) && device.get(args);
+            };
+
+            if (lastActiveDeviceId != undefined) {
+                this.activeDeviceIndex = this.findIndexForId(lastActiveDeviceId);
+            } else {
+                if (this.devices.length == 0) {
+                    this.activeDeviceIndex = null;
+                } else {
+                    this.activeDeviceIndex = 0;
+                }
+            }
+
+            
             this.activeDeviceIndex = lastActiveDeviceId == undefined ? 0 : this.findIndexForId(lastActiveDeviceId);
         };
         
