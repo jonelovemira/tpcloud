@@ -530,6 +530,11 @@ $(function () {
         $(".admin-nav-li").removeClass("admin-nav-li-select");
         $("#live-view-tab").addClass("admin-nav-li-select");
         var device = this.model.devices[this.model.activeDeviceIndex];
+        this.updateDeviceView(device);
+    };
+
+    DeviceListView.prototype.updateDeviceView = function(device) {
+        if (undefined == device) {console.error("args error in updateDeviceView")};
         if (device.isSameRegion) {
             if (device.needForceUpgrade == 1) {
                 this.renderUpgradeState(device)
@@ -544,8 +549,6 @@ $(function () {
         } else {
             this.renderCrossRegionTip(device);
         }
-
-        
     };
 
     DeviceListView.prototype.renderCrossRegionTip = function(device) {
@@ -601,6 +604,7 @@ $(function () {
 
         this.updateDeviceLi(device);
         this.updateDeviceSetting(device);
+        this.updateDeviceView(device);
     };
 
     DeviceListView.prototype.renderSetting = function() {

@@ -504,6 +504,7 @@
 
         var changeStateFunc = function(response) {
             this.init(response.msg);
+            this.isSameRegion = true;
             this.stateChangeCallbacks.fire(this);
         };
 
@@ -712,7 +713,7 @@
             for (var i = 0; i < this.devices.length; i++) {
                 var device = this.devices[i];
                 var args = null;
-                !device.isSameRegion && (args = {email: this.owner.email, id: device.id}) && device.get(args);
+                !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args);
             };
 
             if (lastActiveDeviceId != undefined) {
