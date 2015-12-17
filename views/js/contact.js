@@ -73,7 +73,11 @@ $(function(){
         for (var i = 0; i < this.model.products.length; i++) {
             addedOptions[this.model.products[i].name] = {};
         };
-        $("#model_select").Select({addedOptions: addedOptions});
+        $("#model_select").empty();
+        $("#model_select").Select({
+            addedOptions: addedOptions,
+            slideOptionHeight: 16
+        });
     };
 
     SoftwareView.prototype.renderMsg = function(msg) {

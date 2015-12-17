@@ -1,247 +1,195 @@
-(function($){
+(function ($) {
+    "use strict";
 
-    function addScrollbar(obj){
-        obj.find(".slide").Scrollbar({
-            target: obj.find(".slide .slide-item-holder")
-        });
-    };
-
-    function optionHtml($tmpSelectOptions)
-    {
-        var htmlStr = "";
-        $tmpSelectOptions.each(function(i) {
-            if ($(this).css("display") != "none") {
-                htmlStr += " <div class='slide-item' xvalue='" + $(this).attr("value") + "' class='forOption'><span lang=\"en\">" + $(this).html() + "</span></div>";
-            }
-        });
-        return htmlStr;
-    };
-
-    $.fn.Select = function(options){
-
-        if( $(this).siblings(".plugin-select").first().length > 0 ) {
-            
-            if (options.addedOptions) {
-                var addedOptionsLength = 0;
-                for (var key in options.addedOptions) {
-                    addedOptionsLength += 1;
+    var tmpSelect = {
+        mainTemplate:   '<div class="plugin-select">' +
+                            '<div class="selected"><span lang="en"></span></div>' +
+                            '<div class="triangle"></div>' + 
+                            '<div class="slide">' +
+                                '<div class="slide-item-holder"></div>' +
+                            '</div>' +
+                        '</div>',
+        optionTemplate: '<div class="slide-item" xvalue=""><span lang="en"></span></div>',
+        uniqueAttrKey: 'only-for-plugin-select',
+        uniqueAttrValuePrefix: 'i-am-unique-',
+        collapse: function(select) {
+            select.removeClass("select-slide");
+        },
+        addSelectOptionElements: function(select, selectOptionElements) {
+            var htmlStr = "";
+            selectOptionElements.each(function(i) {
+                if ($(this).css("display") != "none") {
+                    htmlStr += '<div class="slide-item" xvalue="' + $(this).attr("value") + '"><span lang="en">' + $(this).html() + '</span></div>';
                 };
-
-                var _options = $.extend(true, {}, $.fn.Select.defaults, options);
-                var selectPlugin = $(this).siblings(".plugin-select").first();
-                var slideRealHeight = selectPlugin.find(".slide-item").first().outerHeight();
-                var slideContainerHeight = Math.min(_options.slideMaxHeight, (slideRealHeight) * (addedOptionsLength + $(this).find("option").length))
-
-
-                var optionElements = options.addedOptions;
-                var originOptiontags = getOriginOptionTags(optionElements);
-                var htmlStr = optionHtml($(originOptiontags));
-                selectPlugin.find(".slide .slide-item-holder").append(htmlStr);
-                selectPlugin.find(".slide").height(slideContainerHeight);
-                addScrollbar(selectPlugin);
-                $(this).append(originOptiontags);
+            });
+            select.find(".slide-item-holder").append(htmlStr);
+        },
+        addSelectOptionForOrigin: function(originSelect, selectOptionElements) {
+            originSelect.append(selectOptionElements);
+        },
+        changeFromOrigin: function(select, originSelect) {
+            originSelect.change(function() {
+                tmpSelect.feedSelectValue(select, originSelect);
+            })
+        },
+        expand: function(select) {
+            select.addClass("select-slide");
+        },
+        updateDisplayStyle: function(select, _options, originSelect) {
+            var pluginSelectWidth = originSelect.width() == 0 ? _options.pluginSelectWidth : originSelect.outerWidth();
+            var maxDisplayContainerWidth = _options.optionWidth || pluginSelectWidth;
+            var tmpSelectOptionHeight = _options.slideOptionHeight;
+            var totalOptionHeightWithoutScroll = (tmpSelectOptionHeight + 8) * select.find(".slide-item").length;
+            var maxDisplayContainerHeight = Math.min(_options.slideMaxHeight, totalOptionHeightWithoutScroll);
+            
+            if (undefined == pluginSelectWidth || pluginSelectWidth <= 30 ||
+                undefined == maxDisplayContainerWidth ||
+                undefined == tmpSelectOptionHeight || undefined == totalOptionHeightWithoutScroll ||
+                undefined == maxDisplayContainerHeight) {
+                console.error("args error for init plugin-select");
             };
-            return selectPlugin;
-        }
+            select.width(pluginSelectWidth);
+            select.find(".selected").width(pluginSelectWidth - 30);
+            select.find(".slide").width(maxDisplayContainerWidth).height(maxDisplayContainerHeight);
+            select.find(".slide-item").height(tmpSelectOptionHeight);
+            select.find(".slide-item-holder").width(maxDisplayContainerWidth).height(totalOptionHeightWithoutScroll);
+            select.css("position", originSelect.css("position"));
+            select.css("left", originSelect.css("left"));
+            select.css("top",originSelect.css("left"));
+        },
+        generateAddedOptionElements: function(addedOptions) {
+            if (undefined == addedOptions) {
+                return $("");
+            };
+            var optionPrefix = "<option>";
+            var optionPostfix = "</option>";
+            var htmlStr = "";
+            for (var key in addedOptions) {
+                htmlStr += optionPrefix + key + optionPostfix;
+            };
+            return $(htmlStr);
+        },
+        feedSelectValue: function(select, originSelect) {
+            var selectedValue;
+            if (originSelect.val()) {
+                selectedValue = originSelect.find(":selected").html() || originSelect.val();
+            } else {
+                selectedValue = originSelect.find("option:first").html();
+            };
 
-        var _options = $.extend(true, {}, $.fn.Select.defaults, options);
-        var $select = $(this);
+            select.find(".selected span").html(selectedValue);
+        },
+        feedTemplate: function(select, originSelect, options) {
+            select.toggleClass("select-disabled", options.disabled);
+            tmpSelect.feedSelectValue(select, originSelect);
+        },
+        generatePluginConstructOption: function(options, originSelect) {
+            var _options = $.extend(true, {}, $.fn.Select.defaults, options)
+            var optionWidth = originSelect.attr("select-width");
+            if (optionWidth) {
+                _options.optionWidth = parseInt(optionWidth);
+            };
+            _options.disabled = originSelect.attr("disabled") == "disabled";
+            return _options;
+        },
+        generateSelectId: function() {
+            return tmpSelect.uniqueAttrValuePrefix + $.now() + Math.floor(Math.random() * 6);
+        },
+        onClick: function(select, e, originSelect) {
+            var screenAvailableHeight = screen.availHeight;
+            var selectPositionY = e.pageY;
+            var slideContainer = select.find(".slide");
+            if (screenAvailableHeight - selectPositionY < slideContainer.height()) {
+                slideContainer.css({
+                    "bottom": select.height(),
+                    "top": ""
+                });
+            } else {
+                slideContainer.css({
+                    "top": select.height(),
+                    "bottom": ""
+                });
+            };
 
-        // some attributes can only retrieved after it show up.
-        $select.show();
-
-        var optionWidth = $select.attr("select-width");
-        if (optionWidth != undefined) {
-            _options.optionWidth = parseInt(optionWidth);
-        };
-
-        // preserve original select informations.
-        var name = $(this).attr("id") || "";
-
-        var $selectOptions = $select.find("option");
-        var width = $select.width() == 0 ? _options.width : ($select.outerWidth()),
-            slideWidth = _options.optionWidth == null ? width : _options.optionWidth,
-            slideHeight = Math.min(_options.slideMaxHeight, (_options.slideOptionHeight + 8) * $selectOptions.length);
-        var disabled = $select.attr("disabled");
-
-        // corresponding hide
-        $select.hide();
-
-        // save option selected or first.
-        var temp;
-        if ($select.val()) {
-            temp = $select.find("option[value='" + $select.val() + "']").html() || $select.val();
-        }
-        else{
-            temp = $select.find("option:first").html();
-        }
-
-
-
-        // generate new styled select widget
-        var a = "<div class='plugin-select select" + ("disabled" == disabled ? " select-disabled" : "") + " " + name + " select-slide'>";
-
-        a += "<div class='selected' ><span lang=\"en\">" + (null == temp ? "" : temp) + "</span></div>";
-        a += "<div class='triangle'></div>";
-        a += "<div class='forDisabled'></div>";
-        a += "<div class='slide'>";
-        a += "<div class='slide-item-holder'>";
-
-        
-
-        a += optionHtml($selectOptions);
-
-        
-
-        a += " </div>";
-        a += "</div>";
-        a += "</div>";
-
-        var $widgetSelect = $(a);
-
-        // render to document
-        $widgetSelect.insertBefore($select);
-
-        // widget click insteads of original select click
-        $widgetSelect.bind({
-            click: function(e) {
-                //adjust the direction when widget locate at conner of the document
-                var screenHeight = screen.availHeight,
-                    selectPositionY = e.pageY;
-                if (screenHeight - selectPositionY < Math.min(_options.slideMaxHeight, _options.slideOptionHeight * $selectOptions.length)) {
-                    $widgetSelect.find(".slide").css({
-                        "bottom": $(this).height(),
-                        "top": ""
-                    });
-                } else {
-                    $widgetSelect.find(".slide").css({
-                        "top": $(this).height(),
-                        "bottom": ""
-                    });
-                }
-
-                //hide or show
-                if (!$(this).hasClass("select-slide")) {
-
-                    //inform other selects object to hide
-                    $(".select-slide").removeClass("select-slide");
-
-                    $(this).addClass("select-slide");
-                } else {
-                    $(this).removeClass("select-slide");
-                }
-
-                $select.focus();
-
-                e.stopPropagation();
+            if (select.hasClass("select-slide")) {
+                select.removeClass("select-slide");
+            } else {
+                $(".select-slide").removeClass("select-slide");
+                select.addClass("select-slide");
             }
-        });
 
-        // self-defined widget "select" change
-        function bindItemClickCallback(){
-            $widgetSelect.find(".slide").find(".slide-item").bind({
-                click: function(e) {
-                    optionSelected(this);
-                    e.stopPropagation();
-                }
+            originSelect.focus();
+
+            e.stopPropagation();
+        },
+        onOptionClick: function(select, e, originSelect, selectedOption) {
+            select.removeClass("select-slide");
+            var value = selectedOption.attr("xvalue");
+            var selectedText = selectedOption.text();
+            select.find(".selected span").text(selectedText);
+            originSelect.val(value);
+            originSelect.change();
+            e.stopPropagation();
+        },
+        addScrollbar: function(select) {
+            select.find(".slide").Scrollbar({
+                target: select.find(".slide .slide-item-holder")
             });
         }
+    };
 
-        bindItemClickCallback();
+    $.fn.Select = function(options) {
+        var originSelect = $(this);
+        var _options = tmpSelect.generatePluginConstructOption(options, originSelect);
         
-
-        //css styles update
-        function updateStyle(tmpSelectWidth, tmpSlideWidth, tmpSlideHeight, tmpOptionHeight, $tmpSelectOptions)
-        {
-            $widgetSelect.width(tmpSelectWidth);
-            $widgetSelect.find(".selected").width(tmpSelectWidth - 30);
-            $widgetSelect.find(".slide").width(tmpSlideWidth).height(tmpSlideHeight);
-            $widgetSelect.find(".slide-item").height(tmpOptionHeight);
-            // $widgetSelect.find(".slide-item").css({
-            //     "font-size": tmpOptionHeight - 11,
-            // })
-            $widgetSelect.find(".slide-item-holder").width(tmpSlideWidth).attr({
-                height: (tmpOptionHeight + 8) * $tmpSelectOptions.length
-            }); //.height(15*$selectOptions.length);
-        }
-
-        updateStyle(width, slideWidth, slideHeight, _options.slideOptionHeight, $selectOptions);
-
-
-        // add scrollbar
-        
-        addScrollbar($widgetSelect);
-        
-
-        // initially hide element
-        $widgetSelect.removeClass("select-slide");
-
-        function optionSelected(objx) {
-            $widgetSelect.removeClass("select-slide");
-
-            var value = $(objx).attr("xvalue");
-
-            $widgetSelect.find(".selected").html("<span lang=\"en\">" + $(objx).html() + "</span>");
-
-            $select.val(value);
-
-            $select.change();
+        var id = originSelect.attr(tmpSelect.uniqueAttrKey) || tmpSelect.generateSelectId();
+        if ($("#" + id).length > 0) {
+            $("#" + id).remove();
         };
+        
+        var select = $(tmpSelect.mainTemplate);
 
-        // changes to original select changes the value of widget select too.
-        $select.change(function() {
-            $widgetSelect.find(".selected").html("<span lang=\"en\">" + $(this).children("option:selected").html() + "</span>");
+        select.attr("id", id);
+        originSelect.attr(tmpSelect.uniqueAttrKey, id);
+        
+        var addedOptionElements = tmpSelect.generateAddedOptionElements(_options.addedOptions);
+        tmpSelect.addSelectOptionForOrigin(originSelect, addedOptionElements);
+
+        tmpSelect.feedTemplate(select, originSelect, _options);
+
+        tmpSelect.addSelectOptionElements(select, originSelect.find("option"));
+
+        tmpSelect.updateDisplayStyle(select, _options, originSelect);
+        tmpSelect.addScrollbar(select);
+
+        select.insertBefore(originSelect);
+
+        select.on('click', function(e) {
+            tmpSelect.onClick(select, e, originSelect);
+        });
+
+        $('.slide-item', select).on('click', function(e) {
+            tmpSelect.onOptionClick(select, e, originSelect, $(this));
         });
 
 
-        $widgetSelect.update = function (){
-            $select.show();
-            $select.removeClass("select");
-            var optionWidth = $select.width() + 10;
-            $select.addClass("select");
-            var $selectOptions = $select.find("option");
-            var width = $select.width() == 0 ? _options.width : ($select.outerWidth()),
-                slideWidth = optionWidth == null ? width : Math.max(optionWidth + 10, width),
-                slideHeight = Math.min(_options.slideMaxHeight, (_options.slideOptionHeight + 8) * $selectOptions.length);
-            $select.hide();
-            $widgetSelect.find(".slide-item-holder").empty();
-            $widgetSelect.find(".slide-item-holder").append(optionHtml($selectOptions));
-            updateStyle(width, slideWidth, slideHeight, _options.slideOptionHeight, $selectOptions);
-            bindItemClickCallback();
-            addScrollbar();
-        }
+        tmpSelect.changeFromOrigin(select, originSelect);
+        originSelect.hide();
+        tmpSelect.collapse(select);
 
-        $widgetSelect.originalSelect = $select;
-        return $widgetSelect;
-    };
-
-    function getOriginOptionTags(optionElements) {
-        if (undefined == optionElements) {
-            return "";
-        };
-        var optionPrefix = "<option lang=\"en\">";
-        var optionPostfix = "</option>";
-        var htmlStr = "";
-        for (var key in optionElements) {
-            htmlStr += optionPrefix + key + optionPostfix;
-        };
-        return htmlStr;
     };
 
     $.fn.Select.defaults = {
-        width: 200,
-        slideMaxHeight: 288,
-        slideOptionHeight: 25
+        pluginSelectWidth           :       200,
+        optionWidth                 :       null,
+        slideMaxHeight              :       288,
+        slideOptionHeight           :       25,
+        hotKey                      :       false,
+        disabled                    :       false 
     }
+    
+})(jQuery);
 
-    $(function(){
-        $('select.select').each(function(){
-            $(this).Select({});
-        });
-    })
-})(jQuery)
-
-// collapse all expanded widget select
 $("body").click(function() {
     $('div.select-slide').removeClass("select-slide");
 });

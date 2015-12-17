@@ -58,10 +58,8 @@
 
         var id = "Msg-1";
         if ($("#" + id).length > 0) {
-            $('#' + id).remove();
+            $("#" + id).remove();
         }
-        _options.id = id;
-        
 
         var rHtml = Msg.mainTemplate;
         var msg = $(rHtml);

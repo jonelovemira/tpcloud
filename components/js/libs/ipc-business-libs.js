@@ -491,16 +491,10 @@
                             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {return validateResult;};
 
-        var urlPrefix = args.urlPrefix || "";
-
-        var data = {
-            "REQUEST": 'GETCAMERA',
-            "DATA": {
-                "email": args.email,
-                "id": args.id,
-                "token": this.owner.token
-            }
-        };
+        var data = JSON.stringify({
+            "email": args.email,
+            "id": args.id
+        });
 
         var changeStateFunc = function(response) {
             this.init(response.msg);
@@ -508,11 +502,7 @@
             this.stateChangeCallbacks.fire(this);
         };
 
-        var extendAjaxOptions = {
-            contentType: "application/x-www-form-urlencoded;charset=utf-8"
-        };
-
-        this.makeAjaxRequest({url: urlPrefix + "/init3.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions}, $.xAjax.defaults.xType);
+        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
     };
 
     Device.prototype.upgrade = function(args, inputCallbacks) {
@@ -1071,15 +1061,16 @@
 
     Feedback.prototype.send = function(args, inputCallbacks) {
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
+            (!this.validateProduct(args.product).code && this.validateProduct(args.product)) ||
             (!this.validateDescription(args.description).code && this.validateDescription(args.description));
         if (validateResult.code == false) {return validateResult;}; 
 
-        if (undefined == args.product || undefined == args.problemType) {
+        if (undefined == args.problemType) {
             console.error("args error in send");
             return;
         };       
 
-        var data = JSON.stringify({
+        var data = {
             'REQUEST': 'EMAILSERVICE',
             'DATA': {
                 "email": args.account,
@@ -1091,13 +1082,17 @@
                             "Description: " + args.description,
                 "service": "Feedback"
             }
-        });
+        };
 
         var changeStateFunc = function(response){
             $.extend(true, this, args);
-        }
+        };
 
-        this.makeAjaxRequest({url: "/feedback", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        var extendAjaxOptions = {
+            contentType: "application/x-www-form-urlencoded;charset=utf-8"
+        };
+
+        this.makeAjaxRequest({url: "/init3.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions});
     };
 
     Feedback.prototype.validateAccount = function(tmpAccount) {
@@ -1135,6 +1130,22 @@
         };
 
         return this.validateAttr(validateArgs);
+    };
+
+    Feedback.prototype.validateProduct = function(product) {
+        if (undefined == product) {
+            console.error("args error in validateProduct");
+        };
+
+        var validateArgs = {
+            "attr": tmpDescription,
+            "attrEmptyMsg": tips.types.contact.product.cantBeEmpty,
+            "maxLength": 6,
+            "minLength": 1,
+            "attrOutOfLimitMsg": "product name is out of limit",
+            "pattern": /.*/,
+            "patternTestFailMsg": "product name is invalid", 
+        };
     };
 
     $.ipc.Feedback = Feedback;
