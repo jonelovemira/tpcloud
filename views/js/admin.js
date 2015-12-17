@@ -603,8 +603,13 @@ $(function () {
         };
 
         this.updateDeviceLi(device);
-        this.updateDeviceSetting(device);
-        this.updateDeviceView(device);
+
+        var activeTab = this.findActiveNavTab();
+        if (activeTab == "Settings") {
+            this.updateDeviceSetting(device);
+        } else {
+            this.updateDeviceView(device);
+        }
     };
 
     DeviceListView.prototype.renderSetting = function() {
@@ -614,6 +619,10 @@ $(function () {
             this.hideViewSettingContent();
             this.settingDOM.show();
             this.hideSettingChild();
+
+            $(".admin-nav-li").removeClass("admin-nav-li-select");
+            $("#setting-tab").addClass("admin-nav-li-select");
+
             $("#setting .setting-content").show();
             this.updateDeviceInfo(activeDev);
             if (activeDev.iip == undefined) {
