@@ -3,7 +3,7 @@
     margin: 0 auto;
     width: 1000px;
 }
-.select{
+.plugin-select{
     color:#969696;
     left:4px;
 }
@@ -37,7 +37,7 @@
 #contact_table select{
     width:270px;
 }
-.select .slide .slide-item-holder .slide-item{
+.plugin-select .slide .slide-item-holder .slide-item{
     padding:4px;
     height:16px;
 }
@@ -46,11 +46,12 @@ td > label{
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     font-size:1.4em;
 }
-#contact_table input,#contact_table select,#contact_table textarea{
+#contact_table input,#contact_table select{
     color:#969696;
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     position:relative;
     left:4px;
+    top: 0px;
 }
 #contact_table .plugin-select {
     font-size: 12px;
@@ -67,7 +68,9 @@ td > label{
     width:448px;
     height:168px;
     resize:none;
-    top:6px;
+    top:7px;
+    position: relative;
+    left: 4px;
 }
 
 #submit{
@@ -187,8 +190,9 @@ td > label{
 
 #contact-content-cover {
     position: absolute;
-    top: 178px;
-    left: 96px;
+    margin-top: -168px;
+    margin-left: 10px;
+    display: block;
     z-index: 2;
     color: #aaa;
     font-size: 13.33333px;

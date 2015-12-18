@@ -55,7 +55,7 @@
             select.find(".slide-item-holder").width(maxDisplayContainerWidth).height(totalOptionHeightWithoutScroll);
             select.css("position", originSelect.css("position"));
             select.css("left", originSelect.css("left"));
-            select.css("top",originSelect.css("left"));
+            select.css("top",originSelect.css("top"));
         },
         generateAddedOptionElements: function(addedOptions) {
             if (undefined == addedOptions) {
