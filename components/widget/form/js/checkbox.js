@@ -25,7 +25,13 @@
         }
         $check.hide();
 
-        var innerHtml = "<div class=\"checkbox " + style + "\" name=\"" + name + "\"></div>";
+        var tabIndex = $check.attr("tabindex");
+        var tabIndexStr = "";
+        if (tabIndex) {
+            tabIndexStr += "tabindex=\"" + tabIndex + "\"";
+        };
+
+        var innerHtml = "<div class=\"checkbox " + style + "\" name=\"" + name + "\" + " + tabIndexStr + "></div>";
         var $checkboxDiv = $(innerHtml);
 
         $(this).after($checkboxDiv);

@@ -760,3 +760,7 @@
     top: 5px;
     width: 16px;
 }
+
+#for-autocomplete {
+    display: none;
+}

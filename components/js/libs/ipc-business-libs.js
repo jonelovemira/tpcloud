@@ -793,6 +793,14 @@
 
         this.makeAjaxRequest({url: "/init.php", data: data, callbacks: inputCallbacks, changeState: $.noop, extendAjaxOptions: extendAjaxOptions});
     };
+
+    DeviceList.prototype.isActiveDevice = function(device) {
+        if (undefined == device || !(device instanceof $.ipc.Device)) {
+            console.error("args error in isActiveDevice");
+        };
+
+        return this.findIndexForId(device.id) == this.activeDeviceIndex;
+    };
     
     $.ipc.DeviceList = DeviceList;
 
@@ -1138,7 +1146,7 @@
         };
 
         var validateArgs = {
-            "attr": tmpDescription,
+            "attr": product,
             "attrEmptyMsg": tips.types.contact.product.cantBeEmpty,
             "maxLength": 6,
             "minLength": 1,
@@ -1146,6 +1154,8 @@
             "pattern": /.*/,
             "patternTestFailMsg": "product name is invalid", 
         };
+
+        return this.validateAttr(validateArgs);
     };
 
     $.ipc.Feedback = Feedback;
