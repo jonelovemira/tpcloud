@@ -248,7 +248,6 @@
             <div id="section_text_2_2_3" class="section_text" lang="en">Following the instructions on the APP or run the Auto run</div>
         </div>
     </div>
-    <a id="for-autocomplete-click">test</a>
 
     <div id="backtop" title="backtop"></div>
 </div>
@@ -312,56 +311,39 @@
         }
         backtotop();
 
-        $("#for-autocomplete-click").on('click', function(){
-            console.log($("#Password").val());
-        });
-
-        var isInputEmpty = function (element) {
-            $("#for-autocomplete-click").click();
-            return !element.val();
-        };
-
         $("#account-cover").on('click', function(){
-            console.log(1);
             $(this).hide();
             $("#Account").focus();
         });
 
         $("#Account").on('focus', function() {
             $("#account-cover").hide();
-            console.log(2);
         });
 
         $("#Account").on('blur', function() {
-            if (!$("#Account").val()){
-                $("#account-cover").show();
-                console.log(3);
-            } else {
-                $("#account-cover").hide();
-                console.log(4);
-            }
+            $("#account-cover").toggle(!$("#Account").val());
+        });
+
+        $("#Account").on('change', function() {
+            $("#account-cover").hide();
+            $("#Password").focus();
         });
         
 
         $("#password-cover").on('click', function() {
-            console.log(5);
             $(this).hide();
             $("#Password").focus();
         });
 
         $("#Password").on('focus', function() {
             $("#password-cover").hide();
-            console.log(6);
+        });
+        $("#Password").on('change', function() {
+            $("#password-cover").hide();
         });
         $("#Password").on('blur', function() {
-            if (isInputEmpty($("#Password"))) {
-                $("#password-cover").show();
-            } else {
-                $("#password-cover").hide();
-            }
+            $("#password-cover").toggle(!$("#Password").val());
         });
-        $("#Account").val().length > 0 && $("#account-cover").hide();
-        $("#Password").val().length > 0 && $("password-cover").hide();
     })
 </script>
 <script type="text/javascript" src="../js/index.js"></script>
