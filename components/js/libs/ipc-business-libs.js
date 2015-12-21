@@ -695,7 +695,6 @@
             for (var i = 0; i < oldDevices.length; i++) {
                 var tmpIndex = this.findIndexForId(oldDevices[i].id);
                 if (tmpIndex >= 0 && tmpIndex < this.devices.length) {
-                    var tmpDevice = this.devices[tmpIndex];
                     this.devices[tmpIndex] = oldDevices[i];
                 };
             };
@@ -706,18 +705,7 @@
                 !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args);
             };
 
-            if (lastActiveDeviceId != undefined) {
-                this.activeDeviceIndex = this.findIndexForId(lastActiveDeviceId);
-            } else {
-                if (this.devices.length == 0) {
-                    this.activeDeviceIndex = null;
-                } else {
-                    this.activeDeviceIndex = 0;
-                }
-            }
-
-            
-            this.activeDeviceIndex = lastActiveDeviceId == undefined ? 0 : this.findIndexForId(lastActiveDeviceId);
+            this.activeDeviceIndex = this.findIndexForId(lastActiveDeviceId) || 0;
         };
         
         this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
@@ -742,7 +730,7 @@
                 return i;
             }
         };
-        return this.devices.length > 0 ? 0 : undefined;
+        return undefined;
     };
 
     DeviceList.prototype.getUpgradeList = function(inputCallbacks) {

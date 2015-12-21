@@ -159,7 +159,7 @@
     margin-left: 22px;
 }
 
-.ipcstate{
+.dev-item{
     float:left;
     border-bottom: 1px solid #DADADA;
     cursor:pointer;
@@ -170,7 +170,7 @@
     font-size:12px;
     display: none;
 }
-.ipcstate:hover{
+.dev-item:hover{
     background:#DEDEDE;
 }
 .dev-selected{
