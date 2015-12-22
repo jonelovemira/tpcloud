@@ -506,19 +506,22 @@
     };
 
     Device.prototype.upgrade = function(args, inputCallbacks) {
-        if (this.owner == undefined) {console.error("owner is undefined");}
-        var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email));
-        if (validateResult.code == false) {return validateResult;};
+        if (undefined ==  this.owner || undefined == this.owner.token ||
+            undefined == this.owner.email || undefined == args.fwUrl || 
+            undefined == args.mac || undefined == args.azIP ||
+            undefined == args.azDNS || undefined == this.webServerUrl) {
+            console.error("args error in upgrade");
+        }
 
-        var urlPrefix = args.urlPrefix || "";
+        var urlPrefix = args.urlPrefix || this.webServerUrl;
 
         var data = {
             "REQUEST": "FIRMWAREUPGRADE",
             "DATA": {
-                "account": args.email,
+                "account": this.owner.email,
                 "User-Agent": "Web-ffx86-2.0",
-                "command": "UPGRADE\n" + args.downloadUrl + "\n",
-                "dev_address": args.mac + "@" + args.azIp + "@" + args.azDns,
+                "command": "UPGRADE\n" + args.fwUrl + "\n",
+                "dev_address": args.mac + "@" + args.azIP + "@" + args.azDNS,
                 "token": this.owner.token,
             },
         };
@@ -526,6 +529,7 @@
         var changeStateFunc = function(response) {
             this.systemStatus = "downloading";
             this.hasUpgradOnce = true;
+            this.stateChangeCallbacks.fire(this);
         };
 
         var extendAjaxOptions = {
@@ -551,7 +555,7 @@
 
         var changeStateFunc = function(response) {
             this.name = args.name;
-            this.stateChangeCallbacks.fire();
+            this.stateChangeCallbacks.fire(this);
         };
 
         this.makeAjaxRequest({
@@ -559,11 +563,15 @@
             data: data,
             changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
+            callbacks: inputCallbacks,
         }, $.xAjax.defaults.xType);
     };
 
     Device.prototype.unbind = function(args, inputCallbacks) {
-        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {console.error("args error in unbind");}
+        if (undefined == this.owner || undefined == this.owner.token ||
+            undefined == this.appServerUrl) {
+            console.error("args error in unbind");
+        }
         var validateResult = (!this.owner.validateAccount(args.account).code && this.owner.validateAccount(args.account)) ||
                             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {return validateResult;};
@@ -581,6 +589,7 @@
             data: data,
             changeState: $.noop,
             errCodeStrIndex: "error_code",
+            callbacks: inputCallbacks,
         }, $.xAjax.defaults.xType);
     };
 
@@ -599,12 +608,11 @@
                 "deviceId": args.id
             }
         });
-
         var changeStateFunc = function (response) {
             var passthroughResult = response.result.responseData;
             if (0 == passthroughResult.errCode) {
                 $.extend(true, this, passthroughResult.msg);
-                this.stateChangeCallbacks.fire();
+                this.stateChangeCallbacks.fire(this);
             };
         }
 
@@ -662,6 +670,7 @@
         this.upgradeList = [];
         this.devices = [];
         this.activeDeviceIndex = null;
+        this.lastActiveDeviceId = null;
     };
 
     $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
@@ -681,7 +690,7 @@
         var data = {};
 
         var changeStateFunc = function(response){
-            var lastActiveDeviceId = this.findIdForIndex(this.activeDeviceIndex);
+            this.lastActiveDeviceId = this.findIdForIndex(this.activeDeviceIndex);
             var oldDevices = this.devices;
             
             this.devices = [];
@@ -705,10 +714,26 @@
                 !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args);
             };
 
-            this.activeDeviceIndex = this.findIndexForId(lastActiveDeviceId) || 0;
+            this.activeDeviceIndex = this.findIndexForId(this.lastActiveDeviceId) || 0;
+            this.activeDeviceChanged = this.lastActiveDeviceId != this.devices[this.activeDeviceIndex].id;
         };
         
         this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    };
+
+    DeviceList.prototype.setActiveDeviceIndex = function(newIndex) {
+        if (undefined == newIndex || newIndex < 0 || newIndex >= this.devices.length) {
+            console.error("args error in setActiveDeviceIndex");
+        };
+        if (newIndex != this.activeDeviceIndex) {
+            var activeDev = this.devices[newIndex];
+            if (activeDev) {
+                this.lastActiveDeviceId = this.devices[this.activeDeviceIndex].id;
+                this.activeDeviceIndex = newIndex;
+                this.activeDeviceChanged = this.lastActiveDeviceId != this.devices[this.activeDeviceIndex].id;
+            };
+        };
+        
     };
 
     DeviceList.prototype.findIdForIndex = function(devIndex) {
@@ -722,9 +747,6 @@
     };
 
     DeviceList.prototype.findIndexForId = function(devId) {
-        if (undefined == devId) {
-            console.error("args error in findIndexForId");
-        };
         for (var i = 0; i < this.devices.length; i++) {
             if(this.devices[i].id == devId) {
                 return i;

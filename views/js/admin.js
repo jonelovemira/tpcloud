@@ -262,7 +262,7 @@ $(function () {
             "#dev-right-arrow": {"click": this.showNextDevicePage},
             "#dev-left-arrow": {"click": this.showPreDevicePage},
             "#dev-setting-save": {"click": this.changeDeviceName},
-            "#dev-setting-delipc": {"click": this.removeDeviceMsg},
+            "#dev-setting-remove": {"click": this.removeDevice},
             "#live-view-tab": {"click": this.liveView},
             "#setting-tab": {"click": this.settingShow},
             "#reload": {"click": this.updateDeviceInfo},
@@ -273,10 +273,73 @@ $(function () {
         var selectorMsgProduceFuncMap = {
             ".dev-item": function() {
                 return $(this).attr("id");
+            },
+            "#dev-setting-save": function() {
+                return $.trim($("#device-name").val());
             }
         };
 
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    DeviceListController.prototype.changeDeviceName = function(newName) {
+        var currentController = this;
+        var activeDev = this.model.devices[this.model.activeDeviceIndex];
+        if (activeDev) {
+            if (newName != activeDev.name) {
+                var args = {
+                    id: activeDev.id,
+                    name: newName
+                }
+                var inputCallbacks = {
+                    "errorCodeCallbackMap": {
+                        0: function() {
+                            if(currentController.model.isActiveDevice(activeDev)){
+                                currentController.view.renderMsg(tips.actions.changeIpcName.success);
+                            }
+                        },
+                        "-1": function() {
+                            if(currentController.model.isActiveDevice(activeDev)){
+                                currentController.view.renderMsg(tips.actions.changeIpcName.failed);
+                            }
+                        }
+                    }
+                };
+                var validateResult = activeDev.changeName(args, inputCallbacks);
+                if (validateResult != undefined && !validateResult.code) {
+                    currentController.view.renderMsg(validateResult.msg);
+                };
+            } else {
+                console.log("new name is equal to origin name");
+            }
+        };
+    };
+
+    DeviceListController.prototype.removeDevice = function() {
+        var currentController = this;
+        var activeDev = this.model.devices[this.model.activeDeviceIndex];
+        if (activeDev) {
+            var args = {
+                id: activeDev.id,
+                account: activeDev.owner.account
+            }
+            var inputCallbacks = {
+                "errorCodeCallbackMap": {
+                    0: function() {
+                        currentController.getDeviceList();
+                    },
+                    "-1": function() {
+                        if(currentController.model.isActiveDevice(activeDev)){
+                            currentController.view.renderMsg(tips.actions.deviceOperate.failed);
+                        }
+                    }
+                }
+            };
+            var validateResult = activeDev.unbind(args, inputCallbacks);
+            if (validateResult != undefined && !validateResult.code) {
+                currentController.view.renderMsg(validateResult.msg);
+            };
+        };
     };
 
     DeviceListController.prototype.showNextDevicePage = function() {
@@ -290,14 +353,33 @@ $(function () {
             console.error("can not find device index");
         };
         if (tmpNewActiveDeviceIndex != this.model.activeDeviceIndex) {
-            this.model.activeDeviceIndex = tmpNewActiveDeviceIndex;
+            this.model.setActiveDeviceIndex(tmpNewActiveDeviceIndex);
             this.view.updateActiveDeviceCss();
             this.view.clearBoardAndShow();
         };
     };
 
     DeviceListController.prototype.upgradeDevice = function() {
-        
+        var currentController = this;
+        var activeDev = this.model.devices[this.model.activeDeviceIndex];
+        if (activeDev && this.model.owner) {
+            var args = {
+                fwUrl: activeDev.fwUrl,
+                mac: activeDev.mac,
+                azIP: activeDev.azIP,
+                azDNS: activeDev.azDNS
+            }
+            var inputCallbacks = {
+                "errorCodeCallbackMap": {
+                    "-1": function() {
+                        if(currentController.model.isActiveDevice(activeDev)){
+                            currentController.view.renderMsg(tips.actions.deviceOperate.failed);
+                        }
+                    }
+                }
+            };
+            activeDev.upgrade(args, inputCallbacks);
+        };
     };
 
     DeviceListController.prototype.showPreDevicePage = function() {
@@ -507,8 +589,6 @@ $(function () {
                         this.settingManageBoard();
                         this.showSetting();
                     } else {
-                        this.hideViewSettingContent();
-                        this.liveViewManageBoard();
                         this.showLiveView();
                     }
                 }
@@ -529,6 +609,23 @@ $(function () {
         };
     };
 
+    DeviceListView.prototype.isShowing = function(obj) {
+        if (obj) {
+            return obj.length > 0 && !obj.is(":hidden");
+        };
+        return false;
+    };
+
+    DeviceListView.prototype.renderMsg = function(msg) {
+        if (undefined == msg) {
+            console.error("args error in renderMsg");
+        };
+        $.ipc.Msg({
+            type: "alert",
+            info: msg
+        });
+    };
+
     /*****************************live view**********************************/
     DeviceListView.prototype.liveViewManageBoard = function() {
         this.viewDOM.show();
@@ -536,11 +633,13 @@ $(function () {
     };
 
     DeviceListView.prototype.showLiveView = function() {
-        
         var browser = $.BrowserTypeVersion.split(" ");
         if ((browser[0] == "Chrome" && parseInt(browser[1]) >= 42) || browser[0].indexOf("Edge") >= 0) {
+            this.hideViewSettingContent();
+            this.liveViewManageBoard();
             this.showUnsupporttedBrowserTips();
         } else {
+            // if () {};
             this.renderVideoPlaying();
         }
     };
@@ -663,9 +762,14 @@ $(function () {
     dl.owner = u;
 
     dlc.initHandler();
-    dlc.getDeviceList();
 
     var contextRenderDeviceInfo = $.proxy(dlv.updateDeviceInfo, dlv);
     $.ipc.Device.prototype.stateChangeCallbacks.add(contextRenderDeviceInfo);
 
+    var contextGetDeviceList = $.proxy(dlc.getDeviceList, dlc);
+
+    contextGetDeviceList();
+
+    setInterval(contextGetDeviceList, 60000);
+    
 });
