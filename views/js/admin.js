@@ -362,23 +362,27 @@ $(function () {
     DeviceListController.prototype.upgradeDevice = function() {
         var currentController = this;
         var activeDev = this.model.devices[this.model.activeDeviceIndex];
-        if (activeDev && this.model.owner) {
-            var args = {
-                fwUrl: activeDev.fwUrl,
-                mac: activeDev.mac,
-                azIP: activeDev.azIP,
-                azDNS: activeDev.azDNS
-            }
-            var inputCallbacks = {
-                "errorCodeCallbackMap": {
-                    "-1": function() {
-                        if(currentController.model.isActiveDevice(activeDev)){
-                            currentController.view.renderMsg(tips.actions.deviceOperate.failed);
+        if (activeDev) {
+            if (activeDev.isOnline) {
+                var args = {
+                    fwUrl: activeDev.fwUrl,
+                    mac: activeDev.mac,
+                    azIP: activeDev.azIP,
+                    azDNS: activeDev.azDNS
+                }
+                var inputCallbacks = {
+                    "errorCodeCallbackMap": {
+                        "-1": function() {
+                            if(currentController.model.isActiveDevice(activeDev)){
+                                currentController.view.renderMsg(tips.actions.deviceOperate.failed);
+                            }
                         }
                     }
-                }
-            };
-            activeDev.upgrade(args, inputCallbacks);
+                };
+                activeDev.upgrade(args, inputCallbacks);
+            } else {
+                this.view.renderMsg(tips.types.camera.offline);
+            }
         };
     };
 
