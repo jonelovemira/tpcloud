@@ -45,8 +45,33 @@
                     </ul>
                 </div>
                 <div id="watch">
-                    <div id="objouter" class="objouter player">
-                        <div id ="yjobject"class="pad20"></div>
+                    <div id="plugin-player-set" class="objouter player">
+                        <div id ="plugin-player-container" class="pad20">
+                            <div id="objectplayer">
+                                <OBJECT classid="CLSID:81CBC1DD-8621-4F3E-B0C9-03480262EDFE" align="center"  border="1px" id="ie-mjpeg" class="plugin-player-obj">
+                                    <PARAM NAME="Width" VALUE="">
+                                    <PARAM NAME="Height" VALUE="">
+                                    <PARAM NAME="AutoPlay" VALUE="0">
+                                    <PARAM NAME="DisplayRate" VALUE="0">
+                                    <PARAM NAME="iip" VALUE="">
+                                    <PARAM NAME="iport" VALUE="">
+                                    <PARAM NAME="Source" VALUE="">
+                                    <FONT COLOR=red SIZE=5>Can"t find object</FONT>
+                                </OBJECT>
+                                <OBJECT classid="CLSID:71B417B2-B60E-4680-B6FC-8C342DFC4757" align="center"  border="1px" id="ie-h264" class="plugin-player-obj">
+                                    <PARAM NAME="Width" VALUE="">
+                                    <PARAM NAME="Height" VALUE="">
+                                    <PARAM NAME="AutoPlay" VALUE="0">
+                                    <PARAM NAME="DisplayRate" VALUE="0">
+                                    <PARAM NAME="iip" VALUE="">
+                                    <PARAM NAME="iport" VALUE="">
+                                    <PARAM NAME="Source" VALUE="">
+                                    <FONT COLOR=red SIZE=5>Can't find object</FONT>
+                                </OBJECT>
+                                <object  id="non-ie-mjpeg" type="application/x-tp-camera"  width="640" height="480" class="plugin-player-obj"></object>
+                                <object  id="non-ie-h264" type="application/x-tp-camera-h264"  width="640" height="480" class="plugin-player-obj"></object>
+                            </div>
+                        </div>
                         <div id="videoloading"> <img id="videoloadingimg" src="../img/admin/loadings.gif"  alt="loading" /> <span id="videoloadingfont">Loading</span> </div>
                         <div class="controlpanelouter">
                             <div id="cpdisable"></div>
@@ -75,13 +100,12 @@
                                     <div id="zoomulplus" class="videoctrl videorightimg"> <span class="videoimg zoomulplusimg" title="Zoom"></span> </div>
                                 </div>
                             </div>
-                            
-                            
                         </div>
                     </div>
                     <div id="flash-player-container" class="player">
                         <div id="flash-player"></div>
                     </div>
+                    <div id="img-tag-player-container" class="player"><div id="img-player"></div></div>
                     <div id="refreshtips">
                         <p class="tips-title tips-body">
                             Your <b class="dev-setting-name">Baby Cam</b>
@@ -121,21 +145,6 @@
                         <p class="blackstep tips-body">You have viewed the live video for 10 minutes.</p>
                         <p class="tips-body">Do you want to continue the viewing?</p>
                         <input class="btn continue-btn" id="continue" type="button" value="Continue" />
-                    </div>
-                    <div id="plugin-unusable">
-                        <div class="plugin-unusable-sorry">
-                            <a id="plugin-unusable-sorry-img" href="javascript:void(0)"></a>
-                        </div>
-                        <div class="plugin-unusable-info">
-                            <div class="plugin-unusable-title">
-                                <span>Um, this browser may not support camera video well</span>
-                            </div>
-                            <div class="plugin-unusable-content">
-                                <span>
-                                    If you couldn’t view the camera video, try the tpCamera app or another browser such as Internet Explorer, Firefox, Safari, or Opera. We will update the software as soon as possible. Sorry for the inconvenience and thanks for your choice.
-                                </span>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div id="setting">

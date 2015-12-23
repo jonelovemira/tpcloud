@@ -932,6 +932,35 @@
         MJPEG: "application/x-tp-camera",
         H264: "application/x-tp-camera-h264"
     };
+    var playerTypes = {
+        FLASH: "flash-player",
+        PLUGIN_IE_MJPEG: "ie-mjpeg",
+        PLUGIN_IE_H264: "ie-h264",
+        PLUGIN_NON_IE_MJPEG: "non-ie-mjpeg",
+        PLUGIN_NON_IE_h264: "non-ie-h264",
+        NON_PLUGIN_MJPEG: "img"
+    }
+    
+    var getPlayerType = function(mt) {
+        if (undefined == mimeTypes[mt]) {console.error("mime types error in getPlayerType")};
+        var browserType = $.BrowserTypeVersion.split(' ')[0];
+        var browserVersion = $.BrowserTypeVersion.split(' ')[1];
+        if ((browserType == "Chrome" && parseInt(browserVersion) >= 42) || browserType.indexOf("Edge") >= 0) {
+            if (mt == mimeTypes.MJPEG) {
+                return playerTypes.NON_PLUGIN_MJPEG;
+            } else {
+                return playerTypes.FLASH;
+            }
+        } else {
+            var browserKind = $.BrowserTypeVersion.split(' ') || "non-ie";
+            var pluginTypes = {};
+            pluginTypes[mimeTypes.MJPEG] = {"MSIE": "ie-mjpeg", "non-ie": "non-ie-mjpeg"};
+            pluginTypes[mimeTypes.H264] = {"MSIE": "ie-h264", "non-ie": "non-ie-h264"};
+            var result = pluginTypes[mt][browserKind];
+            if (undefined == result) {console.error("can not find playerTypes")};
+            return result;
+        }
+    }
 
     function NC200() {};
     NC200.prototype.released = null;
@@ -941,6 +970,7 @@
     NC200.prototype.mimeType = mimeTypes.MJPEG;
     NC200.prototype.smallImgCssClass = "NC200-small-img";
     NC200.prototype.middleImgCssClass = "NC200-middle-img";
+    NC200.prototype.playerType = getPlayerType(NC200.prototype.mimeType);
 
     function NC210() {};
     NC210.prototype.released = null;
@@ -950,6 +980,7 @@
     NC210.prototype.mimeType = mimeTypes.H264;
     NC210.prototype.smallImgCssClass = "NC210-small-img";
     NC210.prototype.middleImgCssClass = "NC210-middle-img";
+    NC210.prototype.playerType = getPlayerType(NC210.prototype.mimeType);
 
     function NC220() {};
     NC220.prototype.released = null;
@@ -959,6 +990,7 @@
     NC220.prototype.mimeType = mimeTypes.H264;
     NC220.prototype.smallImgCssClass = "NC220-small-img";
     NC220.prototype.middleImgCssClass = "NC220-middle-img";
+    NC220.prototype.playerType = getPlayerType(NC220.prototype.mimeType);
 
     function NC230() {};
     NC230.prototype.released = null;
@@ -968,6 +1000,7 @@
     NC230.prototype.mimeType = mimeTypes.H264;
     NC230.prototype.smallImgCssClass = "NC230-small-img";
     NC230.prototype.middleImgCssClass = "NC230-middle-img";
+    NC230.prototype.playerType = getPlayerType(NC230.prototype.mimeType);
 
     function NC250() {};
     NC250.prototype.released = null;
@@ -977,6 +1010,7 @@
     NC250.prototype.mimeType = mimeTypes.H264;
     NC250.prototype.smallImgCssClass = "NC250-small-img";
     NC250.prototype.middleImgCssClass = "NC250-middle-img";
+    NC250.prototype.playerType = getPlayerType(NC250.prototype.mimeType);
 
     function NC350() {};
     NC350.prototype.released = null;
@@ -986,6 +1020,7 @@
     NC350.prototype.mimeType = mimeTypes.H264;
     NC350.prototype.smallImgCssClass = "NC350-small-img";
     NC350.prototype.middleImgCssClass = "NC350-middle-img";
+    NC350.prototype.playerType = getPlayerType(NC350.prototype.mimeType);
 
     function NC450() {};
     NC450.prototype.released = null;
@@ -995,6 +1030,7 @@
     NC450.prototype.mimeType = mimeTypes.H264;
     NC450.prototype.smallImgCssClass = "NC450-small-img";
     NC450.prototype.middleImgCssClass = "NC450-middle-img";
+    NC450.prototype.playerType = getPlayerType(NC450.prototype.mimeType);
 
     $.ipc.NC200 = NC200;
     $.ipc.NC210 = NC210;

@@ -252,7 +252,7 @@
     margin-left: 103px;
     height: 480px;
 }
-#yjobject{
+#plugin-player-container{
     background: none repeat scroll 0 0 #333333;
     height: 100%;
     width: 100%;
@@ -856,4 +856,8 @@
 .downloading-progressbar-img {
     position: relative;
     left: 148px;
+}
+
+.plugin-player-obj {
+    display: none;
 }

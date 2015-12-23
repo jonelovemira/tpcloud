@@ -428,6 +428,7 @@ $(function () {
         this.settingDOM = $("#setting");
         this.commonTipsDOM = $("#common-tips");
         this.deviceLiDomIdPrefix = "dev-";
+        this.player = null;
     }
 
     DeviceListView.prototype.renderBoard = function() {
@@ -542,6 +543,7 @@ $(function () {
         this.renderDeviceListPagination();
     };
 
+    /**************************** functions ***********************************/
     DeviceListView.prototype.hideViewChild = function() {
         this.viewDOM.children().hide();
     };
@@ -560,21 +562,6 @@ $(function () {
         this.commonTipsDOM.hide();
     };
 
-    DeviceListView.prototype.showAvailableUsage = function() {
-        if (this.model.devices.length > 0) {
-            var activeTab = this.findActiveNavTab();
-            var activeDev = this.model.devices[this.model.activeDeviceIndex];
-            if (activeTab == "Settings") {
-                this.showSetting(activeDev);
-            } else {
-                this.showLiveView(activeDev);
-            }
-        } else {
-            this.showNoDeviceTips();
-        }
-    };
-
-    /**************************** functions ***********************************/
     DeviceListView.prototype.findActiveNavTab = function() {
         var tabName = $(".admin-nav-li-select > span").text();
         return tabName;
@@ -636,16 +623,84 @@ $(function () {
         this.hideViewChild();
     };
 
+    DeviceListView.prototype.playerManageBoard = function(container, subjectPlayer) {
+        if (undefined == container || undefined == subjectPlayer) {
+            console.error("args error in playerManageBoard");
+        };
+        container.show();
+        container.children().hide();
+        subjectPlayer.show();
+    };
+
+    DeviceListView.prototype.showPlayer = function(playerType) {
+        var currentView = this;
+        var tmp = {container: null, subjectPlayer: null}
+        var playerTypeContainerSelectorMap = {
+            "flash-player": "#flash-player-container",
+            "ie-mjpeg": "#plugin-player-container",
+            "ie-h264": "#plugin-player-container",
+            "non-ie-mjpeg": "#plugin-player-container",
+            "non-ie-h264": "#plugin-player-container",
+            "img": "#img-tag-player-container"
+        };
+        var playerTypePlayerElementSelectorMap = {
+            "flash-player": "#flash-player",
+            "ie-mjpeg": "#ie-mjpeg",
+            "ie-h264": "#ie-h264",
+            "non-ie-mjpeg": "#non-ie-mjpeg",
+            "non-ie-h264": "#non-ie-h264",
+            "img": "#img-player"
+        };
+        if (undefined == playerTypeContainerSelectorMap[playerType] ||
+            undefined == playerTypePlayerElementSelectorMap[playerType]) {
+            console.error("unsupport playerType");
+        };
+        this.playerManageBoard($(playerTypeContainerSelectorMap[playerType]),
+            $(playerTypePlayerElementSelectorMap[playerType]));
+
+
+    };
+
+    DeviceListView.prototype.isSupportPlay = function(dev) {
+        if (undefined == dev) {console.error("args error in isSupportPlay")};
+    };
+
     DeviceListView.prototype.showLiveView = function() {
-        var browser = $.BrowserTypeVersion.split(" ");
-        if ((browser[0] == "Chrome" && parseInt(browser[1]) >= 42) || browser[0].indexOf("Edge") >= 0) {
+        if (this.isNeedRefreshPlaying()) {
+            var activeDev = this.model.devices[this.model.activeDeviceIndex];
             this.hideViewSettingContent();
             this.liveViewManageBoard();
-            this.showUnsupporttedBrowserTips();
-        } else {
-            // if () {};
-            this.renderVideoPlaying();
-        }
+            var playerType = activeDev.product.prototype.playerType;
+            if (this.isSupportPlay(activeDev)) {
+                this.showPlayer(playerType);
+            };
+        };
+    };
+
+    DeviceListView.prototype.findWatchShowingElement = function() {
+        var showingElements = [];
+        var currentView = this;
+        $("#watch").children.each(function(i, d) {
+            if (currentView.isShowing($(this))) {
+                showingElements.push($(this).attr("id"));
+            };
+        });
+        return showingElements;
+    };
+
+    DeviceListView.prototype.isNeedRefreshPlaying = function() {
+        var elementIdFlagMap = {
+            "objouter": false,
+            "flash-player-container": false,
+            "refreshtips": false,
+            "reloadtips": false,
+            "continuetips": false 
+        };
+        var res = this.findWatchShowingElement();
+        if (res.length > 1 || res.length <= 0) {
+            return true;
+        };
+        return elementIdFlagMap[res[0]] || true;
     };
 
     DeviceListView.prototype.showUnsupporttedBrowserTips = function() {
