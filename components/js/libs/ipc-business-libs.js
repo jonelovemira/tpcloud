@@ -960,7 +960,7 @@
             if (undefined == result) {console.error("can not find playerTypes")};
             return result;
         }
-    }
+    };
 
     function NC200() {};
     NC200.prototype.released = null;

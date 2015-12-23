@@ -661,8 +661,47 @@ $(function () {
 
     };
 
-    DeviceListView.prototype.isSupportPlay = function(dev) {
+    DeviceListView.prototype.isSupportPluginPlay = function(dev) {
         if (undefined == dev) {console.error("args error in isSupportPlay")};
+        var result = false;
+        var browserType = $.BrowserTypeVersion.split(' ')[0];
+        var playerTypePlayerElementIdMap = {
+            "ie-mjpeg": "ie-mjpeg",
+            "ie-h264": "ie-h264",
+            "non-ie-mjpeg": "non-ie-mjpeg",
+            "non-ie-h264": "non-ie-h264",
+        };
+        var playerType = activeDev.product.prototype.playerType;
+        var playerElementId = playerTypePlayerElementIdMap[playerType] || undefined;
+        var player = document.getElementById(CURRENT_PLAYER);
+        if (browserType == "MSIE") {
+            if (typeof player.PlayVideo == "unknown") {
+                result = true;
+            } else {
+                result = false;
+            }
+        };
+    };
+
+    DeviceListView.prototype.showPluginNeed = function() {
+        $("#plugin-needed").show();
+    };
+
+    DeviceListView.prototype.playVideo = function(dev) {
+        if (undefined == dev) {console.error("args error in playVideo")};
+        var playerType = activeDev.product.prototype.playerType;
+        var pluginPlayers = ["ie-mjpeg", "ie-h264", "non-ie-h264", "non-ie-mjpeg"];
+        if (pluginPlayers.index(playerType) >= 0) {
+            if (isSupportPluginPlay) {
+                this.pluginPlayVideo();
+            } else {
+                this.showPluginNeed();
+            }
+        } else if (playerType == "flash-player") {
+            this.flashPlayVideo();
+        } else {
+            this.imgPlayVideo();
+        }
     };
 
     DeviceListView.prototype.showLiveView = function() {
@@ -670,10 +709,7 @@ $(function () {
             var activeDev = this.model.devices[this.model.activeDeviceIndex];
             this.hideViewSettingContent();
             this.liveViewManageBoard();
-            var playerType = activeDev.product.prototype.playerType;
-            if (this.isSupportPlay(activeDev)) {
-                this.showPlayer(playerType);
-            };
+            this.playVideo(activeDev);
         };
     };
 
