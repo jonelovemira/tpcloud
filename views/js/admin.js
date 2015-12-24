@@ -661,46 +661,115 @@ $(function () {
 
     };
 
-    DeviceListView.prototype.isSupportPluginPlay = function(dev) {
-        if (undefined == dev) {console.error("args error in isSupportPlay")};
-        var result = false;
-        var browserType = $.BrowserTypeVersion.split(' ')[0];
+    DeviceListView.prototype.getPluginPlayerElement = function(dev) {
+        if (undefined == dev) {console.error("args error in getPluginPlayerElement")};
+        var browserType = $.ipc.Browser.prototype.type;
         var playerTypePlayerElementIdMap = {
             "ie-mjpeg": "ie-mjpeg",
             "ie-h264": "ie-h264",
             "non-ie-mjpeg": "non-ie-mjpeg",
             "non-ie-h264": "non-ie-h264",
         };
-        var playerType = activeDev.product.prototype.playerType;
+        var playerType = dev.product.prototype.playerType;
         var playerElementId = playerTypePlayerElementIdMap[playerType] || undefined;
-        var player = document.getElementById(CURRENT_PLAYER);
-        if (browserType == "MSIE") {
-            if (typeof player.PlayVideo == "unknown") {
-                result = true;
-            } else {
-                result = false;
-            }
-        };
+        var player = document.getElementById(playerElementId);
+        return player;
     };
 
-    DeviceListView.prototype.showPluginNeed = function() {
+    DeviceListView.prototype.isSupportPluginPlay = function(dev) {
+        if (undefined == dev) {console.error("args error in isSupportPluginPlay")};
+        var result = false;
+        var browserType = $.ipc.Browser.prototype.type;
+        var mt = dev.product.prototype.mimeType;
+        var player = this.getPluginPlayerElement(dev);
+        if (player) {
+            if (browserType == "MSIE") {
+                if (typeof player.PlayVideo == "unknown") {
+                    result = true;
+                } else {
+                    result = false;
+                }
+            } else {
+                var mime = navigator.mimeTypes[mt];
+                if (mime) {
+                    var plugin = mime.enabledPlugin;
+                    if (plugin) {
+                        result = true;
+                    }
+                }
+            };
+        };
+        return result;
+    };
+
+    DeviceListView.prototype.isPluginNeedUpgrade = function(dev) {
+        if (undefined == dev) {console.error("args error in isPluginNeedUpgrade")};
+        var result = false;
+        var player = this.getPluginPlayerElement(dev);
+        if (player) {
+            var browserType = $.ipc.Browser.prototype.type;
+            if (browserType == "MSIE") {
+                var version = player.iepluginversion;
+                result = $.ipc.compareVersion(version, "1.20") >= 0;
+            } else {
+                var version = obj.version;
+                if (navigator.userAgent.indexOf("Mac", 0) >= 0) {
+                    result = $.ipc.compareVersion(version, "2.8") >= 0;
+                } else {
+                    result = $.ipc.compareVersion(version, "2.7") >= 0;
+                }
+            }
+            return result;
+        } else {
+            console.error("there is no plug-in player");
+        }
+    };
+
+    DeviceListView.prototype.feedPluginDownloadLink = function(dev) {
+        var pluginPlayers = ["ie-mjpeg", "ie-h264", "non-ie-h264", "non-ie-mjpeg"];
+        if (undefined == dev || dev.product.prototype.playerType in pluginPlayers) {
+            
+        } else {
+            console.error("args error in feedPluginDownloadLink");
+        }
+    };
+
+    DeviceListView.prototype.showPluginNeed = function(dev) {
         $("#plugin-needed").show();
+        this.feedPluginDownloadLink();
+    };
+
+    DeviceListView.prototype.showPluginUpdateNeeded = function(dev) {
+        $("#plugin-update-needed").show();
+        this.feedPluginDownloadLink();
+    };
+
+    DeviceListView.prototype.pluginPlayVideo = function(dev) {
+        
+    };
+
+    DeviceListView.prototype.flashPlayVideo = function(dev) {
+        
     };
 
     DeviceListView.prototype.playVideo = function(dev) {
         if (undefined == dev) {console.error("args error in playVideo")};
-        var playerType = activeDev.product.prototype.playerType;
+        var playerType = dev.product.prototype.playerType;
         var pluginPlayers = ["ie-mjpeg", "ie-h264", "non-ie-h264", "non-ie-mjpeg"];
-        if (pluginPlayers.index(playerType) >= 0) {
-            if (isSupportPluginPlay) {
-                this.pluginPlayVideo();
+        if (pluginPlayers.indexOf(playerType) >= 0) {
+            if (this.isSupportPluginPlay(dev)) {
+                if (this.isPluginNeedUpgrade(dev)) {
+                    this.showPluginUpdateNeeded(dev);
+                } else {
+                    this.pluginPlayVideo(dev);
+                }
             } else {
-                this.showPluginNeed();
+                this.showPluginNeed(dev);
             }
         } else if (playerType == "flash-player") {
-            this.flashPlayVideo();
+            this.flashPlayVideo(dev);
         } else {
-            this.imgPlayVideo();
+            this.imgPlayVideo(dev);
         }
     };
 
@@ -716,7 +785,7 @@ $(function () {
     DeviceListView.prototype.findWatchShowingElement = function() {
         var showingElements = [];
         var currentView = this;
-        $("#watch").children.each(function(i, d) {
+        $("#watch").children().each(function(i, d) {
             if (currentView.isShowing($(this))) {
                 showingElements.push($(this).attr("id"));
             };
@@ -866,5 +935,23 @@ $(function () {
     contextGetDeviceList();
 
     setInterval(contextGetDeviceList, 60000);
+
+    /******************************* software *******************************/
+    function SoftwareController() {
+        $.ipc.BaseController.call(this, arguments);
+    };
+    $.ipc.inheritPrototype(SoftwareController, $.ipc.BaseController);
+    
+    SoftwareController.prototype.getUpdateInfos = function() {
+        var currentController = this;
+        this.model.getUpdateInfos();
+    };
+
+    var s = new $.ipc.Software();
+    var sc = new SoftwareController();
+    sc.model = s;
+
+    sc.getUpdateInfos();
+
     
 });

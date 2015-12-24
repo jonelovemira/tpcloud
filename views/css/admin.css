@@ -600,7 +600,8 @@
     font-size:1.6em;
     left:20px;
 }
-#detection {
+#plugin-needed {
+    display: none;
     margin-left: 80px;
 }
 #no-camera {
@@ -860,4 +861,39 @@
 
 .plugin-player-obj {
     display: none;
+}
+
+#plugin-update-needed {
+    margin-left: 80px;
+    display:none;
+}
+.plugin-update-needed-tip {
+    position: relative;
+    top: 200px;
+    left: 206px;
+    width: 450px;
+}
+.plugin-update-needed-tip > .title{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.9em;
+    margin-top:7px;
+    font-weight: bold;
+}
+
+.plugin-update-needed-tip > .body > span{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
+}
+
+#img-tag-player-container {
+    display: none;
+}
+
+.plugin-download-link {
+    color:#2D9AD8; 
+    text-decoration: underline;
+    cursor:pointer;
 }

@@ -883,44 +883,50 @@
 
     $.ipc = $.ipc || {};
 
-    function IpcPlugin () {
-        $.ipc.Model.call(this, arguments);
-        this.OS = null;
-        this.version = null;
-        this.name = null;
-        this.supportedModels = [];
-        this.downloadPath = null;
+    function hasNewerVersion (version) {
+        if (undefined == version || undefined == this.newestVersion) {
+            console.error("args error in hasNewerVersion");
+        };
+        var result = $.compareVersion(version, this.newestVersion);
+        if (result > 0 ) {
+            console.info("target version is bigger than newestVersion");
+        };
+        return result < 0;
     };
 
-    $.ipc.inheritPrototype(IpcPlugin, $.ipc.Model);
-
-    var ipcPluginErrorCodeInfo = {
-        10000: function(){console.log("No update for the application you want");}
-    };
-
-    IpcPlugin.prototype.errorCodeCallbacks = IpcPlugin.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": ipcPluginErrorCodeInfo});
-
-    IpcPlugin.prototype.checkUpdate = function(args, inputCallbacks) {
-        if (undefined == args.OS || undefined == args.version ||
-            undefined == args.name) {
-            console.error("args error when checkUpdate");
-        } else {
-            var data = JSON.stringify({
-                "OS": args.OS,
-                "Version": args.version,
-                "Model": args.name
-            });
-
-            var changeStateFunc = function(response){
-                $.extend(true, this, args);
-                this.downloadPath = response.msg;
-            }
-
-            this.makeAjaxRequest({url: "/pluginUpdate", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+    function initClassPrototype(tmp, classPrototype) {
+        if (undefined == tmp || undefined == classPrototype) {
+            console.error("args error in initClassPrototype");
+        };
+        for (var key in tmp) {
+            classPrototype[key] = tmp[key];
         }
     };
 
-    $.ipc.IpcPlugin = IpcPlugin;
+    var pluginInitPrototype = {
+        supportedModels: [],
+        name: null,
+        downloadPath: null,
+        tags: null,
+        newestVersion: null,
+        hasNewerVersion: hasNewerVersion
+    };
+
+    function PLUGIN_NON_IE_X86(){}
+    function PLUGIN_NON_IE_X64(){}
+    function PLUGIN_IE_X86(){}
+    function PLUGIN_IE_X64(){}
+    function PLUGIN_MAC(){}
+
+    initClassPrototype(pluginInitPrototype, PLUGIN_NON_IE_X86.prototype);
+    initClassPrototype(pluginInitPrototype, PLUGIN_NON_IE_X64.prototype);
+    initClassPrototype(pluginInitPrototype, PLUGIN_IE_X86.prototype);
+    initClassPrototype(pluginInitPrototype, PLUGIN_IE_X64.prototype);
+
+    $.ipc.PLUGIN_NON_IE_X86 = PLUGIN_NON_IE_X86;
+    $.ipc.PLUGIN_NON_IE_X64 = PLUGIN_NON_IE_X64;
+    $.ipc.PLUGIN_IE_X86 = PLUGIN_IE_X86;
+    $.ipc.PLUGIN_IE_X64 = PLUGIN_IE_X64;
 
     var resolution = {
         VGA: "640*480",
@@ -932,6 +938,7 @@
         MJPEG: "application/x-tp-camera",
         H264: "application/x-tp-camera-h264"
     };
+    var mimeTypesArr = ["application/x-tp-camera", "application/x-tp-camera-h264"];
     var playerTypes = {
         FLASH: "flash-player",
         PLUGIN_IE_MJPEG: "ie-mjpeg",
@@ -942,9 +949,9 @@
     }
     
     var getPlayerType = function(mt) {
-        if (undefined == mimeTypes[mt]) {console.error("mime types error in getPlayerType")};
-        var browserType = $.BrowserTypeVersion.split(' ')[0];
-        var browserVersion = $.BrowserTypeVersion.split(' ')[1];
+        if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
+        var browserType = $.ipc.Browser.prototype.type;
+        var browserVersion = $.ipc.Browser.prototype.version;
         if ((browserType == "Chrome" && parseInt(browserVersion) >= 42) || browserType.indexOf("Edge") >= 0) {
             if (mt == mimeTypes.MJPEG) {
                 return playerTypes.NON_PLUGIN_MJPEG;
@@ -952,19 +959,24 @@
                 return playerTypes.FLASH;
             }
         } else {
-            var browserKind = $.BrowserTypeVersion.split(' ') || "non-ie";
+            var browserKind = browserType == "MSIE" ? "MSIE" : "non-ie";
             var pluginTypes = {};
-            pluginTypes[mimeTypes.MJPEG] = {"MSIE": "ie-mjpeg", "non-ie": "non-ie-mjpeg"};
-            pluginTypes[mimeTypes.H264] = {"MSIE": "ie-h264", "non-ie": "non-ie-h264"};
+            pluginTypes[mimeTypes.MJPEG] = {"MSIE": playerTypes.PLUGIN_IE_MJPEG, "non-ie": playerTypes.PLUGIN_NON_IE_MJPEG};
+            pluginTypes[mimeTypes.H264] = {"MSIE": playerTypes.PLUGIN_IE_H264, "non-ie": playerTypes.PLUGIN_NON_IE_h264};
             var result = pluginTypes[mt][browserKind];
             if (undefined == result) {console.error("can not find playerTypes")};
             return result;
         }
     };
 
+    var productInitPrototype = {
+        released: null,
+        faqPath: null,
+        firmwareDownloadPath: null,
+        firmwareNewestVersion: null
+    }
+
     function NC200() {};
-    NC200.prototype.released = null;
-    NC200.prototype.faqPath = null;
     NC200.prototype.name = "NC200";
     NC200.prototype.availableResolutionVals = [resolution.VGA, resolution.QVGA];
     NC200.prototype.mimeType = mimeTypes.MJPEG;
@@ -973,8 +985,6 @@
     NC200.prototype.playerType = getPlayerType(NC200.prototype.mimeType);
 
     function NC210() {};
-    NC210.prototype.released = null;
-    NC210.prototype.faqPath = null;
     NC210.prototype.name = "NC210";
     NC210.prototype.availableResolutionVals = [resolution.HD];
     NC210.prototype.mimeType = mimeTypes.H264;
@@ -982,9 +992,8 @@
     NC210.prototype.middleImgCssClass = "NC210-middle-img";
     NC210.prototype.playerType = getPlayerType(NC210.prototype.mimeType);
 
+
     function NC220() {};
-    NC220.prototype.released = null;
-    NC220.prototype.faqPath = null;
     NC220.prototype.name = "NC220";
     NC220.prototype.availableResolutionVals = [resolution.VGA, resolution.QVGA];
     NC220.prototype.mimeType = mimeTypes.H264;
@@ -992,19 +1001,17 @@
     NC220.prototype.middleImgCssClass = "NC220-middle-img";
     NC220.prototype.playerType = getPlayerType(NC220.prototype.mimeType);
 
+
     function NC230() {};
-    NC230.prototype.released = null;
-    NC230.prototype.faqPath = null;
     NC230.prototype.name = "NC230";
     NC230.prototype.availableResolutionVals = [resolution.HD];
     NC230.prototype.mimeType = mimeTypes.H264;
     NC230.prototype.smallImgCssClass = "NC230-small-img";
     NC230.prototype.middleImgCssClass = "NC230-middle-img";
     NC230.prototype.playerType = getPlayerType(NC230.prototype.mimeType);
+    
 
     function NC250() {};
-    NC250.prototype.released = null;
-    NC250.prototype.faqPath = null;
     NC250.prototype.name = "NC250";
     NC250.prototype.availableResolutionVals = [resolution.HD];
     NC250.prototype.mimeType = mimeTypes.H264;
@@ -1013,8 +1020,6 @@
     NC250.prototype.playerType = getPlayerType(NC250.prototype.mimeType);
 
     function NC350() {};
-    NC350.prototype.released = null;
-    NC350.prototype.faqPath = null;
     NC350.prototype.name = "NC350";
     NC350.prototype.availableResolutionVals = [resolution.HD];
     NC350.prototype.mimeType = mimeTypes.H264;
@@ -1023,14 +1028,20 @@
     NC350.prototype.playerType = getPlayerType(NC350.prototype.mimeType);
 
     function NC450() {};
-    NC450.prototype.released = null;
-    NC450.prototype.faqPath = null;
     NC450.prototype.name = "NC450";
     NC450.prototype.availableResolutionVals = [resolution.HD];
     NC450.prototype.mimeType = mimeTypes.H264;
     NC450.prototype.smallImgCssClass = "NC450-small-img";
     NC450.prototype.middleImgCssClass = "NC450-middle-img";
     NC450.prototype.playerType = getPlayerType(NC450.prototype.mimeType);
+
+    initClassPrototype(productInitPrototype, NC200.prototype);
+    initClassPrototype(productInitPrototype, NC210.prototype);
+    initClassPrototype(productInitPrototype, NC220.prototype);
+    initClassPrototype(productInitPrototype, NC230.prototype);
+    initClassPrototype(productInitPrototype, NC250.prototype);
+    initClassPrototype(productInitPrototype, NC350.prototype);
+    initClassPrototype(productInitPrototype, NC450.prototype);
 
     $.ipc.NC200 = NC200;
     $.ipc.NC210 = NC210;
@@ -1063,6 +1074,7 @@
             };
 
             for (var i = 0; i < response.msg.software.length; i++) {
+
                 var newPlugin = new $.ipc.IpcPlugin();
                 newPlugin.OS = response.msg.software[i].tags;
                 newPlugin.version = response.msg.software[i].version;
