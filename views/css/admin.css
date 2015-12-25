@@ -618,6 +618,7 @@
 }
 #refreshtips {
     display:none; 
+    margin-left: 80px;
     height:580px
 }
 #reloadtips {

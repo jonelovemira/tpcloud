@@ -7,7 +7,7 @@
     function findBrowserOS () {
         if (navigator.appVersion.indexOf("Win")!=-1) return "Windows";
         if (navigator.appVersion.indexOf("Mac")!=-1) return "MacOS";
-        if (navigator.appVersion.indexOf("X11")!=-1) return "UNIX";
+        if (navigator.appVersion.indexOf("X11")!=-1) return "Unix";
         if (navigator.appVersion.indexOf("Linux")!=-1) return "Linux";
         return "unkown OS";
     }
@@ -37,6 +37,7 @@
     
     function Browser() {};
     Browser.prototype.os = findBrowserOS();
+    Browser.prototype.platform = navigator.platform;
     Browser.prototype.type = browserTypeVersion.split(' ')[0];
     Browser.prototype.version = browserTypeVersion.split(' ')[1];
 
@@ -220,4 +221,26 @@
     };
 })(jQuery);
 
+(function ($) {
 
+    "use strict";
+
+    $.ipc = $.ipc || {};
+    
+    $.ipc.inheritPrototype = function (subType, baseType) {
+        if (undefined == baseType || undefined == subType) {
+            console.error( "args error in inherit");
+        };
+
+        subType.prototype = $.ipc.create(baseType.prototype);
+        subType.prototype.constructor = subType;
+    };
+
+    $.ipc.initClassPrototype = function(tmp, classPrototype) {
+        if (undefined == tmp || undefined == classPrototype) {
+            console.error("args error in initClassPrototype");
+        };
+        var cloneTmp = $.extend(true, {}, tmp);
+        $.extend(true, classPrototype, cloneTmp);
+    };
+})(jQuery);

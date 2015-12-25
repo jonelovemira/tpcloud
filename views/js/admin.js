@@ -510,6 +510,7 @@ $(function () {
             for (var i = 0; i < this.model.devices.length; i++) {
                 this.appendDeviceLi(this.model.devices[i], i); 
             };
+
             this.updateActiveDeviceCss();
             this.renderDeviceListPagination();
         };
@@ -544,9 +545,6 @@ $(function () {
     };
 
     /**************************** functions ***********************************/
-    DeviceListView.prototype.hideViewChild = function() {
-        this.viewDOM.children().hide();
-    };
 
     DeviceListView.prototype.hideSettingChild = function() {
         this.settingDOM.children().hide();
@@ -618,6 +616,10 @@ $(function () {
     };
 
     /*****************************live view**********************************/
+    DeviceListView.prototype.hideViewChild = function() {
+        this.viewDOM.children().hide();
+    };
+
     DeviceListView.prototype.liveViewManageBoard = function() {
         this.viewDOM.show();
         this.hideViewChild();
@@ -657,22 +659,18 @@ $(function () {
         };
         this.playerManageBoard($(playerTypeContainerSelectorMap[playerType]),
             $(playerTypePlayerElementSelectorMap[playerType]));
-
-
     };
 
     DeviceListView.prototype.getPluginPlayerElement = function(dev) {
         if (undefined == dev) {console.error("args error in getPluginPlayerElement")};
-        var browserType = $.ipc.Browser.prototype.type;
-        var playerTypePlayerElementIdMap = {
-            "ie-mjpeg": "ie-mjpeg",
-            "ie-h264": "ie-h264",
-            "non-ie-mjpeg": "non-ie-mjpeg",
-            "non-ie-h264": "non-ie-h264",
-        };
-        var playerType = dev.product.prototype.playerType;
-        var playerElementId = playerTypePlayerElementIdMap[playerType] || undefined;
-        var player = document.getElementById(playerElementId);
+        var player = null;
+        if (dev.product.prototype.playerType) {
+            var mimeType = dev.product.prototype.mimeType;
+            var playerElementId = dev.product.prototype.playerType.prototype.mimetypeCssMap[mimeType] || undefined;
+            player = document.getElementById(playerElementId);
+        } else {
+            console.error("current environment do not support plugin play");
+        }
         return player;
     };
 
@@ -726,9 +724,12 @@ $(function () {
     };
 
     DeviceListView.prototype.feedPluginDownloadLink = function(dev) {
-        var pluginPlayers = ["ie-mjpeg", "ie-h264", "non-ie-h264", "non-ie-mjpeg"];
-        if (undefined == dev || dev.product.prototype.playerType in pluginPlayers) {
-            
+        if (undefined != dev && this.isPluginPlayer(dev.product.prototype.playerType)) {
+            var playerType = dev.product.prototype.playerType;
+            var downloadLink = playerType.prototype.downloadPath;
+            if (downloadLink) {
+                $(".plugin-download-link").attr("href", downloadLink);
+            };
         } else {
             console.error("args error in feedPluginDownloadLink");
         }
@@ -736,12 +737,12 @@ $(function () {
 
     DeviceListView.prototype.showPluginNeed = function(dev) {
         $("#plugin-needed").show();
-        this.feedPluginDownloadLink();
+        this.feedPluginDownloadLink(dev);
     };
 
     DeviceListView.prototype.showPluginUpdateNeeded = function(dev) {
         $("#plugin-update-needed").show();
-        this.feedPluginDownloadLink();
+        this.feedPluginDownloadLink(dev);
     };
 
     DeviceListView.prototype.pluginPlayVideo = function(dev) {
@@ -752,24 +753,45 @@ $(function () {
         
     };
 
+    DeviceListView.prototype.isPluginPlayer = function(playerType) {
+        if (undefined == playerType) {console.error("args error in isPluginPlayer")};
+        var pluginPlayers = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.PLUGIN_NON_IE_X64, $.ipc.PLUGIN_IE_X86, $.ipc.PLUGIN_IE_X64, $.ipc.PLUGIN_MAC];
+        return $.inArray(playerType, pluginPlayers) >= 0;
+    };
+
+    DeviceListView.prototype.showDeviceOffline = function(dev) {
+        if (dev != undefined) {
+            var displayName = dev.name || "Baby Cam";
+            $(".dev-setting-name").text(displayName);
+            $("#refreshtips").show();
+        } else {
+            console.log("args error in showDeviceOffline");
+        }
+    };
+
     DeviceListView.prototype.playVideo = function(dev) {
         if (undefined == dev) {console.error("args error in playVideo")};
         var playerType = dev.product.prototype.playerType;
-        var pluginPlayers = ["ie-mjpeg", "ie-h264", "non-ie-h264", "non-ie-mjpeg"];
-        if (pluginPlayers.indexOf(playerType) >= 0) {
-            if (this.isSupportPluginPlay(dev)) {
-                if (this.isPluginNeedUpgrade(dev)) {
-                    this.showPluginUpdateNeeded(dev);
+        if (dev.isOnline == 1) {
+            if (this.isPluginPlayer(playerType)) {
+                if (this.isSupportPluginPlay(dev)) {
+                    if (this.isPluginNeedUpgrade(dev)) {
+                        this.showPluginUpdateNeeded(dev);
+                    } else {
+                        this.pluginPlayVideo(dev);
+                    }
                 } else {
-                    this.pluginPlayVideo(dev);
+                    this.showPluginNeed(dev);
                 }
+            } else if (playerType == $.ipc.FLASH_PLAYER) {
+                this.flashPlayVideo(dev);
+            } else if (playerType == $.ipc.IMG_PLAYER){
+                this.imgPlayVideo(dev);
             } else {
-                this.showPluginNeed(dev);
+                console.info("can not play without player object");
             }
-        } else if (playerType == "flash-player") {
-            this.flashPlayVideo(dev);
         } else {
-            this.imgPlayVideo(dev);
+            this.showDeviceOffline(dev);
         }
     };
 
@@ -794,6 +816,7 @@ $(function () {
     };
 
     DeviceListView.prototype.isNeedRefreshPlaying = function() {
+        if (this.model.) {};
         var elementIdFlagMap = {
             "objouter": false,
             "flash-player-container": false,

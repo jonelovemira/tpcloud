@@ -52,15 +52,12 @@
         f.prototype = p;
         return new f();
     };
+})(jQuery);
 
-    $.ipc.inheritPrototype = function (subType, baseType) {
-        if (undefined == baseType || undefined == subType) {
-            console.error( "args error in inherit");
-        };
+(function ($) {
+    "use strict";
 
-        subType.prototype = $.ipc.create(baseType.prototype);
-        subType.prototype.constructor = subType;
-    }
+    $.ipc = $.ipc || {};
 
     function Model () {
     };
@@ -704,6 +701,8 @@
             for (var i = 0; i < oldDevices.length; i++) {
                 var tmpIndex = this.findIndexForId(oldDevices[i].id);
                 if (tmpIndex >= 0 && tmpIndex < this.devices.length) {
+                    var tmpD = this.devices[tmpIndex];
+                    $.extend(true, oldDevices[i], tmpD);
                     this.devices[tmpIndex] = oldDevices[i];
                 };
             };
@@ -887,20 +886,11 @@
         if (undefined == version || undefined == this.newestVersion) {
             console.error("args error in hasNewerVersion");
         };
-        var result = $.compareVersion(version, this.newestVersion);
+        var result = $.ipc.compareVersion(version, this.newestVersion);
         if (result > 0 ) {
             console.info("target version is bigger than newestVersion");
         };
         return result < 0;
-    };
-
-    function initClassPrototype(tmp, classPrototype) {
-        if (undefined == tmp || undefined == classPrototype) {
-            console.error("args error in initClassPrototype");
-        };
-        for (var key in tmp) {
-            classPrototype[key] = tmp[key];
-        }
     };
 
     var pluginInitPrototype = {
@@ -912,21 +902,61 @@
         hasNewerVersion: hasNewerVersion
     };
 
-    function PLUGIN_NON_IE_X86(){}
-    function PLUGIN_NON_IE_X64(){}
-    function PLUGIN_IE_X86(){}
-    function PLUGIN_IE_X64(){}
-    function PLUGIN_MAC(){}
+    function PLUGIN_NON_IE_X86(){};
+    function PLUGIN_NON_IE_X64(){};
+    function PLUGIN_IE_X86(){};
+    function PLUGIN_IE_X64(){};
+    function PLUGIN_MAC(){};
+    function FLASH_PLAYER(){};
+    function IMG_PLAYER(){}
 
-    initClassPrototype(pluginInitPrototype, PLUGIN_NON_IE_X86.prototype);
-    initClassPrototype(pluginInitPrototype, PLUGIN_NON_IE_X64.prototype);
-    initClassPrototype(pluginInitPrototype, PLUGIN_IE_X86.prototype);
-    initClassPrototype(pluginInitPrototype, PLUGIN_IE_X64.prototype);
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {
+        "application/x-tp-camera": "non-ie-mjpeg",
+        "application/x-tp-camera-h264": "non-ie-h264"
+    };
+
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap = {
+        "application/x-tp-camera": "non-ie-mjpeg",
+        "application/x-tp-camera-h264": "non-ie-h264"
+    };
+
+    PLUGIN_IE_X86.prototype.mimetypeCssMap = {
+        "application/x-tp-camera": "ie-mjpeg",
+        "application/x-tp-camera-h264": "ie-h264"
+    };
+
+    PLUGIN_IE_X64.prototype.mimetypeCssMap = {
+        "application/x-tp-camera": "ie-mjpeg",
+        "application/x-tp-camera-h264": "ie-h264"
+    };
+
+    PLUGIN_MAC.prototype.mimetypeCssMap = {
+        "application/x-tp-camera": "non-ie-mjpeg",
+        "application/x-tp-camera-h264": "non-ie-h264"
+    };
+
+
+    (function () {
+        var tmp = [PLUGIN_NON_IE_X86, PLUGIN_NON_IE_X64, PLUGIN_IE_X86, PLUGIN_IE_X64, PLUGIN_MAC];
+        for (var i = 0; i < tmp.length; i++) {
+            $.ipc.initClassPrototype(pluginInitPrototype, tmp[i].prototype);
+        };
+    })();
 
     $.ipc.PLUGIN_NON_IE_X86 = PLUGIN_NON_IE_X86;
     $.ipc.PLUGIN_NON_IE_X64 = PLUGIN_NON_IE_X64;
     $.ipc.PLUGIN_IE_X86 = PLUGIN_IE_X86;
     $.ipc.PLUGIN_IE_X64 = PLUGIN_IE_X64;
+    $.ipc.PLUGIN_MAC = PLUGIN_MAC;
+    $.ipc.FLASH_PLAYER = FLASH_PLAYER;
+    $.ipc.IMG_PLAYER = IMG_PLAYER;
+
+})(jQuery);
+
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
 
     var resolution = {
         VGA: "640*480",
@@ -934,44 +964,52 @@
         HD: "1280*720",
         FullHD: "1920*1080"
     };
-    var mimeTypes = {
-        MJPEG: "application/x-tp-camera",
-        H264: "application/x-tp-camera-h264"
-    };
     var mimeTypesArr = ["application/x-tp-camera", "application/x-tp-camera-h264"];
-    var playerTypes = {
-        FLASH: "flash-player",
-        PLUGIN_IE_MJPEG: "ie-mjpeg",
-        PLUGIN_IE_H264: "ie-h264",
-        PLUGIN_NON_IE_MJPEG: "non-ie-mjpeg",
-        PLUGIN_NON_IE_h264: "non-ie-h264",
-        NON_PLUGIN_MJPEG: "img"
-    }
     
     var getPlayerType = function(mt) {
         if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
-        var browserType = $.ipc.Browser.prototype.type;
-        var browserVersion = $.ipc.Browser.prototype.version;
-        if ((browserType == "Chrome" && parseInt(browserVersion) >= 42) || browserType.indexOf("Edge") >= 0) {
-            if (mt == mimeTypes.MJPEG) {
-                return playerTypes.NON_PLUGIN_MJPEG;
+        var result = undefined;
+        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+            if (mt == mimeTypesArr[0]) {
+                result = $.ipc.IMG_PLAYER;
             } else {
-                return playerTypes.FLASH;
+                result = $.ipc.FLASH_PLAYER;
             }
         } else {
-            var browserKind = browserType == "MSIE" ? "MSIE" : "non-ie";
-            var pluginTypes = {};
-            pluginTypes[mimeTypes.MJPEG] = {"MSIE": playerTypes.PLUGIN_IE_MJPEG, "non-ie": playerTypes.PLUGIN_NON_IE_MJPEG};
-            pluginTypes[mimeTypes.H264] = {"MSIE": playerTypes.PLUGIN_IE_H264, "non-ie": playerTypes.PLUGIN_NON_IE_h264};
-            var result = pluginTypes[mt][browserKind];
-            if (undefined == result) {console.error("can not find playerTypes")};
-            return result;
+            if ($.ipc.Browser.prototype.os == "MacOS") {
+                result = $.ipc.PLUGIN_MAC;
+            } else if ($.ipc.Browser.prototype.os == "Windows") {
+                if ($.ipc.Browser.prototype.type == "MSIE") {
+                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
+                        result = $.ipc.PLUGIN_IE_X86;
+                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
+                        result = $.ipc.PLUGIN_IE_X64;
+                    } else {
+                        console.info("unknown ie platform, return by default with: PLUGIN_IE_X86");
+                        result = $.ipc.PLUGIN_IE_X86;
+                    }
+                } else {
+                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
+                        result = $.ipc.PLUGIN_NON_IE_X86;
+                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
+                        result = $.ipc.PLUGIN_NON_IE_X64;
+                    } else {
+                        console.info("unknown browser platform, return by default with: PLUGIN_IE_X86");
+                        result = $.ipc.PLUGIN_NON_IE_X86;
+                    }
+                }
+            } else {
+                console.info("unsupportted operation system");
+                result = undefined;
+            }
         }
+        return result;
     };
 
     var productInitPrototype = {
         released: null,
         faqPath: null,
+        pluginPlayer: null,
         firmwareDownloadPath: null,
         firmwareNewestVersion: null
     }
@@ -979,7 +1017,7 @@
     function NC200() {};
     NC200.prototype.name = "NC200";
     NC200.prototype.availableResolutionVals = [resolution.VGA, resolution.QVGA];
-    NC200.prototype.mimeType = mimeTypes.MJPEG;
+    NC200.prototype.mimeType = mimeTypesArr[0];
     NC200.prototype.smallImgCssClass = "NC200-small-img";
     NC200.prototype.middleImgCssClass = "NC200-middle-img";
     NC200.prototype.playerType = getPlayerType(NC200.prototype.mimeType);
@@ -987,7 +1025,7 @@
     function NC210() {};
     NC210.prototype.name = "NC210";
     NC210.prototype.availableResolutionVals = [resolution.HD];
-    NC210.prototype.mimeType = mimeTypes.H264;
+    NC210.prototype.mimeType = mimeTypesArr[1];
     NC210.prototype.smallImgCssClass = "NC210-small-img";
     NC210.prototype.middleImgCssClass = "NC210-middle-img";
     NC210.prototype.playerType = getPlayerType(NC210.prototype.mimeType);
@@ -996,7 +1034,7 @@
     function NC220() {};
     NC220.prototype.name = "NC220";
     NC220.prototype.availableResolutionVals = [resolution.VGA, resolution.QVGA];
-    NC220.prototype.mimeType = mimeTypes.H264;
+    NC220.prototype.mimeType = mimeTypesArr[1];
     NC220.prototype.smallImgCssClass = "NC220-small-img";
     NC220.prototype.middleImgCssClass = "NC220-middle-img";
     NC220.prototype.playerType = getPlayerType(NC220.prototype.mimeType);
@@ -1005,7 +1043,7 @@
     function NC230() {};
     NC230.prototype.name = "NC230";
     NC230.prototype.availableResolutionVals = [resolution.HD];
-    NC230.prototype.mimeType = mimeTypes.H264;
+    NC230.prototype.mimeType = mimeTypesArr[1];
     NC230.prototype.smallImgCssClass = "NC230-small-img";
     NC230.prototype.middleImgCssClass = "NC230-middle-img";
     NC230.prototype.playerType = getPlayerType(NC230.prototype.mimeType);
@@ -1014,7 +1052,7 @@
     function NC250() {};
     NC250.prototype.name = "NC250";
     NC250.prototype.availableResolutionVals = [resolution.HD];
-    NC250.prototype.mimeType = mimeTypes.H264;
+    NC250.prototype.mimeType = mimeTypesArr[1];
     NC250.prototype.smallImgCssClass = "NC250-small-img";
     NC250.prototype.middleImgCssClass = "NC250-middle-img";
     NC250.prototype.playerType = getPlayerType(NC250.prototype.mimeType);
@@ -1022,7 +1060,7 @@
     function NC350() {};
     NC350.prototype.name = "NC350";
     NC350.prototype.availableResolutionVals = [resolution.HD];
-    NC350.prototype.mimeType = mimeTypes.H264;
+    NC350.prototype.mimeType = mimeTypesArr[1];
     NC350.prototype.smallImgCssClass = "NC350-small-img";
     NC350.prototype.middleImgCssClass = "NC350-middle-img";
     NC350.prototype.playerType = getPlayerType(NC350.prototype.mimeType);
@@ -1030,18 +1068,17 @@
     function NC450() {};
     NC450.prototype.name = "NC450";
     NC450.prototype.availableResolutionVals = [resolution.HD];
-    NC450.prototype.mimeType = mimeTypes.H264;
+    NC450.prototype.mimeType = mimeTypesArr[1];
     NC450.prototype.smallImgCssClass = "NC450-small-img";
     NC450.prototype.middleImgCssClass = "NC450-middle-img";
     NC450.prototype.playerType = getPlayerType(NC450.prototype.mimeType);
 
-    initClassPrototype(productInitPrototype, NC200.prototype);
-    initClassPrototype(productInitPrototype, NC210.prototype);
-    initClassPrototype(productInitPrototype, NC220.prototype);
-    initClassPrototype(productInitPrototype, NC230.prototype);
-    initClassPrototype(productInitPrototype, NC250.prototype);
-    initClassPrototype(productInitPrototype, NC350.prototype);
-    initClassPrototype(productInitPrototype, NC450.prototype);
+    (function () {
+        var arr = [NC200, NC210, NC220, NC230, NC250, NC350, NC450];
+        for (var i = 0; i < arr.length; i++) {
+            $.ipc.initClassPrototype(productInitPrototype, arr[i].prototype);
+        };
+    })();
 
     $.ipc.NC200 = NC200;
     $.ipc.NC210 = NC210;
@@ -1050,6 +1087,13 @@
     $.ipc.NC250 = NC250;
     $.ipc.NC350 = NC350;
     $.ipc.NC450 = NC450;
+
+})(jQuery);
+
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
 
     function Software () {
         $.ipc.Model.call(this, arguments);
@@ -1072,25 +1116,35 @@
                 this.products.push(product);
                 productNameObjMap[product.prototype.name] = product;
             };
+    
+            var tagPluginMap = {
+                "ff_x86": $.ipc.PLUGIN_NON_IE_X86,
+                "ff_x64": $.ipc.PLUGIN_NON_IE_X64,
+                "ie_x86": $.ipc.PLUGIN_IE_X86,
+                "ie_x64": $.ipc.PLUGIN_IE_X64,
+                "mac": $.ipc.PLUGIN_MAC
+            };
 
             for (var i = 0; i < response.msg.software.length; i++) {
-
-                var newPlugin = new $.ipc.IpcPlugin();
-                newPlugin.OS = response.msg.software[i].tags;
-                newPlugin.version = response.msg.software[i].version;
-                newPlugin.name = response.msg.software[i].name;
-
-                var supportedModelsArr = response.msg.software[i].model.split(";");
-                for (var j = 0; j < supportedModelsArr.length; j++) {
-                    if (undefined == productNameObjMap[supportedModelsArr[j]]) {
-                        console.error("unknown model: " + supportedModelsArr[j]);
-                    } else {
-                        newPlugin.supportedModels.push(productNameObjMap[supportedModelsArr[j]]); 
-                    }
+                var plugin = tagPluginMap[response.msg.software[i].tags];
+                if (plugin) {
+                    var supportedModelsArr = response.msg.software[i].model.split(";");
+                    for (var j = 0; j < supportedModelsArr.length; j++) {
+                        if (undefined == productNameObjMap[supportedModelsArr[j]]) {
+                            console.error("unknown model: " + supportedModelsArr[j]);
+                        } else {
+                            plugin.prototype.supportedModels.push(productNameObjMap[supportedModelsArr[j]]); 
+                        }
+                    };
+                    plugin.prototype.name = response.msg.software[i].name;
+                    plugin.prototype.downloadPath = response.msg.software[i].path;
+                    plugin.prototype.tags = response.msg.software[i].tags;
+                    plugin.prototype.newestVersion = response.msg.software[i].version;
+                    this.plugins.push(plugin);
+                } else if (response.msg.software[i].name == "Firmware") {
+                    $.ipc[response.msg.software[i].model].prototype.firmwareDownloadPath = response.msg.software[i].path;
+                    $.ipc[response.msg.software[i].model].prototype.firmwareNewestVersion = response.msg.software[i].version;
                 };
-                
-                newPlugin.downloadPath = response.msg.software[i].path;
-                this.plugins.push(newPlugin);
             };
         };
 
@@ -1099,7 +1153,6 @@
 
     $.ipc.Software = Software;
 })(jQuery);
-
 
 (function ($) {
     "use strict";
