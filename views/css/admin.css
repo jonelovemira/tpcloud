@@ -241,12 +241,12 @@
     margin-right: 140px;
 }
 
-.controlpanelouter{
+.control-board{
     height: auto;
     position: relative;
     width: 640px;
 }
-.objouter{
+#plugin-player-set{
     display: none;
     width:640px;
     margin-left: 103px;
@@ -254,8 +254,9 @@
 }
 #plugin-player-container{
     background: none repeat scroll 0 0 #333333;
-    height: 100%;
-    width: 100%;
+    width:100%;
+    height:100%;
+    position: relative;
 }
 .admin-nav{
     height:50px;
@@ -291,7 +292,7 @@
     color:#2D9AD8;
 }
 
-#controlpanel{
+#video-play-control{
     background:#000;
     height: 39px;
     width: 100%;
@@ -326,14 +327,14 @@
     position: relative;
     width:137px;
 }
-#controlpanel ul{
+#video-play-control ul{
     float: left;
     height: 30px;
     padding-left: 8px;
     padding-top: 12px;
     width: 154px;
 }
-.videoctrl{
+.play-control-button{
     width:21px;
     cursor:pointer;
     -webkit-user-select:none;
@@ -342,16 +343,25 @@
     margin-left:22px;
     position:relative;
 }
-#videocut{
+.play-volume-control{
+    width:21px;
+    cursor:pointer;
+    -webkit-user-select:none;
+    height:17px;
+    float:left;
+    margin-left:22px;
+    position:relative;
+}
+#take-picture{
     background: url("../img/admin/admin.png")  0 -999px;
 }
-#videocut:hover{
+#take-picture:hover{
     background: url("../img/admin/admin.png") 0 -1066px;
 }
-#videovid{
+#video-record{
     background: url("../img/admin/admin.png") repeat-x scroll 0 -1131px;
 }
-#videovid:hover{
+#video-record:hover{
     background:  url('../img/admin/admin.png') repeat-x scroll 0 -1195px transparent;
 }
 #videovidon{
@@ -571,7 +581,7 @@
     filter: Alpha(opacity=60);
     z-index: 1;
 }
-#videoloading{
+#loading-img-container{
     display: none;
     height: 32px;
     left: 350px;
@@ -579,13 +589,13 @@
     top: 290px;
     width: 32px;
 }
-#cpdisable{
+#control-board-disable-cover{
     position: absolute;
     z-index: 2;
     width:100%;
     height:100%;
 }
-#videoloadingfont{
+#loading-tips-text{
     font-size: 1.6em;
     color:#ccc;
     position: relative;
@@ -860,8 +870,14 @@
     left: 148px;
 }
 
-.plugin-player-obj {
+.ie-plugin-player-obj {
     display: none;
+    border: 1px;
+}
+.non-ie-plugin-player-obj {
+    display: none;
+    width: 640;
+    height: 480;
 }
 
 #plugin-update-needed {

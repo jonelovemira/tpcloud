@@ -674,8 +674,8 @@ $(function () {
         return player;
     };
 
-    DeviceListView.prototype.isSupportPluginPlay = function(dev) {
-        if (undefined == dev) {console.error("args error in isSupportPluginPlay")};
+    DeviceListView.prototype.isEnvSupportPluginPlay = function(dev) {
+        if (undefined == dev) {console.error("args error in isEnvSupportPluginPlay")};
         var result = false;
         var browserType = $.ipc.Browser.prototype.type;
         var mt = dev.product.prototype.mimeType;
@@ -753,6 +753,10 @@ $(function () {
         
     };
 
+    DeviceListView.prototype.imgPlayVideo = function(dev) {
+        
+    };
+
     DeviceListView.prototype.isPluginPlayer = function(playerType) {
         if (undefined == playerType) {console.error("args error in isPluginPlayer")};
         var pluginPlayers = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.PLUGIN_NON_IE_X64, $.ipc.PLUGIN_IE_X86, $.ipc.PLUGIN_IE_X64, $.ipc.PLUGIN_MAC];
@@ -774,7 +778,7 @@ $(function () {
         var playerType = dev.product.prototype.playerType;
         if (dev.isOnline == 1) {
             if (this.isPluginPlayer(playerType)) {
-                if (this.isSupportPluginPlay(dev)) {
+                if (this.isEnvSupportPluginPlay(dev)) {
                     if (this.isPluginNeedUpgrade(dev)) {
                         this.showPluginUpdateNeeded(dev);
                     } else {
@@ -816,19 +820,24 @@ $(function () {
     };
 
     DeviceListView.prototype.isNeedRefreshPlaying = function() {
-        if (this.model.) {};
-        var elementIdFlagMap = {
-            "objouter": false,
-            "flash-player-container": false,
-            "refreshtips": false,
-            "reloadtips": false,
-            "continuetips": false 
-        };
-        var res = this.findWatchShowingElement();
-        if (res.length > 1 || res.length <= 0) {
-            return true;
-        };
-        return elementIdFlagMap[res[0]] || true;
+        var result = true;
+        if (this.model.activeDeviceChanged == true) {
+            result = true;
+        } else {
+            var elementIdFlagMap = {
+                "objouter": false,
+                "flash-player-container": false,
+                "refreshtips": false,
+                "reloadtips": false,
+                "continuetips": false 
+            };
+            var res = this.findWatchShowingElement();
+            if (res.length > 1 || res.length <= 0) {
+                result = true;
+            };
+            result = elementIdFlagMap[res[0]] == undefined ? true : elementIdFlagMap[res[0]];
+        }
+        return result;
     };
 
     DeviceListView.prototype.showUnsupporttedBrowserTips = function() {
@@ -957,7 +966,7 @@ $(function () {
 
     contextGetDeviceList();
 
-    setInterval(contextGetDeviceList, 60000);
+    // setInterval(contextGetDeviceList, 60000);
 
     /******************************* software *******************************/
     function SoftwareController() {
