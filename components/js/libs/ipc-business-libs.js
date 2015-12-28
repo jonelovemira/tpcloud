@@ -459,6 +459,9 @@
         this.hasUpgradOnce = null;
         this.product = null;
         this.flashPlayer = null;
+        this.videoDataChannel = null;
+
+        this.currentResolution = null;
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -1275,4 +1278,142 @@
     };
 
     $.ipc.Feedback = Feedback;
+})(jQuery);
+
+(function ($) {
+    "use strict";
+    $.ipc = $.ipc || {};
+
+    function Timer () {
+        this.timeout = null;
+        this.updateIntervalObj = null;
+        this.intervalTime = null;
+        this.timeoutCallback = $.Callbacks("unique stopOnFalse");
+    };
+
+    $.ipc.Timer = Timer;
+})(jQuery);
+
+(function ($) {
+    "use strict";
+    $.ipc = $.ipc || {};
+
+    var devicePlayingState = {
+        IDLE : 0,
+        BEGIN_PLAY : 1,
+        RELAY_URL_READY : 2,
+        REQUEST_RELAY_SERVICE_SUCCESS: 3,
+        RELAY_READY: 4,
+        RESOURCE_READY: 5
+    };
+
+    function Player(){
+        $.ipc.Model.call(this, arguments);
+        this.timer = null;
+        this.device = null;
+        this.relayUrl = null;
+        this.ELBcookie = null;
+        this.resId = null;
+        this.state = devicePlayingState.IDLE;
+    };
+    $.ipc.inheritPrototype(Player, $.ipc.Model);
+    var playerErrorCodeInfo = {
+        "-20107": function(){console.log("args is invalid")},
+        "-20501": function(){console.log("device is not exist")},
+        "-20571": function(){console.log("device is offline")},
+        "-20651": function(){console.log("token is out of date")},
+        "-20652": function(){console.log("token is error")}
+    };
+    Player.prototype.errorCodeCallbacks = Player.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
+
+    Player.prototype.back2Idle = function() {
+        this.state = devicePlayingState.IDLE;
+    };
+
+    Player.prototype.flashPlayerStateChangeHandler = function() {
+        var stateLogicMap = {};
+        stateLogicMap[devicePlayingState.IDLE] = this.back2Idle;
+        stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getRelayUrl;
+        stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
+        stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
+        stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
+        stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
+
+        var defaultFunc = function() {
+            console.log("unkonw current state: " + currentState + ", back to idle");
+            this.playState = devicePlayingState.IDLE;
+            this.stateChangeCallback.fireWith(this);
+        };
+
+        var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
+        contextFunc();
+    };
+
+    Player.prototype.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+    
+    Player.prototype.generateAjaxUrl = function(args) {
+        if (undefined == args.appServerUrl || undefined == args.token) {
+            console.error("args error in generateAjaxUrl");
+        };
+        return args.appServerUrl + "/ipc?token=" + args.token;
+    };
+
+    Player.prototype.getRelayUrl = function(args, inputCallbacks) {
+        var _self = this;
+        var data = JSON.stringify({
+            "method": "requestUrl",
+            "params": {
+                "type": "relay"
+            }
+        });
+        var changeStateFunc = function(response) {
+            _self.relayUrl = response.result.relayUrl;
+            _self.state = devicePlayingState.RELAY_URL_READY;
+            _self.stateChangeCallback.fireWith(_self);
+        };
+
+        this.makeAjaxRequest({
+            url: this.generateAjaxUrl(args), 
+            data: data, 
+            callbacks: inputCallbacks, 
+            changeState: changeStateFunc, 
+            errCodeStrIndex: "error_code"
+        }, $.xAjax.defaults.xType);
+    };
+
+    Player.prototype.generateRelaydCommand = function(type) {
+        var typeUrlMap = {
+            "video": "/getvideo",
+            "audio": "/getaudioblock",
+            "mixed": "/mixed"
+        };
+        var typeArgsMap = {
+            "video": "resolution=" + this.device.currentResolution,
+            "audio": "resolution=AAC",
+            "mixed": "resolution=" + this.device.currentResolution + "&audio=aac"
+        };
+        return "relayd -s 'http://127.0.0.1:8080/stream" + 
+                typeUrlMap[type] + "?" + typeArgsMap[type] + "' -d '" + 
+                this.relayUrl + "relayservice?deviceid=" + this.device.id + 
+                "&type=" + type + "&" + typeArgsMap[type] + "' -a 'X-token: " +
+                this.device.owner.token + "' -t '" + this.device.relayVideoTime +
+                "'";
+    };
+
+    Player.prototype.requestRelayService = function() {
+        var _self = this;
+
+    };
+
+    Player.prototype.playerObj = null;
+    Player.prototype.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
+
+    Player.prototype.setupPlayer = function(args) {
+        
+    };
+    Player.prototype.changeSource = function(args) {
+        
+    };
+
+    $.ipc.Player = Player;
 })(jQuery);
