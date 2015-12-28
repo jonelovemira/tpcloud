@@ -240,12 +240,75 @@ $(function () {
     uc.initHandler();
     u.readDataFromCookie();
 
+/******************************flash player************************************/
+    function Timer () {
+        this.timeout = null;
+        this.updateIntervalObj = null;
+        this.intervalTime = null;
+        this.timeoutCallback = $.Callbacks("unique stopOnFalse");
+    }
+
+    var devicePlayingState = {
+        IDLE : 0,
+        BEGIN_PLAY : 1,
+        RELAY_URL_READY : 2,
+        REQUEST_RELAY_SERVICE_SUCCESS: 3,
+        RELAY_READY: 4,
+        RESOURCE_READY: 5
+    }
+
+    function FlashPlayer () {
+        this.timer = null;
+        this.device = null;
+        this.state = devicePlayingState.IDLE;
+        this.relayUrl = null;
+    };
+    FlashPlayer.prototype.back2Idle = function() {
+        this.state = devicePlayingState.IDLE;
+    };
+    FlashPlayer.prototype.stateChangeHandler = function() {
+        var stateLogicMap = {};
+        stateLogicMap[devicePlayingState.IDLE] = this.back2Idle;
+        stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getRelayUrl;
+        stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
+        stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
+        stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
+        stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
+
+        var defaultFunc = function() {
+            console.log("unkonw current state: " + currentState + ", back to idle");
+            this.playState = devicePlayingState.IDLE;
+            this.stateChangeCallback.fireWith(this);
+        };
+
+        var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
+        contextFunc();
+    };
+    FlashPlayer.prototype.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+    FlashPlayer.prototype.stateChangeCallback.add(FlashPlayer.prototype.stateChangeHandler);
+
+    FlashPlayer.prototype.getRelayUrl = function() {
+        var _self = this;
+        /* to be finished for querying relay sever */
+        _self.relayUrl = "http://sg-control-alpha.tplinkcloud.com/";
+        _self.state = devicePlayingState.RELAY_URL_READY;
+        _self.stateChangeCallback.fireWith(_self);
+    };
+
+    FlashPlayer.prototype.playerObj = null;
+    FlashPlayer.prototype.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
+
+    FlashPlayer.prototype.setupPlayer = function(args) {
+        
+    };
+    FlashPlayer.prototype.changeSource = function(args) {
+        
+    };
+    
+
 /*----------------------------device part-------------------------------------*/
     
-    function Device() {
-        $.ipc.Device.call(this, arguments);
-    };
-    $.ipc.inheritPrototype(Device, $.ipc.Device);
+    
 
     function DeviceList() {
         $.ipc.DeviceList.call(this, arguments);
@@ -750,7 +813,18 @@ $(function () {
     };
 
     DeviceListView.prototype.flashPlayVideo = function(dev) {
-        
+        if (dev) {
+            if (undefined == dev.flashPlayer) {
+                var tmpFlashPlayer = new FlashPlayer();
+                tmpFlashPlayer.device = this;
+                var tmpTimer = new Timer();
+                tmpTimer.timeout = this.relayVideoTime;
+                tmpFlashPlayer.timer = tmpTimer;
+                dev.flashPlayer = tmpFlashPlayer;
+            };
+            dev.flashPlayer.state = devicePlayingState.BEGIN_PLAY;
+            dev.flashPlayer.stateChangeCallback.fire();
+        };
     };
 
     DeviceListView.prototype.imgPlayVideo = function(dev) {
