@@ -547,30 +547,68 @@
 
     $.ipc = $.ipc || {};
 
-    var channelPrototype = {
-        url: null,
-        encrypt: null
+    function Channel() {
+        this.url = null;
+        this.encrypt = null;
+        this.videoCodec = null;
+        this.audioCodec = null;
+        this.name = null;
+    };
+    Channel.prototype.getRelaydCommand = function(device) {
+        if (undefined == device) {console.error("args error in getRelaydCommand")};
+        var localResolutionStr = this.generateLocalResolutionStr(device);
+        var relayResolutionStr = this.generateRelayResolutionStr(device);
+        var url = this.url;
+        var type = this.name;
+        return "relayd -s 'http://127.0.0.1:8080" + url + "?" + localResolutionStr +
+        "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" + 
+        device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
+        device.owner.token + "' -t '" + this.device.relayVideoTime + "'"; 
     };
 
     function DevicePostChannelVideo(){
-        this.videoCodec = null;
+        Channel.call(this, arguments);
         this.name = 'video';
     };
+    $.ipc.inheritPrototype(DevicePostChannelVideo, Channel);
+    DevicePostChannelVideo.prototype.generateLocalResolutionStr = function(dev){
+        if (undefined == dev) {console.error("args error in gen local res str")};
+        return "resolution=" + dev.currentVideoResolution.name;
+    };
+    DevicePostChannelVideo.prototype.generateRelayResolutionStr = function(dev){
+        if (undefined == dev) {console.error("args error in gen local res str")};
+        return "resolution=" + dev.currentVideoResolution.name;
+    };
+
 
     function DevicePostChannelAudio(){
-        this.audioCodec = null;
+        Channel.call(this, arguments);
         this.name = 'audio';
+    };
+    $.ipc.inheritPrototype(DevicePostChannelAudio, Channel);
+    DevicePostChannelAudio.prototype.generateLocalResolutionStr = function(dev){
+        if (undefined == dev) {console.error("args error in gen local res str")};
+        return "resolution=" + dev.product.audioCodec.name;
+    };
+    DevicePostChannelAudio.prototype.generateRelayResolutionStr = function(dev){
+        if (undefined == dev) {console.error("args error in gen local res str")};
+        return "resolution=" + dev.product.audioCodec.name;
     };
 
     function DevicePostChannelMixed(){
-        this.videoCodec = null;
-        this.audioCodec = null;
+        Channel.call(this, arguments);
         this.name = 'mixed';
     };
-
-    $.ipc.initClassPrototype(channelPrototype, DevicePostChannelVideo);
-    $.ipc.initClassPrototype(channelPrototype, DevicePostChannelAudio);
-    $.ipc.initClassPrototype(channelPrototype, DevicePostChannelMixed);
+    $.ipc.inheritPrototype(DevicePostChannelMixed, Channel);
+    DevicePostChannelMixed.prototype.generateLocalResolutionStr = function(dev){
+        if (undefined == dev) {console.error("args error in gen local res str")};
+        return "resolution=" + dev.currentVideoResolution.name + "&audio=" +
+                dev.product.audioCodec.name;
+    };
+    DevicePostChannelMixed.prototype.generateRelayResolutionStr = function(dev){
+        if (undefined == dev) {console.error("args error in gen local res str")};
+        return "resolution=" + dev.currentVideoResolution.name;
+    };
 
     $.ipc.DevicePostChannelVideo = DevicePostChannelVideo;
     $.ipc.DevicePostChannelAudio = DevicePostChannelAudio;
@@ -608,6 +646,7 @@
         this.pluginPlayer = null;
         this.firmwareDownloadPath = null;
         this.firmwareNewestVersion = null;
+        this.audioCodec = null;
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
@@ -659,6 +698,11 @@
     var mixedChannel = new $.ipc.DevicePostChannelMixed();
     mixedChannel.url = '/stream/mixed';
 
+    var pcmAudioCodec = new $.ipc.Codec();
+    pcmAudioCodec.name = "pcm";
+    var aacAudioCodec = new $.ipc.Codec();
+    aacAudioCodec.name = "aac";
+
     var NC200 = new IpcProduct();
     NC200.name = "NC200";
     NC200.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
@@ -667,6 +711,7 @@
     NC200.middleImgCssClass = "NC200-middle-img";
     NC200.playerType = NC200.getPlayerType(NC200.mimeType);
     NC200.postDataChannel = [videoChannel, audioChannel];
+    NC200.audioCodec = pcmAudioCodec;
     
     var NC210 = new IpcProduct();
     NC210.name = "NC210";
@@ -676,6 +721,7 @@
     NC210.middleImgCssClass = "NC210-middle-img";
     NC210.playerType = NC210.getPlayerType(NC210.mimeType);
     NC210.postDataChannel = [mixedChannel];
+    NC210.audioCodec = aacAudioCodec;
 
     var NC220 = new IpcProduct();
     NC220.name = "NC220";
@@ -685,6 +731,7 @@
     NC220.middleImgCssClass = "NC220-middle-img";
     NC220.playerType = NC220.getPlayerType(NC220.mimeType);
     NC220.postDataChannel = [videoChannel, audioChannel];
+    NC220.audioCodec = aacAudioCodec;
 
     var NC230 = new IpcProduct();
     NC230.name = "NC230";
@@ -694,6 +741,7 @@
     NC230.middleImgCssClass = "NC230-middle-img";
     NC230.playerType = NC230.getPlayerType(NC230.mimeType);
     NC230.postDataChannel = [mixedChannel];
+    NC230.audioCodec = aacAudioCodec;
     
     var NC250 = new IpcProduct();
     NC250.name = "NC250";
@@ -703,6 +751,7 @@
     NC250.middleImgCssClass = "NC250-middle-img";
     NC250.playerType = NC250.getPlayerType(NC250.mimeType);
     NC250.postDataChannel = [mixedChannel];
+    NC250.audioCodec = aacAudioCodec;
 
     var NC350 = new IpcProduct();
     NC350.name = "NC350";
@@ -712,6 +761,7 @@
     NC350.middleImgCssClass = "NC350-middle-img";
     NC350.playerType = NC350.getPlayerType(NC350.mimeType);
     NC350.postDataChannel = [mixedChannel];
+    NC350.audioCodec = aacAudioCodec;
 
     var NC450 = new IpcProduct();
     NC450.name = "NC450";
@@ -721,6 +771,7 @@
     NC450.middleImgCssClass = "NC450-middle-img";
     NC450.playerType = NC450.getPlayerType(NC450.mimeType);
     NC450.postDataChannel = [mixedChannel];
+    NC450.audioCodec = aacAudioCodec;
 
     $.ipc.NC200 = NC200;
     $.ipc.NC210 = NC210;
@@ -762,7 +813,7 @@
         this.flashPlayer = null;
 
         this.currentVideoResolution = null;
-        this.currentAudioResolution = null;
+        this.currentAudioCodec = null;
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -786,6 +837,7 @@
         var p = this.model.substring(0,5).toUpperCase();
         var tmpProduct = new $.ipc.IpcProduct();
         $.extend(true, tmpProduct, $.ipc[p]);
+        this.currentVideoResolution = tmpProduct.supportVideoResArr[0];
         this.product = tmpProduct;
     };
 
@@ -928,28 +980,14 @@
         }, $.xAjax.defaults.xType);
     };
 
-    Device.prototype.getRelaydCommand = function() {
+    Device.prototype.generateRelaydCommandArr = function() {
         var result = [];
-        for (var i = 0; i < this.product..length; i++) {
-            this.product.[i]
+        for (var i = 0; i < this.product.postDataChannel.length; i++) {
+            var c = this.product.postDataChannel[i];
+            var commandStr = c.generateRelaydCommand(this);
+            result.push(commandStr);
         };
-        var typeUrlMap = {
-            "video": "/getvideo",
-            "audio": "/getaudioblock",
-            "mixed": "/mixed"
-        };
-        var videoResolution = this.device.currentVideoResolution || this.device.product.prototype
-        var typeArgsMap = {
-            "video": "resolution=" + this.device.currentResolution,
-            "audio": "resolution=" + this.device.currentAudioResolution,
-            "mixed": "resolution=" + this.device.currentResolution + "&audio=aac"
-        };
-        return "relayd -s 'http://127.0.0.1:8080/stream" + 
-                typeUrlMap[type] + "?" + typeArgsMap[type] + "' -d '" + 
-                this.relayUrl + "relayservice?deviceid=" + this.device.id + 
-                "&type=" + type + "&" + typeArgsMap[type] + "' -a 'X-token: " +
-                this.device.owner.token + "' -t '" + this.device.relayVideoTime +
-                "'";
+        return result;
     };
 
     Device.prototype.validateIdFormat = function(tmpId) {
