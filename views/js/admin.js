@@ -458,7 +458,7 @@ $(function () {
         };
         var deviceIndex = this.model.findIndexForId(device.id);
         var deviceLi = $("#" + this.getDeviceLiDOMId(deviceIndex));
-        var imgCssClass = device.product.prototype.smallImgCssClass;
+        var imgCssClass = device.product.smallImgCssClass;
         var displayName = this.getDeviceDisplayName(device);
         var state = device.needForceUpgrade == 1 ? (this.stateTipsMap[device.systemStatus] || "") : "";
         var currentPageCssClass = this.getDevicePageCssClass(this.getDevicePageIndex(deviceIndex));
@@ -674,9 +674,9 @@ $(function () {
     DeviceListView.prototype.getPluginPlayerElement = function(dev) {
         if (undefined == dev) {console.error("args error in getPluginPlayerElement")};
         var player = null;
-        if (dev.product.prototype.playerType) {
-            var mimeType = dev.product.prototype.mimeType;
-            var playerElementId = dev.product.prototype.playerType.prototype.mimetypeCssMap[mimeType] || undefined;
+        if (dev.product.playerType) {
+            var mimeType = dev.product.mimeType;
+            var playerElementId = dev.product.playerType.prototype.mimetypeCssMap[mimeType] || undefined;
             player = document.getElementById(playerElementId);
         } else {
             console.error("current environment do not support plugin play");
@@ -688,7 +688,7 @@ $(function () {
         if (undefined == dev) {console.error("args error in isEnvSupportPluginPlay")};
         var result = false;
         var browserType = $.ipc.Browser.prototype.type;
-        var mt = dev.product.prototype.mimeType;
+        var mt = dev.product.mimeType;
         var player = this.getPluginPlayerElement(dev);
         if (player) {
             if (browserType == "MSIE") {
@@ -734,8 +734,8 @@ $(function () {
     };
 
     DeviceListView.prototype.feedPluginDownloadLink = function(dev) {
-        if (undefined != dev && this.isPluginPlayer(dev.product.prototype.playerType)) {
-            var playerType = dev.product.prototype.playerType;
+        if (undefined != dev && this.isPluginPlayer(dev.product.playerType)) {
+            var playerType = dev.product.playerType;
             var downloadLink = playerType.prototype.downloadPath;
             if (downloadLink) {
                 $(".plugin-download-link").attr("href", downloadLink);
@@ -760,7 +760,7 @@ $(function () {
     };
 
     DeviceListView.prototype.flashPlayVideo = function(dev) {
-        if (dev) {
+        /*if (dev) {
             if (undefined == dev.flashPlayer) {
                 var tmpFlashPlayer = new FlashPlayer();
                 tmpFlashPlayer.device = this;
@@ -771,7 +771,7 @@ $(function () {
             };
             dev.flashPlayer.state = devicePlayingState.BEGIN_PLAY;
             dev.flashPlayer.stateChangeCallback.fire();
-        };
+        };*/
     };
 
     DeviceListView.prototype.imgPlayVideo = function(dev) {
@@ -796,7 +796,7 @@ $(function () {
 
     DeviceListView.prototype.playVideo = function(dev) {
         if (undefined == dev) {console.error("args error in playVideo")};
-        var playerType = dev.product.prototype.playerType;
+        var playerType = dev.product.playerType;
         if (dev.isOnline == 1) {
             if (this.isPluginPlayer(playerType)) {
                 if (this.isEnvSupportPluginPlay(dev)) {
