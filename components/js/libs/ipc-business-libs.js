@@ -814,6 +814,8 @@
 
         this.currentVideoResolution = null;
         this.currentAudioCodec = null;
+
+        this.isActive = false;
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -1035,7 +1037,6 @@
         this.url == null;
         this.upgradeList = [];
         this.devices = [];
-        this.activeDeviceIndex = null;
         this.lastActiveDeviceId = null;
     };
 
@@ -1056,7 +1057,6 @@
         var data = {};
 
         var changeStateFunc = function(response){
-            this.lastActiveDeviceId = this.findIdForIndex(this.activeDeviceIndex);
             var oldDevices = this.devices;
             
             this.devices = [];
@@ -1082,26 +1082,45 @@
                 !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args);
             };
 
-            this.activeDeviceIndex = this.findIndexForId(this.lastActiveDeviceId) || 0;
-            this.activeDeviceChanged = this.lastActiveDeviceId != this.devices[this.activeDeviceIndex].id;
+            var activeDeviceArr = this.findActiveDeviceArr();
+            if (activeDeviceArr.length <= 0 && this.devices.length > 0) {
+                this.changeActiveDevice(undefined, this.devices[0]);
+            };
         };
         
         this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
     };
 
-    DeviceList.prototype.setActiveDeviceIndex = function(newIndex) {
-        if (undefined == newIndex || newIndex < 0 || newIndex >= this.devices.length) {
-            console.error("args error in setActiveDeviceIndex");
+    DeviceList.prototype.findActiveDeviceArr = function() {
+        var result = [];
+        for (var i = 0; i < this.devices.length; i++) {
+            if(this.devices[i].isActive == true) {
+                result.push(this.devices[i]);
+            }
         };
-        if (newIndex != this.activeDeviceIndex) {
-            var activeDev = this.devices[newIndex];
-            if (activeDev) {
-                this.lastActiveDeviceId = this.devices[this.activeDeviceIndex].id;
-                this.activeDeviceIndex = newIndex;
-                this.activeDeviceChanged = this.lastActiveDeviceId != this.devices[this.activeDeviceIndex].id;
+        return result;
+    };
+
+    DeviceList.prototype.findFirstActiveDevIndex = function() {
+        var index = null;
+        for (var i = 0; i < this.devices.length; i++) {
+            if (this.devices[i].isActive == true) {
+                index = i;
+                break;
             };
         };
-        
+        return index;
+    };
+
+    DeviceList.prototype.changeActiveDevice = function(srcDevice, destDevice) {
+        if (undefined == destDevice) {
+            console.error("args error in setActiveDevice");
+        };
+        if (srcDevice != undefined) {
+            srcDevice.isActive = false;
+        };
+        destDevice.isActive = true;
+        this.activeDeviceChanged = true;
     };
 
     DeviceList.prototype.findIdForIndex = function(devIndex) {
@@ -1170,14 +1189,6 @@
         };
 
         this.makeAjaxRequest({url: "/init.php", data: data, callbacks: inputCallbacks, changeState: $.noop, extendAjaxOptions: extendAjaxOptions});
-    };
-
-    DeviceList.prototype.isActiveDevice = function(device) {
-        if (undefined == device || !(device instanceof $.ipc.Device)) {
-            console.error("args error in isActiveDevice");
-        };
-
-        return this.findIndexForId(device.id) == this.activeDeviceIndex;
     };
     
     $.ipc.DeviceList = DeviceList;

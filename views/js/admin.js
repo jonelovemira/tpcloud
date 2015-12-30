@@ -294,8 +294,8 @@ $(function () {
 
     DeviceListController.prototype.changeDeviceName = function(newName) {
         var currentController = this;
-        var activeDev = this.model.devices[this.model.activeDeviceIndex];
-        if (activeDev) {
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev && activeDev.isActive) {
             if (newName != activeDev.name) {
                 var args = {
                     id: activeDev.id,
@@ -304,12 +304,12 @@ $(function () {
                 var inputCallbacks = {
                     "errorCodeCallbackMap": {
                         0: function() {
-                            if(currentController.model.isActiveDevice(activeDev)){
+                            if(activeDev.isActive){
                                 currentController.view.renderMsg(tips.actions.changeIpcName.success);
                             }
                         },
                         "-1": function() {
-                            if(currentController.model.isActiveDevice(activeDev)){
+                            if(activeDev.isActive){
                                 currentController.view.renderMsg(tips.actions.changeIpcName.failed);
                             }
                         }
@@ -327,8 +327,8 @@ $(function () {
 
     DeviceListController.prototype.removeDevice = function() {
         var currentController = this;
-        var activeDev = this.model.devices[this.model.activeDeviceIndex];
-        if (activeDev) {
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev && activeDev.isActive) {
             var args = {
                 id: activeDev.id,
                 account: activeDev.owner.account
@@ -339,7 +339,7 @@ $(function () {
                         currentController.getDeviceList();
                     },
                     "-1": function() {
-                        if(currentController.model.isActiveDevice(activeDev)){
+                        if(activeDev.isActive){
                             currentController.view.renderMsg(tips.actions.deviceOperate.failed);
                         }
                     }
@@ -362,8 +362,10 @@ $(function () {
         if (undefined == tmpNewActiveDeviceIndex) {
             console.error("can not find device index");
         };
-        if (tmpNewActiveDeviceIndex != this.model.activeDeviceIndex) {
-            this.model.setActiveDeviceIndex(tmpNewActiveDeviceIndex);
+        var lastActiveDevice = this.model.findActiveDeviceArr()[0];
+        var newActiveDevice = this.model.devices[tmpNewActiveDeviceIndex];
+        if (lastActiveDevice != newActiveDevice) {
+            this.model.changeActiveDevice(lastActiveDevice, newActiveDevice);
             this.view.updateActiveDeviceCss();
             this.view.clearBoardAndShow();
         };
@@ -371,7 +373,7 @@ $(function () {
 
     DeviceListController.prototype.upgradeDevice = function() {
         var currentController = this;
-        var activeDev = this.model.devices[this.model.activeDeviceIndex];
+        var activeDev = this.model.findActiveDeviceArr()[0];
         if (activeDev) {
             if (activeDev.isOnline) {
                 var args = {
@@ -383,7 +385,7 @@ $(function () {
                 var inputCallbacks = {
                     "errorCodeCallbackMap": {
                         "-1": function() {
-                            if(currentController.model.isActiveDevice(activeDev)){
+                            if(activeDev.isActive){
                                 currentController.view.renderMsg(tips.actions.deviceOperate.failed);
                             }
                         }
@@ -508,14 +510,22 @@ $(function () {
 
     DeviceListView.prototype.updateActiveDeviceCss = function() {
         $(".dev-item").removeClass("dev-selected");
-        $("#" + this.getDeviceLiDOMId(this.model.activeDeviceIndex)).addClass("dev-selected");
+        var activeDeviceIndex = this.model.findFirstActiveDevIndex();
+        if (undefined == activeDeviceIndex) {
+            console.error("args error in updateActiveDeviceCss");
+        } else {
+            $("#" + this.getDeviceLiDOMId(activeDeviceIndex)).addClass("dev-selected");
+        };
     };
 
     DeviceListView.prototype.renderLeftListMenu = function() {
         this.menuContainer.empty();
-        if (this.model.activeDeviceIndex >= 0) {
+        var activeDeviceIndex = this.model.findFirstActiveDevIndex();
+        if (undefined == activeDeviceIndex) {
+            console.error("args error in renderLeftListMenu");
+        } else {
             this.maxPageIndex = this.getDevicePageIndex(this.model.devices.length - 1);
-            this.curPageIndex = this.getDevicePageIndex(this.model.activeDeviceIndex);
+            this.curPageIndex = this.getDevicePageIndex(activeDeviceIndex);
 
             for (var i = 0; i < this.model.devices.length; i++) {
                 this.appendDeviceLi(this.model.devices[i], i); 
@@ -577,23 +587,27 @@ $(function () {
 
     DeviceListView.prototype.clearBoardAndShow = function() {
         if (this.model.devices.length > 0) {
-            var activeDev = this.model.devices[this.model.activeDeviceIndex];
-            if (activeDev.isSameRegion) {
-                if (activeDev.needForceUpgrade == 1) {
-                    this.commonTipsManageBoard();
-                    this.showUpgradeState(activeDev);
-                } else {
-                    var activeTab = this.findActiveNavTab();
-                    if (activeTab == "Settings") {
-                        this.settingManageBoard();
-                        this.showSetting();
+            var activeDev = this.model.findActiveDeviceArr()[0];
+            if (activeDev) {
+                if (activeDev.isSameRegion) {
+                    if (activeDev.needForceUpgrade == 1) {
+                        this.commonTipsManageBoard();
+                        this.showUpgradeState(activeDev);
                     } else {
-                        this.showLiveView();
+                        var activeTab = this.findActiveNavTab();
+                        if (activeTab == "Settings") {
+                            this.settingManageBoard();
+                            this.showSetting();
+                        } else {
+                            this.showLiveView();
+                        }
                     }
+                } else {
+                    this.commonTipsManageBoard();
+                    this.showCrossRegionTip(activeDev);
                 }
             } else {
-                this.commonTipsManageBoard();
-                this.showCrossRegionTip(activeDev);
+                console.log("args error in clearBoardAndShow");
             }
         } else {
             this.commonTipsManageBoard();
@@ -822,7 +836,7 @@ $(function () {
 
     DeviceListView.prototype.showLiveView = function() {
         if (this.isNeedRefreshPlaying()) {
-            var activeDev = this.model.devices[this.model.activeDeviceIndex];
+            var activeDev = this.model.findActiveDeviceArr()[0];
             this.hideViewSettingContent();
             this.liveViewManageBoard();
             this.playVideo(activeDev);
@@ -909,7 +923,7 @@ $(function () {
             console.error("args error in showUpgradeState");
         };
 
-        if (this.model.isActiveDevice(device)) {
+        if (device.isActive) {
             var statusFuncMap = {
                 "normal": this.showNeedOrFailedUpgrade,
                 "downloading": this.showFirmwareDownloading,
@@ -944,7 +958,7 @@ $(function () {
     };
 
     DeviceListView.prototype.showSetting = function() {
-        var activeDev = this.model.devices[this.model.activeDeviceIndex];
+        var activeDev = this.model.findActiveDeviceArr()[0];
         if (activeDev) {
             $("#setting .setting-content").show();
             this.showDeviceSetting(activeDev);
@@ -953,7 +967,9 @@ $(function () {
                 var args = {id: activeDev.id, token: activeDev.owner.token, appServerUrl: activeDev.appServerUrl};
                 activeDev.getLocalInfo(args);
             };
-        };
+        } else {
+            console.error("args error in showSetting");
+        }
     };
 
     /***************************update callback *************************/
@@ -964,7 +980,7 @@ $(function () {
 
         this.updateDeviceLi(device);
 
-        if (this.model.isActiveDevice(device)) {
+        if (device.isActive) {
             this.clearBoardAndShow();
         };
     };
