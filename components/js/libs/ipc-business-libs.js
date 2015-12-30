@@ -514,27 +514,35 @@
 
     $.ipc = $.ipc || {};
 
-    function RESOLUTION_VIDEO_VGA(){};
-    RESOLUTION_VIDEO_VGA.prototype.name = "VGA";
-    RESOLUTION_VIDEO_VGA.prototype.width = 640;
-    RESOLUTION_VIDEO_VGA.prototype.height = 480;
-    RESOLUTION_VIDEO_VGA.prototype.str = RESOLUTION_VIDEO_VGA.prototype.width + "*" + RESOLUTION_VIDEO_VGA.prototype.height;
-    function RESOLUTION_VIDEO_QVGA(){};
-    RESOLUTION_VIDEO_QVGA.prototype.name = "QVGA";
-    RESOLUTION_VIDEO_QVGA.prototype.width = 320;
-    RESOLUTION_VIDEO_QVGA.prototype.height = 240;
-    RESOLUTION_VIDEO_QVGA.prototype.str = RESOLUTION_VIDEO_QVGA.prototype.width + "*" + RESOLUTION_VIDEO_QVGA.prototype.height;
-    function RESOLUTION_VIDEO_HD(){};
-    RESOLUTION_VIDEO_HD.prototype.name = "HD";
-    RESOLUTION_VIDEO_HD.prototype.width = 1280;
-    RESOLUTION_VIDEO_HD.prototype.height = 720;
-    RESOLUTION_VIDEO_HD.prototype.str = RESOLUTION_VIDEO_HD.prototype.width + "*" + RESOLUTION_VIDEO_HD.prototype.height;
-    function RESOLUTION_VIDEO_FULLHD(){};
-    RESOLUTION_VIDEO_FULLHD.prototype.name = "FullHD";
-    RESOLUTION_VIDEO_FULLHD.prototype.width = 1920;
-    RESOLUTION_VIDEO_FULLHD.prototype.height = 1080;
-    RESOLUTION_VIDEO_FULLHD.prototype.str = RESOLUTION_VIDEO_FULLHD.prototype.width + "*" + RESOLUTION_VIDEO_FULLHD.prototype.height;
+    function Resolution(){
+        this.name = null;
+        this.width = null;
+        this.height = null;
+        this.str = null;
+    };
 
+    var RESOLUTION_VIDEO_VGA = new Resolution();
+    RESOLUTION_VIDEO_VGA.name = "VGA";
+    RESOLUTION_VIDEO_VGA.width = 640;
+    RESOLUTION_VIDEO_VGA.height = 480;
+    RESOLUTION_VIDEO_VGA.str = RESOLUTION_VIDEO_VGA.width + "*" + RESOLUTION_VIDEO_VGA.height;
+    var RESOLUTION_VIDEO_QVGA = new Resolution();
+    RESOLUTION_VIDEO_QVGA.name = "QVGA";
+    RESOLUTION_VIDEO_QVGA.width = 320;
+    RESOLUTION_VIDEO_QVGA.height = 240;
+    RESOLUTION_VIDEO_QVGA.str = RESOLUTION_VIDEO_QVGA.width + "*" + RESOLUTION_VIDEO_QVGA.height;
+    var RESOLUTION_VIDEO_HD = new Resolution();
+    RESOLUTION_VIDEO_HD.name = "HD";
+    RESOLUTION_VIDEO_HD.width = 1280;
+    RESOLUTION_VIDEO_HD.height = 720;
+    RESOLUTION_VIDEO_HD.str = RESOLUTION_VIDEO_HD.width + "*" + RESOLUTION_VIDEO_HD.height;
+    var RESOLUTION_VIDEO_FULLHD = new Resolution();
+    RESOLUTION_VIDEO_FULLHD.name = "FullHD";
+    RESOLUTION_VIDEO_FULLHD.width = 1920;
+    RESOLUTION_VIDEO_FULLHD.height = 1080;
+    RESOLUTION_VIDEO_FULLHD.str = RESOLUTION_VIDEO_FULLHD.width + "*" + RESOLUTION_VIDEO_FULLHD.height;
+
+    $.ipc.Resolution = Resolution;
     $.ipc.RESOLUTION_VIDEO_VGA = RESOLUTION_VIDEO_VGA;
     $.ipc.RESOLUTION_VIDEO_QVGA = RESOLUTION_VIDEO_QVGA;
     $.ipc.RESOLUTION_VIDEO_HD = RESOLUTION_VIDEO_HD;
@@ -554,8 +562,8 @@
         this.audioCodec = null;
         this.name = null;
     };
-    Channel.prototype.getRelaydCommand = function(device) {
-        if (undefined == device) {console.error("args error in getRelaydCommand")};
+    Channel.prototype.generateRelaydCommand = function(device) {
+        if (undefined == device) {console.error("args error in generateRelaydCommand")};
         var localResolutionStr = this.generateLocalResolutionStr(device);
         var relayResolutionStr = this.generateRelayResolutionStr(device);
         var url = this.url;
@@ -563,7 +571,7 @@
         return "relayd -s 'http://127.0.0.1:8080" + url + "?" + localResolutionStr +
         "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" + 
         device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
-        device.owner.token + "' -t '" + this.device.relayVideoTime + "'"; 
+        device.owner.token + "' -t '" + device.relayVideoTime + "'"; 
     };
 
     function DevicePostChannelVideo(){
@@ -579,7 +587,6 @@
         if (undefined == dev) {console.error("args error in gen local res str")};
         return "resolution=" + dev.currentVideoResolution.name;
     };
-
 
     function DevicePostChannelAudio(){
         Channel.call(this, arguments);
@@ -807,13 +814,15 @@
         this.systemStatus = null;
         this.needForceUpgrade = null;
         this.fwUrl = null;
+        this.relayVideoTime = 600;
 
         this.hasUpgradOnce = null;
         this.product = null;
-        this.flashPlayer = null;
+        this.nonPluginPlayer = null;
 
         this.currentVideoResolution = null;
         this.currentAudioCodec = null;
+        this.relayUrl = null;
 
         this.isActive = false;
     };
@@ -982,12 +991,12 @@
         }, $.xAjax.defaults.xType);
     };
 
-    Device.prototype.generateRelaydCommandArr = function() {
-        var result = [];
+    Device.prototype.generateRelaydCommand = function() {
+        var result = {};
         for (var i = 0; i < this.product.postDataChannel.length; i++) {
             var c = this.product.postDataChannel[i];
             var commandStr = c.generateRelaydCommand(this);
-            result.push(commandStr);
+            result[c.name] = commandStr;
         };
         return result;
     };
@@ -1474,6 +1483,7 @@
         this.ELBcookie = null;
         this.resId = null;
         this.state = devicePlayingState.IDLE;
+        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
     };
     $.ipc.inheritPrototype(Player, $.ipc.Model);
     var playerErrorCodeInfo = {
@@ -1490,26 +1500,34 @@
     };
 
     Player.prototype.flashPlayerStateChangeHandler = function() {
-        var stateLogicMap = {};
-        stateLogicMap[devicePlayingState.IDLE] = this.back2Idle;
-        stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getRelayUrl;
-        stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
-        stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
-        stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
-        stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
+        if (this.device.isActive == false) {
+            this.back2Idle();
+        } else {
+            var stateLogicMap = {};
+            stateLogicMap[devicePlayingState.IDLE] = this.back2Idle;
+            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getRelayUrl;
+            stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
+            stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
+            stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
+            stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
 
-        var defaultFunc = function() {
-            console.log("unkonw current state: " + currentState + ", back to idle");
-            this.playState = devicePlayingState.IDLE;
-            this.stateChangeCallback.fireWith(this);
-        };
-
-        var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
-        contextFunc();
+            var defaultFunc = function() {
+                console.log("unkonw current state: " + currentState + ", back to idle");
+                this.playState = devicePlayingState.IDLE;
+                this.stateChangeCallback.fireWith(this);
+            };
+            var currentState = this.state;
+            var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
+            contextFunc();
+        }
     };
 
-    Player.prototype.stateChangeCallback = $.Callbacks("unique stopOnFalse");
-    
+    Player.prototype.initFlashPlayer = function() {
+        this.stateChangeCallback.empty();
+        var contextFunc = $.proxy(this.flashPlayerStateChangeHandler, this);
+        this.stateChangeCallback.add(contextFunc);
+    };
+
     Player.prototype.generateAjaxUrl = function(args) {
         if (undefined == args.appServerUrl || undefined == args.token) {
             console.error("args error in generateAjaxUrl");
@@ -1525,28 +1543,53 @@
                 "type": "relay"
             }
         });
+        var retryCount = 0;
+        var retryLimit = 3;
         var changeStateFunc = function(response) {
             _self.relayUrl = response.result.relayUrl;
+            _self.device.relayUrl = response.result.relayUrl;
             _self.state = devicePlayingState.RELAY_URL_READY;
             _self.stateChangeCallback.fireWith(_self);
         };
 
-        this.makeAjaxRequest({
-            url: this.generateAjaxUrl(args), 
+        var extendAjaxOptions = {
+            error: function(xhr) {
+                retryCount += 1;
+                if (retryCount < retryLimit) {
+                    _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                } else {
+                    console.log("xhr error: ", xhr);
+                }
+            }
+        };
+
+        var requestArgs = {
+            url: _self.generateAjaxUrl({
+                appServerUrl: _self.device.appServerUrl,
+                token: _self.device.owner.token,
+            }), 
             data: data, 
             callbacks: inputCallbacks, 
             changeState: changeStateFunc, 
-            errCodeStrIndex: "error_code"
-        }, $.xAjax.defaults.xType);
+            errCodeStrIndex: "error_code",
+            extendAjaxOptions: extendAjaxOptions
+        };
+
+        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
-    Player.prototype.generateRelaydCommand = function(type) {
-        
+    Player.prototype.requestSingleRelayService = function(reachedFlag, key) {
+        var _self = this;
+        var data = 
     };
 
     Player.prototype.requestRelayService = function() {
-        var _self = this;
-
+        var reachedFlag = {};
+        var commandMap = this.device.generateRelaydCommand();
+        for (var key in commandMap) {
+            reachedFlag[key] = false;
+            this.requestSingleRelayService(reachedFlag, key);
+        };
     };
 
     Player.prototype.playerObj = null;
@@ -1560,4 +1603,5 @@
     };
 
     $.ipc.Player = Player;
+    $.ipc.devicePlayingState = devicePlayingState;
 })(jQuery);

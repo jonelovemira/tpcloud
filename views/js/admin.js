@@ -773,19 +773,22 @@ $(function () {
         
     };
 
+    var devicePlayingState = $.ipc.devicePlayingState;
+
     DeviceListView.prototype.flashPlayVideo = function(dev) {
-        /*if (dev) {
-            if (undefined == dev.flashPlayer) {
-                var tmpFlashPlayer = new FlashPlayer();
-                tmpFlashPlayer.device = this;
+        if (dev) {
+            if (undefined == dev.nonPluginPlayer) {
+                var tmpPlayer = new $.ipc.Player();
+                tmpPlayer.device = dev;
                 var tmpTimer = new Timer();
                 tmpTimer.timeout = this.relayVideoTime;
-                tmpFlashPlayer.timer = tmpTimer;
-                dev.flashPlayer = tmpFlashPlayer;
+                tmpPlayer.timer = tmpTimer;
+                dev.nonPluginPlayer = tmpPlayer;
+                dev.nonPluginPlayer.initFlashPlayer();
             };
-            dev.flashPlayer.state = devicePlayingState.BEGIN_PLAY;
-            dev.flashPlayer.stateChangeCallback.fire();
-        };*/
+            dev.nonPluginPlayer.state = devicePlayingState.BEGIN_PLAY;
+            dev.nonPluginPlayer.stateChangeCallback.fire();
+        };
     };
 
     DeviceListView.prototype.imgPlayVideo = function(dev) {
