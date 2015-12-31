@@ -732,13 +732,13 @@ $(function () {
             var browserType = $.ipc.Browser.prototype.type;
             if (browserType == "MSIE") {
                 var version = player.iepluginversion;
-                result = $.ipc.compareVersion(version, "1.20") >= 0;
+                result = $.ipc.compareVersion(version, "1.20") < 0;
             } else {
-                var version = obj.version;
+                var version = player.version;
                 if (navigator.userAgent.indexOf("Mac", 0) >= 0) {
-                    result = $.ipc.compareVersion(version, "2.8") >= 0;
+                    result = $.ipc.compareVersion(version, "2.8") < 0;
                 } else {
-                    result = $.ipc.compareVersion(version, "2.7") >= 0;
+                    result = $.ipc.compareVersion(version, "2.7") < 0;
                 }
             }
             return result;
@@ -811,18 +811,33 @@ $(function () {
         }
     };
 
+    DeviceListView.prototype.showPluginPlayer = function(playerType, dev) {
+        if (undefined == playerType || undefined == dev) {
+            console.error("args error in showPluginPlayer");
+        };
+
+        $("#plugin-player-set").show();
+        $("#plugin-player-container").show();
+        $("#plugin-player-container").children().hide();
+        var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
+        $("#" + id).show();
+    };
+
     DeviceListView.prototype.playVideo = function(dev) {
         if (undefined == dev) {console.error("args error in playVideo")};
         var playerType = dev.product.playerType;
         if (dev.isOnline == 1) {
             if (this.isPluginPlayer(playerType)) {
+                this.showPluginPlayer(playerType, dev);
                 if (this.isEnvSupportPluginPlay(dev)) {
                     if (this.isPluginNeedUpgrade(dev)) {
+                        this.hidePluginPlayers();
                         this.showPluginUpdateNeeded(dev);
                     } else {
                         this.pluginPlayVideo(dev);
                     }
                 } else {
+                    this.hidePluginPlayers();
                     this.showPluginNeed(dev);
                 }
             } else if (playerType == $.ipc.FLASH_PLAYER) {

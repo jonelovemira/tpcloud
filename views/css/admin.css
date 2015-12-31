@@ -871,11 +871,9 @@
 }
 
 .ie-plugin-player-obj {
-    display: none;
     border: 1px;
 }
 .non-ie-plugin-player-obj {
-    display: none;
     width: 640;
     height: 480;
 }

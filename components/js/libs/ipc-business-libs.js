@@ -105,7 +105,7 @@
 
         $.extend(true, ajaxOptions, inputArgs["extendAjaxOptions"]);
 
-        $.xAjax(ajaxOptions, xDomain);
+        return $.xAjax(ajaxOptions, xDomain);
     };
 
     Model.prototype.validateAttr = function (inputArgs) {
@@ -823,6 +823,7 @@
         this.currentVideoResolution = null;
         this.currentAudioCodec = null;
         this.relayUrl = null;
+        this.ELBcookie = null;
 
         this.isActive = false;
     };
@@ -1479,9 +1480,15 @@
         $.ipc.Model.call(this, arguments);
         this.timer = null;
         this.device = null;
-        this.relayUrl = null;
-        this.ELBcookie = null;
-        this.resId = null;
+
+        this.queryIsRelayReadyIntervalObj = null;
+        this.queryIsRelayReadyAjaxArr = [];
+        this.queryIsRelayReadyIntervalTime = 3000;
+
+        this.getResIdIntervalObj = null;
+        this.getResIdReadyAjaxArr = [];
+        this.getResIdIntervalTime = 3000;
+
         this.state = devicePlayingState.IDLE;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
     };
@@ -1504,7 +1511,6 @@
             this.back2Idle();
         } else {
             var stateLogicMap = {};
-            stateLogicMap[devicePlayingState.IDLE] = this.back2Idle;
             stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getRelayUrl;
             stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
             stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
@@ -1513,8 +1519,7 @@
 
             var defaultFunc = function() {
                 console.log("unkonw current state: " + currentState + ", back to idle");
-                this.playState = devicePlayingState.IDLE;
-                this.stateChangeCallback.fireWith(this);
+                this.back2Idle();
             };
             var currentState = this.state;
             var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
@@ -1546,7 +1551,6 @@
         var retryCount = 0;
         var retryLimit = 3;
         var changeStateFunc = function(response) {
-            _self.relayUrl = response.result.relayUrl;
             _self.device.relayUrl = response.result.relayUrl;
             _self.state = devicePlayingState.RELAY_URL_READY;
             _self.stateChangeCallback.fireWith(_self);
@@ -1578,9 +1582,58 @@
         _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
-    Player.prototype.requestSingleRelayService = function(reachedFlag, key) {
+    Player.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
         var _self = this;
-        var data = 
+        var data = JSON.stringify({
+            "method": "requestRelayService",
+            "params": {
+                "account": _self.device.owner.account,
+                "devId": _self.device.id,
+                "command": command
+            }
+        });
+
+        var retryCount = 0;
+        var retryLimit = 3;
+        var changeStateFunc = function(response) {
+            reachedFlag[key] = true;
+            var isAllReached = true;
+            for (var r in reachedFlag) {
+                if (!reachedFlag[r]) {
+                    isAllReached = false;
+                };
+            };
+
+            if (isAllReached) {
+                _self.state = devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS;
+                _self.stateChangeCallback.fireWith(_self);
+            };
+        };
+
+        var extendAjaxOptions = {
+            error: function(xhr) {
+                retryCount += 1;
+                if (retryCount < retryLimit) {
+                    _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                } else {
+                    console.log("xhr error: ", xhr);
+                }
+            }
+        };
+
+        var requestArgs = {
+            url: _self.generateAjaxUrl({
+                appServerUrl: _self.device.appServerUrl,
+                token: _self.device.owner.token,
+            }), 
+            data: data, 
+            callbacks: undefined, 
+            changeState: changeStateFunc, 
+            errCodeStrIndex: "error_code",
+            extendAjaxOptions: extendAjaxOptions
+        };
+
+        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
     Player.prototype.requestRelayService = function() {
@@ -1588,8 +1641,66 @@
         var commandMap = this.device.generateRelaydCommand();
         for (var key in commandMap) {
             reachedFlag[key] = false;
-            this.requestSingleRelayService(reachedFlag, key);
         };
+        for (var key in commandMap) {
+            this.requestSingleRelayService(reachedFlag, key, commandMap[key]);
+        };
+    };
+
+    Player.prototype.isRelayReady = function() {
+        var _self = this;
+        var data = JSON.stringify({
+            "method": "isRelayReady",
+            "params": {
+                "devId": _self.device.id
+            }
+        });
+
+        var changeStateFunc = function(response) {
+            if (response.result.realServerKey.indexOf("AWSELB") >= 0) {
+                clearInterval(_self.queryIsRelayReadyIntervalObj);
+                for (var i = 0; i < _self.queryIsRelayReadyAjaxArr.length; i++) {
+                    _self.queryIsRelayReadyAjaxArr[i].abort();
+                };
+
+                _self.device.ELBcookie = response.result.realServerKey;
+                var cookieKey = currentDevice.ELBcookie.split("=")[0];
+                var cookieValue = currentDevice.ELBcookie.split("=")[1];
+                document.cookie = cookieKey + "=" + cookieValue + "; domain=.tplinkcloud.com";
+
+                _self.state = devicePlayingState.RELAY_READY;
+                _self.stateChangeCallback.fireWith(_self);
+            };
+        };
+
+        var requestArgs = {
+            url: _self.generateAjaxUrl({
+                appServerUrl: _self.device.appServerUrl,
+                token: _self.device.owner.token,
+            }), 
+            data: data, 
+            callbacks: undefined, 
+            changeState: changeStateFunc, 
+            errCodeStrIndex: "error_code"
+        };
+
+        clearInterval(_self.queryIsRelayReadyIntervalObj);
+        _self.queryIsRelayReadyIntervalObj = setInterval(function() {
+            var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType); 
+            _self.queryIsRelayReadyAjaxArr.push(ajaxObj);
+        }, _self.queryIsRelayReadyIntervalTime);
+
+    };
+
+    Player.prototype.queryResid = function() {
+        var _self = this;
+        var data = JSON.stringify({
+            
+        });
+    };
+
+    Player.prototype.play = function() {
+        // body...
     };
 
     Player.prototype.playerObj = null;
