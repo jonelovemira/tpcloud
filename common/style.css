@@ -157,7 +157,7 @@ html{
 	margin: 0 5px 0 0px;
 }
 
-#maincontent {
+#main-content {
 	padding-bottom: 50px;
 	margin: 0 auto;
 	position: relative;
@@ -273,13 +273,13 @@ ul {
     list-style-type: none;
 }
 
-#maincontainer {
+#main-container {
     background: none repeat scroll 0 0 #EEEEEE;
     height: auto;
     width: 100%;
 }
 
-.navcontain {
+.nav-container {
     background: none repeat scroll 0 0 #169FD7;
     display: block;
     height: 36px;
@@ -288,7 +288,7 @@ ul {
     width: 100%;
 }
 
-.navcontain-inner {
+.nav-container-inner {
     height: 36px;
     margin: 0 auto;
     width: 1200px;
@@ -318,7 +318,7 @@ ul {
     width: 126px;
 }
 
-.navcontain a:link, .navcontain a:visited {
+.nav-container a:link, .nav-container a:visited {
     color: #fff;
     font-weight: normal;
     text-decoration: none;

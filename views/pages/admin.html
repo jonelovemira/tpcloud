@@ -13,9 +13,9 @@
 {% endblock %}
 
 {% block body %}
-<div id="maincontainer">
-    <div class="navcontain">
-        <div class= "navcontain-inner">
+<div id="main-container">
+    <div class="nav-container">
+        <div class= "nav-container-inner">
             <ul class="navstitle">
                 <li class="navstitle-cell">
                     <span id="device" class="navstitle-title navselected"  title="Live View" >
@@ -31,8 +31,15 @@
         </div>
     </div>
     <div id="display-main-board">
-        <div class="maincontent device-content">
-            <div class="voidobj">
+        <div class="main-content device-content">
+            <div id="sidebar" class="scrollable">
+                <div id="dev-page-ul">
+                    <span id="dev-left-arrow" class="ipcpag-cell"></span>
+                    <span id="dev-right-arrow" class="ipcpag-cell"></span>
+                </div>
+                <ul class="accordion items" id="accordion"></ul>
+            </div>
+            <div class="play-or-set">
                 <div class="admin-nav">
                     <ul class="admin-nav-ul">
                         <li id="live-view-tab" class="admin-nav-li admin-nav-li-select">
@@ -72,13 +79,16 @@
                         </div>
                         <div id="loading-img-container"> <img id="loading-img" src="../img/admin/loadings.gif"  alt="loading" /> <span id="loading-tips-text">Loading</span> </div>
                         <div class="control-board">
-                            <div id="control-board-disable-cover"></div>
                             <div id="video-play-control">
                                 <ul>
                                     <li class="play-control-button" title="Take a picture" id="take-picture"></li>
-                                    <li class="play-control-button" title="Recording" id="video-record"></li>
+                                    <li class="play-control-button to-be-record" title="Recording" id="video-record"></li>
                                 </ul>
-                                <div id = "videovolumectrl"> <span id="videovolumestart" class="videoctrl"> <span class="videoimg videovolumestartimg" title="Mute"></span> </span> <span id="videovolumestop" class="videoctrl" style="display: none;"> <span class="videoimg videovolumestopimg" title="Recover"></span> </span> </div>
+                                <div id="video-volume-ctrl">
+                                    <span >
+                                        <span class="plugin-video-icon volume-open" title="Mute"></span>
+                                    </span>
+                                </div>
                                 <div class="toolbar-volumeset volume-offon-show">
                                     <div id="volume-bar" class="tpcamera-bar watchmode-bar"></div>
                                 </div>
@@ -92,9 +102,13 @@
                                     </select>
                                 </div>
                                 <div id="videozoomul" class="watchmode">
-                                    <div id="zoomulreduse" class="videoctrl"> <span class="videoimg zoomulreduseimg" title="Zoom"></span> </div>
+                                    <div id="zoomulreduse" class="videoctrl">
+                                        <span class="plugin-video-icon zoomulreduseimg" title="Zoom"></span>
+                                    </div>
                                     <div id="zoom-bar" class="tpcamera-bar watchmode-bar"></div>
-                                    <div id="zoomulplus" class="videoctrl videorightimg"> <span class="videoimg zoomulplusimg" title="Zoom"></span> </div>
+                                    <div id="zoomulplus" class="videoctrl videorightimg">
+                                        <span class="plugin-video-icon zoomulplusimg" title="Zoom"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -289,15 +303,9 @@
                 </div>
                 
             </div>
-            <div id="sidebar" class="scrollable">
-                <div id="dev-page-ul">
-                    <span id="dev-left-arrow" class="ipcpag-cell"></span>
-                    <span id="dev-right-arrow" class="ipcpag-cell"></span>
-                </div>
-                <ul class="accordion items" id="accordion"></ul>
-            </div>
+            
         </div>
-        <div class="maincontent account-content">
+        <div class="main-content account-content">
             <div class="account-information">
                 <div class="content-title content-cell">
                     <span class="content-title-img"></span>
@@ -363,7 +371,7 @@
 <script type="text/javascript" src="../../components/widget/form/js/scrollbar.js"></script>
 <script type="text/javascript" src="../../components/widget/form/js/select.js"></script>
 <script type="text/javascript" src="../../components/js/player/flowplayer/flowplayer.min.js"></script>
-<script type="text/javascript" src="../../components/js/player/jwplayer/jwplayer.min.js"></script>
+<script type="text/javascript" src="../../components/js/player/jwplayer/jwplayer.js"></script>
 <script>jwplayer.key="Q7prBpNAUq59WydJuuhAu5iB6IhW8cfa1zgHDg=="</script>
 <script type="text/javascript" src="../js/admin.js"></script>
 {% endblock %}

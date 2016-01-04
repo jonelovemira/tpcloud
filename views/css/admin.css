@@ -1,4 +1,4 @@
-.maincontent{
+.main-content{
     height: inherit;
     width: 100%;
     padding-bottom: 50px;
@@ -233,7 +233,7 @@
     width:100%;
 }
 
-.voidobj {
+.play-or-set {
     float: right;
     height: inherit;
     position:relative;
@@ -358,31 +358,31 @@
 #take-picture:hover{
     background: url("../img/admin/admin.png") 0 -1066px;
 }
-#video-record{
+.to-be-record{
     background: url("../img/admin/admin.png") repeat-x scroll 0 -1131px;
 }
-#video-record:hover{
+.to-be-record:hover{
     background:  url('../img/admin/admin.png') repeat-x scroll 0 -1195px transparent;
 }
-#videovidon{
+.recording{
     display: none;
     background: url("../img/admin/admin.png") repeat-x scroll 0 -793px;
 }
-#videovolumectrl{
+#video-volume-ctrl{
     position: absolute;
     right: 116px;
     top: 13px;
 }
-.videoimg {
+.plugin-video-icon {
     float: left;
     height: 18px;
     position: relative;
     width: 22px;
 }
-.videovolumestartimg {
+.volume-open {
     background: url("../img/admin/admin.png") 0 0 no-repeat;
 }
-.videovolumestopimg {
+.volume-mute {
     background: url("../img/admin/admin.png") 0 -246px no-repeat;
 }
 .tpcamera-bar{
@@ -588,12 +588,6 @@
     position: absolute;
     top: 290px;
     width: 32px;
-}
-#control-board-disable-cover{
-    position: absolute;
-    z-index: 2;
-    width:100%;
-    height:100%;
 }
 #loading-tips-text{
     font-size: 1.6em;

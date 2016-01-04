@@ -159,7 +159,7 @@ $(function () {
     };
 
     UserView.prototype.hideAdmin = function() {
-        $(".maincontent").hide();
+        $(".main-content").hide();
     };
 
     UserView.prototype.showAccountAdmin = function() {
@@ -185,13 +185,13 @@ $(function () {
                 currentView.activateNav("#device");
                 $("#display-main-board").css("padding-top", "12px");
                 $("#display-main-board").css("height", "712px");
-                $(".maincontent").css("width", "100%");
+                $(".main-content").css("width", "100%");
             },
             "#account": function() {
                 currentView.activateNav("#account");
                 $("#display-main-board").css("padding-top", "25px");
                 $("#display-main-board").css("height", "inherit");
-                $(".maincontent").css("width", "1000px");
+                $(".main-content").css("width", "1000px");
             }
         };
 
