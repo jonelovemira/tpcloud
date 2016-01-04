@@ -47,6 +47,10 @@ fis.media('build').match('*.min.{js,css}', {
     optimizer: false
 });
 
+fis.media('build').match('jwplayer.js', {
+    useHash: false
+});
+
 
 fis.media('alpha').match('*.{js,css,png,ico}',{
     domain: ALPHA_CDN_PATH

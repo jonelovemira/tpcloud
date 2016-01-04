@@ -824,6 +824,7 @@
         this.currentAudioCodec = null;
         this.relayUrl = null;
         this.ELBcookie = null;
+        this.resId = null;
 
         this.isActive = false;
     };
@@ -1030,6 +1031,13 @@
         };
         return this.validateAttr(validateArgs);
     };
+    
+    Device.prototype.clearRubbish = function() {
+        if (this.nonPluginPlayer) {
+            this.nonPluginPlayer.clearRubbish();
+        };
+    };
+
     $.ipc.Device = Device;
 
 })(jQuery);
@@ -1083,7 +1091,9 @@
                     var tmpD = this.devices[tmpIndex];
                     $.extend(true, oldDevices[i], tmpD);
                     this.devices[tmpIndex] = oldDevices[i];
-                };
+                } else {
+                    oldDevices[i].clearRubbish();
+                }
             };
 
             for (var i = 0; i < this.devices.length; i++) {
@@ -1127,6 +1137,9 @@
             console.error("args error in setActiveDevice");
         };
         if (srcDevice != undefined) {
+            if (srcDevice.nonPluginPlayer) {
+                srcDevice.nonPluginPlayer.back2Idle();
+            };
             srcDevice.isActive = false;
         };
         destDevice.isActive = true;
@@ -1456,8 +1469,25 @@
     function Timer () {
         this.timeout = null;
         this.updateIntervalObj = null;
-        this.intervalTime = null;
+        this.currentTime = 0;
+        this.intervalTime = 1000;
         this.timeoutCallback = $.Callbacks("unique stopOnFalse");
+    };
+
+    Timer.prototype.clearRubbish = function() {
+        clearInterval(this.updateIntervalObj);
+        this.currentTime = 0;
+    };
+
+    Timer.prototype.start = function() {
+        var _self = this;
+        _self.updateIntervalObj = setInterval(function() {
+            _self.currentTime += _self.intervalTime;
+            if (_self.currentTime >= _self.timeout) {
+                clearInterval(_self.updateIntervalObj);
+                _self.timeoutCallback.fire();
+            };
+        }, _self.intervalTime);
     };
 
     $.ipc.Timer = Timer;
@@ -1473,13 +1503,16 @@
         RELAY_URL_READY : 2,
         REQUEST_RELAY_SERVICE_SUCCESS: 3,
         RELAY_READY: 4,
-        RESOURCE_READY: 5
+        RESOURCE_READY: 5,
+        PLAYING: 6
     };
 
     function Player(){
         $.ipc.Model.call(this, arguments);
         this.timer = null;
         this.device = null;
+        this.swfPath = null;
+        this.playerElementId = null;
 
         this.queryIsRelayReadyIntervalObj = null;
         this.queryIsRelayReadyAjaxArr = [];
@@ -1491,6 +1524,8 @@
 
         this.state = devicePlayingState.IDLE;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+
+        this.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
     };
     $.ipc.inheritPrototype(Player, $.ipc.Model);
     var playerErrorCodeInfo = {
@@ -1502,8 +1537,40 @@
     };
     Player.prototype.errorCodeCallbacks = Player.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
 
+    Player.prototype.playerObj = null;
+    Player.prototype.clearAjaxArr = function(args) {
+        clearInterval(args.obj);
+        for (var i = 0; i < args.arr.length; i++) {
+            args.arr[i].abort();
+        };
+        delete args.arr;
+        args.arr = [];
+    };
+
+    Player.prototype.clearRubbish = function() {
+        this.stateChangeCallback.empty();
+        this.playerObjErrorCallbacks.empty();
+        this.back2Idle();
+    };
+
     Player.prototype.back2Idle = function() {
+        this.clearAjaxArr({
+            obj: this.queryIsRelayReadyIntervalObj,
+            arr: this.queryIsRelayReadyAjaxArr
+        });
+
+        this.clearAjaxArr({
+            obj: this.getResIdIntervalObj,
+            arr: this.getResIdReadyAjaxArr
+        });
+        if (this.timer) {
+            this.timer.clearRubbish();
+        };
         this.state = devicePlayingState.IDLE;
+
+        if (this.playerObj) {
+            this.playerObj.stop();
+        };
     };
 
     Player.prototype.flashPlayerStateChangeHandler = function() {
@@ -1664,8 +1731,8 @@
                 };
 
                 _self.device.ELBcookie = response.result.realServerKey;
-                var cookieKey = currentDevice.ELBcookie.split("=")[0];
-                var cookieValue = currentDevice.ELBcookie.split("=")[1];
+                var cookieKey = _self.device.ELBcookie.split("=")[0];
+                var cookieValue = _self.device.ELBcookie.split("=")[1];
                 document.cookie = cookieKey + "=" + cookieValue + "; domain=.tplinkcloud.com";
 
                 _self.state = devicePlayingState.RELAY_READY;
@@ -1694,25 +1761,136 @@
 
     Player.prototype.queryResid = function() {
         var _self = this;
-        var data = JSON.stringify({
-            
-        });
+        /*var data = {
+            "REQUEST": 'RTMPOPERATE',
+            "DATA": {
+                "relayUrl": 'http://' + _self.device.relayUrl,
+                "Xtoken": _self.device.owner.token,
+                "devId": _self.device.id,
+                "data": {
+                    "service": "getrtmp",
+                    "command": {
+                        "resolution": _self.device.product.supportVideoResArr[0].name
+                    }
+                },
+                "AWSELB": _self.device.ELBcookie
+            }
+        };
+
+        var changeStateFunc = function (response) {
+            clearInterval(_self.getResIdIntervalObj);
+            for (var i = 0; i < _self.getResIdReadyAjaxArr.length; i++) {
+                _self.getResIdReadyAjaxArr[i].abort();
+            };
+            _self.device.resId = response.msg.resourceid;
+
+            _self.state = devicePlayingState.RESOURCE_READY;
+            _self.stateChangeCallback.fireWith(_self);
+        };
+
+        var requestArgs = {
+            url: "init3.php", 
+            data: data, 
+            callbacks: undefined, 
+            changeState: changeStateFunc
+        };
+
+        clearInterval(_self.getResIdIntervalObj);
+        _self.getResIdIntervalObj = setInterval(function() {
+            var ajaxObj = _self.makeAjaxRequest(requestArgs);
+            _self.getResIdReadyAjaxArr.push(ajaxObj);
+        }, _self.getResIdIntervalTime);*/
+
+        setTimeout(function() {
+            _self.device.resId = _self.device.id + "2in1" + 
+                _self.device.product.supportVideoResArr[0].name;
+            _self.timer.start();
+            _self.state = devicePlayingState.RESOURCE_READY;
+            _self.stateChangeCallback.fireWith(_self);
+        }, 6000);
     };
 
     Player.prototype.play = function() {
-        // body...
+        var _self = this;
+        var playArgs = {
+            resourcePath: _self.getResourcePath()
+        }
+        if (undefined == this.playerObj) {
+            this.setupPlayer(playArgs);
+        } else {
+            this.changePlayerSource(playArgs);
+        }
     };
 
-    Player.prototype.playerObj = null;
-    Player.prototype.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
+    function RtmpPalyer() {
+        Player.call(this, arguments);
 
-    Player.prototype.setupPlayer = function(args) {
-        
+        this.protocol = "rtmps://";
+        this.port = 8082;
+        this.resourceFolder = "RtmpRelay";
     };
-    Player.prototype.changeSource = function(args) {
-        
+    $.ipc.inheritPrototype(RtmpPalyer, Player);
+
+    RtmpPalyer.prototype.getAuthArgs = function() {
+        var result = null;
+        var _self = this;
+        var args = {
+            devId: _self.device.id,
+            token: _self.device.owner.token
+        };
+        result = $.param(args);
+        return result;
     };
 
-    $.ipc.Player = Player;
+    RtmpPalyer.prototype.getResourcePath = function() {
+        var _self = this;
+        var resourceArgs = _self.getAuthArgs();
+        var str = "";
+        str += _self.protocol + _self.device.relayUrl + ":" + 
+                _self.port + "/" + _self.resourceFolder + "/?" +
+                resourceArgs + "flv:" + _self.device.resId;
+        return str;
+    };
+
+    RtmpPalyer.prototype.setupPlayer = function(args) {
+        var _self = this;
+        var options = {
+            width : 640,
+            height : 480,
+            autostart: true,
+            playlist: [{
+                sources: [{
+                    file: args.resourcePath
+                }]
+            }],
+            rtmp: { bufferlength: 0.1},
+            displaytitle: false,
+            mute: false,
+            ph: 1,
+            primary: "flash",
+            repeat: false,
+            stagevideo: false,
+            stretching: "uniform",
+        };
+        var newPlayer = jwplayer(_self.playerElementId);
+        newPlayer.setup(options);
+        RtmpPalyer.prototype.playerObj = newPlayer;
+
+        newPlayer.onSetupError(function(e){
+            _self.playerObjErrorCallbacks.fire(e);
+        });
+
+        _self.state = devicePlayingState.PLAYING;
+    };
+
+    RtmpPalyer.prototype.changePlayerSource = function(args) {
+        this.playerObj.load([{
+            file: args.resourcePath
+        }]);
+        this.playerObj.play(); 
+    };
+
+    
+    $.ipc.RtmpPalyer = RtmpPalyer;
     $.ipc.devicePlayingState = devicePlayingState;
 })(jQuery);

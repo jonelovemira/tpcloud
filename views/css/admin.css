@@ -632,10 +632,11 @@
     height:580px
 }
 #reloadtips {
-    display:none
+    display:none;
 }
 #continuetips {
-    display:none
+    display:none;
+    margin-left: 80px;
 }
 #no-camera {
     margin-left: 80px;

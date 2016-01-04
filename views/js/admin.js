@@ -240,23 +240,6 @@ $(function () {
     uc.initHandler();
     u.readDataFromCookie();
 
-/******************************flash player************************************/
-    function Timer () {
-        this.timeout = null;
-        this.updateIntervalObj = null;
-        this.intervalTime = null;
-        this.timeoutCallback = $.Callbacks("unique stopOnFalse");
-    }
-
-    var devicePlayingState = $.ipc.devicePlayingState;
-
-    
-    
-
-/*----------------------------device part-------------------------------------*/
-    
-    
-
     function DeviceList() {
         $.ipc.DeviceList.call(this, arguments);
     };
@@ -405,6 +388,11 @@ $(function () {
     DeviceListController.prototype.settingShow = function() {
         this.view.highlightTab($("#setting-tab"));
         this.view.clearBoardAndShow();
+
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev && activeDev.nonPluginPlayer) {
+            activeDev.nonPluginPlayer.back2Idle();
+        };
     };
 
     DeviceListController.prototype.liveView = function() {
@@ -777,18 +765,30 @@ $(function () {
 
     DeviceListView.prototype.flashPlayVideo = function(dev) {
         if (dev) {
+            $("#flash-player-container").show();
             if (undefined == dev.nonPluginPlayer) {
-                var tmpPlayer = new $.ipc.Player();
+                var tmpPlayer = new $.ipc.RtmpPalyer();
+                tmpPlayer.playerElementId = "flash-player";
                 tmpPlayer.device = dev;
-                var tmpTimer = new Timer();
-                tmpTimer.timeout = this.relayVideoTime;
+
+                var tmpTimer = new $.ipc.Timer();
+                tmpTimer.timeout = dev.relayVideoTime * 1000;
+                var contextFunc = $.proxy(this.showTimeout, this);
+                tmpTimer.timeoutCallback.add(contextFunc);
                 tmpPlayer.timer = tmpTimer;
+
                 dev.nonPluginPlayer = tmpPlayer;
                 dev.nonPluginPlayer.initFlashPlayer();
             };
             dev.nonPluginPlayer.state = devicePlayingState.BEGIN_PLAY;
             dev.nonPluginPlayer.stateChangeCallback.fire();
         };
+    };
+
+    DeviceListView.prototype.showTimeout = function() {
+        this.hideViewSettingContent();
+        this.liveViewManageBoard();
+        $("#continuetips").show();
     };
 
     DeviceListView.prototype.imgPlayVideo = function(dev) {
@@ -1040,5 +1040,5 @@ $(function () {
 
     sc.getUpdateInfos();
 
-    
+    window.dlc = dlc;
 });
