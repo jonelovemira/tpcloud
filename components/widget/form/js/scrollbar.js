@@ -4,14 +4,8 @@
         getEvent: function(event) {
             return event ? event : window.event;
         },
-        addHandler: function(element, type, handler) {
-            if (element.addEventListener) {
-                element.addEventListener(type, handler, false);
-            } else if (element.attachEvent) {
-                element.attachEvent("on" + type, handler);
-            } else {
-                element["on" + type] = handler;
-            }
+        addHandler: function(element, handler) {
+            element.bind('mousewheel DOMMouseScroll wheel', handler);
         },
         removeHandler: function(element, type, handler) {
             if (element.removeEventListener) { //检测DOM2级方法  
@@ -23,11 +17,14 @@
             }
         },
         getWheelDelta: function(event) {
-            if (event.wheelDelta) {
-                return event.wheelDelta;
+            var normalized;
+            if (event.originalEvent.wheelDelta) {
+                normalized = (event.originalEvent.wheelDelta % 120 - 0) == -0 ? event.originalEvent.wheelDelta / 120 : event.originalEvent.wheelDelta / 12;
             } else {
-                return -event.detail * 40;
+                var rawAmmount = event.originalEvent.deltaY ? event.originalEvent.deltaY : event.originalEvent.detail;
+                normalized = -(rawAmmount % 3 ? rawAmmount * 10 : rawAmmount / 3);
             }
+            return normalized*120;
         }
     };
 
@@ -96,12 +93,7 @@
                 });
 
                 var ration = {}, dd = {}, $scrollVerticalBlock = $holder.find(".scrollBar-vertical .scroll-area .scroll-block");
-
-                if ($.browser.mozilla) {
-                    EventUtil.addHandler($target[0], "DOMMouseScroll", handleMouseWheel);
-                } else {
-                    EventUtil.addHandler($target[0], "mousewheel", handleMouseWheel);
-                }
+                EventUtil.addHandler($target.first(), handleMouseWheel);
             } else { //有滚动条，block位置重置
 
                 if (!revert) {
@@ -204,9 +196,9 @@
     
 })(jQuery)
 function stopBubble(event) {
-    event.cancelBubble = true;
-    event.returnValue = false;
-    event.preventDefault()
-    event.stopPropagation();
+    event.originalEvent.cancelBubble = true;
+    event.originalEvent.returnValue = false;
+    event.originalEvent.preventDefault()
+    event.originalEvent.stopPropagation();
     return false;
 }

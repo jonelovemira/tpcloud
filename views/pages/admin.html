@@ -84,30 +84,30 @@
                                     <li class="play-control-button" title="Take a picture" id="take-picture"></li>
                                     <li class="play-control-button to-be-record" title="Recording" id="video-record"></li>
                                 </ul>
-                                <div id="video-volume-ctrl">
+                                <div id="video-volume-control">
                                     <span >
                                         <span class="plugin-video-icon volume-open" title="Mute"></span>
                                     </span>
                                 </div>
-                                <div class="toolbar-volumeset volume-offon-show">
+                                <div class="toolbar-volumeset">
                                     <div id="volume-bar" class="tpcamera-bar watchmode-bar"></div>
                                 </div>
                             </div>
-                            <div id="controlpanelplus">
-                                <div id="resolution-readjust-out" class="watchmode">
+                            <div id="video-business-control">
+                                <div id="resolution-control" class="video-control-sonclass">
                                     <label for="Resolution">Resolution:</label>
-                                    <select id="resolution-readjust" name="cbr" class="select">
+                                    <select id="resolution-select" class="select">
                                         <option value="1" name="VGA" selected="true">640*480</option>
                                         <option name="QVGA" value="2">320*240</option>
                                     </select>
                                 </div>
-                                <div id="videozoomul" class="watchmode">
-                                    <div id="zoomulreduse" class="videoctrl">
-                                        <span class="plugin-video-icon zoomulreduseimg" title="Zoom"></span>
+                                <div id="video-zoom-control" class="video-control-sonclass">
+                                    <div id="zoom-minus" class="zoom-icon-container">
+                                        <span class="plugin-video-icon zoom-minus-img" title="Zoom"></span>
                                     </div>
                                     <div id="zoom-bar" class="tpcamera-bar watchmode-bar"></div>
-                                    <div id="zoomulplus" class="videoctrl videorightimg">
-                                        <span class="plugin-video-icon zoomulplusimg" title="Zoom"></span>
+                                    <div id="zoom-plus" class="zoom-icon-container zoom-icon-container-right">
+                                        <span class="plugin-video-icon zoom-plus-img" title="Zoom"></span>
                                     </div>
                                 </div>
                             </div>
@@ -364,14 +364,60 @@
 {% endblock %}
 
 {% block script %}
-<script type="text/javascript" src="../../components/js/libs/ipc-secret-libs.js"></script>
-<script type="text/javascript" src="../../components/js/libs/ipc-business-libs.js"></script>
-<script type="text/javascript" src="../../components/js/libs/jquery-ui-1.11.4.custom.min.js"></script>
+<script type="text/javascript" src="../../components/libs/ipc/js/ipc-secret-libs.js"></script>
+<script type="text/javascript" src="../../components/libs/ipc/js/ipc-business-libs.js"></script>
+<script type="text/javascript" src="../../components/libs/public/js/jquery-ui-1.11.4.custom.min.js"></script>
 <script type="text/javascript" src="../../components/widget/window/js/msg.js"></script>
 <script type="text/javascript" src="../../components/widget/form/js/scrollbar.js"></script>
 <script type="text/javascript" src="../../components/widget/form/js/select.js"></script>
-<script type="text/javascript" src="../../components/js/player/flowplayer/flowplayer.min.js"></script>
-<script type="text/javascript" src="../../components/js/player/jwplayer/jwplayer.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $("select.select").Select({slideOptionHeight: 16});
+
+        $("#volume-bar").slider({
+            range: "min",
+            value: 100,
+            min: 0,
+            max: 100,
+            stop: function(event, ui) {
+                $(".volume-val").val(ui.value);
+                $.cookie("audiovalue", ui.value);
+                $(".volume-bar").slider("value", ui.value);
+                if (!$.cookie("audiooff")) {
+                    admin.playerObj.SetAudioVolume(parseInt(ui.value));
+                }
+            }
+        });
+        $("#zoom-bar").slider({
+            range: "min",
+            value: 0,
+            min: 0,
+            step: 30,
+            max: 90,
+            stop: function(event, ui) {
+                if (ui.value == 0) {
+                    admin.zoomMulit = 1;
+                    admin.zoom();
+                    $("#zoom-bar .ui-slider-handle").attr("title", "X1");
+                } else if (ui.value == 30) {
+                    admin.zoomMulit = 2;
+                    admin.zoom();
+                    $("#zoom-bar .ui-slider-handle").attr("title", "X2");
+                } else if (ui.value == 60) {
+                    admin.zoomMulit = 3;
+                    admin.zoom();
+                    $("#zoom-bar .ui-slider-handle").attr("title", "X3");
+                } else if (ui.value == 90) {
+                    admin.zoomMulit = 4;
+                    admin.zoom();
+                    $("#zoom-bar .ui-slider-handle").attr("title", "X4");
+                }
+            }
+        });
+    });
+</script>
+<script type="text/javascript" src="../../components/libs/player/flowplayer/flowplayer.min.js"></script>
+<script type="text/javascript" src="../../components/libs/player/jwplayer/jwplayer.js"></script>
 <script>jwplayer.key="Q7prBpNAUq59WydJuuhAu5iB6IhW8cfa1zgHDg=="</script>
 <script type="text/javascript" src="../js/admin.js"></script>
 {% endblock %}

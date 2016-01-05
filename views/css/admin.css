@@ -297,33 +297,32 @@
     height: 39px;
     width: 100%;
 }
-#controlpanelplus{
+#video-business-control{
     height: 39px;
     margin-top: 20px;
     width: 100%;
 }
-.resolution-readjust-out{
+.resolution-control{
     padding-right:8px;
     width:220px;
 }
-.watchmode {
+.video-control-sonclass {
     float: left;
     font-size:1.4em;
     font-family:'MYRIADPRO-LIGHTSEMIEXT';
 }
-#videozoomul{
+#video-zoom-control{
     position: relative;
     top:4px;
 }
-#resolution-readjust-out label{
+#resolution-control label{
     float: left;
     padding: 0 10px 0 0;
     position: relative;
     width: 70px;
 }
-#resolution-readjust{
+#resolution-select{
     float: left;
-    left:15px;
     position: relative;
     width:137px;
 }
@@ -368,7 +367,13 @@
     display: none;
     background: url("../img/admin/admin.png") repeat-x scroll 0 -793px;
 }
-#video-volume-ctrl{
+.toolbar-volumeset {
+    position: absolute;
+    right: 25px;
+    top: 13px;
+    width:90px;
+}
+#video-volume-control{
     position: absolute;
     right: 116px;
     top: 13px;
@@ -444,7 +449,17 @@
     margin-left:-0.4em;
     top:-0.25em;
 }
-.videorightimg{
+
+.zoom-icon-container{
+    width:21px;
+    cursor:pointer;
+    -webkit-user-select:none;
+    height:17px;
+    float:left;
+    margin-left:22px;
+    position:relative;
+}
+.zoom-icon-container-right{
     margin-left:5px;
 }
 #objectplayer{
@@ -452,10 +467,10 @@
     height:auto;
     position: relative;
 }
-.zoomulreduseimg{
+.zoom-minus-img{
     background: url("../img/admin/admin.png") 0 -859px no-repeat;
 }
-.zoomulplusimg{
+.zoom-plus-img{
     background: url("../img/admin/admin.png") 0 -595px no-repeat;
 }
 #watch{

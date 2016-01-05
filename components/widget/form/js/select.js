@@ -186,7 +186,7 @@
         slideOptionHeight           :       25,
         hotKey                      :       false,
         disabled                    :       false 
-    }
+    };
     
 })(jQuery);
 

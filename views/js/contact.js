@@ -71,7 +71,7 @@ $(function(){
     SoftwareView.prototype.feedModelSelect = function () {
         var addedOptions = {};
         for (var i = 0; i < this.model.products.length; i++) {
-            addedOptions[this.model.products[i].prototype.name] = {};
+            addedOptions[this.model.products[i].name] = {};
         };
         $("#model_select").empty();
         $("#model_select").Select({
