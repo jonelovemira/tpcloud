@@ -706,9 +706,9 @@
     mixedChannel.url = '/stream/mixed';
 
     var pcmAudioCodec = new $.ipc.Codec();
-    pcmAudioCodec.name = "pcm";
+    pcmAudioCodec.name = "PCM";
     var aacAudioCodec = new $.ipc.Codec();
-    aacAudioCodec.name = "aac";
+    aacAudioCodec.name = "AAC";
 
     var NC200 = new IpcProduct();
     NC200.name = "NC200";
@@ -1761,7 +1761,7 @@
 
     Player.prototype.queryResid = function() {
         var _self = this;
-        /*var data = {
+        var data = {
             "REQUEST": 'RTMPOPERATE',
             "DATA": {
                 "relayUrl": 'http://' + _self.device.relayUrl,
@@ -1773,6 +1773,7 @@
                         "resolution": _self.device.product.supportVideoResArr[0].name
                     }
                 },
+                "token": _self.device.owner.token,
                 "AWSELB": _self.device.ELBcookie
             }
         };
@@ -1786,28 +1787,27 @@
 
             _self.state = devicePlayingState.RESOURCE_READY;
             _self.stateChangeCallback.fireWith(_self);
+
+            _self.timer.start();
+        };
+
+        var extendAjaxOptions = {
+            contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
         var requestArgs = {
-            url: "init3.php", 
+            url: "https://alpha.tplinkcloud.com/init3.php", 
             data: data, 
             callbacks: undefined, 
-            changeState: changeStateFunc
+            changeState: changeStateFunc,
+            extendAjaxOptions: extendAjaxOptions
         };
 
         clearInterval(_self.getResIdIntervalObj);
         _self.getResIdIntervalObj = setInterval(function() {
             var ajaxObj = _self.makeAjaxRequest(requestArgs);
             _self.getResIdReadyAjaxArr.push(ajaxObj);
-        }, _self.getResIdIntervalTime);*/
-
-        setTimeout(function() {
-            _self.device.resId = _self.device.id + "2in1" + 
-                _self.device.product.supportVideoResArr[0].name;
-            _self.timer.start();
-            _self.state = devicePlayingState.RESOURCE_READY;
-            _self.stateChangeCallback.fireWith(_self);
-        }, 6000);
+        }, _self.getResIdIntervalTime);
     };
 
     Player.prototype.play = function() {
@@ -1826,7 +1826,7 @@
         Player.call(this, arguments);
 
         this.protocol = "rtmps://";
-        this.port = 8082;
+        this.port = 443;
         this.resourceFolder = "RtmpRelay";
     };
     $.ipc.inheritPrototype(RtmpPalyer, Player);
