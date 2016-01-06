@@ -1886,7 +1886,6 @@
         var options = {
             width : 640,
             height : 480,
-            // autostart: true,
             playlist: [{
                 sources: [{
                     file: args.resourcePath
@@ -1900,6 +1899,9 @@
             repeat: false,
             stagevideo: false,
             stretching: "uniform",
+            skin: {
+                name: "ipc-jwplayer-skin"
+            }
         };
         var newPlayer = jwplayer(_self.playerElementId);
         newPlayer.setup(options);
@@ -1922,7 +1924,6 @@
             file: args.resourcePath
         }]);
     };
-
     
     $.ipc.RtmpPalyer = RtmpPalyer;
     $.ipc.devicePlayingState = devicePlayingState;
