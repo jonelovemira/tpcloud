@@ -261,7 +261,8 @@ $(function () {
             "#reload": {"click": this.updateDeviceInfo},
             ".dev-item": {"click": this.changeActiveDevice},
             "#upgrade-device": {"click": this.upgradeDevice},
-            "#volume-bar": {'slidestop': this.setVolume}
+            "#volume-bar": {'slidestop': this.setVolume},
+            "#continue": {'click': this.continuePlay}
         };
 
         var selectorMsgProduceFuncMap = {
@@ -274,6 +275,13 @@ $(function () {
         };
 
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    DeviceListController.prototype.continuePlay = function() {
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev) {
+            this.view.showPlaying();
+        };
     };
 
     DeviceListController.prototype.setVolume = function() {
@@ -766,8 +774,6 @@ $(function () {
         
     };
 
-    var devicePlayingState = $.ipc.devicePlayingState;
-
     DeviceListView.prototype.flashPlayVideo = function(dev) {
         if (dev) {
             $("#flash-player-container").show();
@@ -785,8 +791,7 @@ $(function () {
                 dev.nonPluginPlayer = tmpPlayer;
                 dev.nonPluginPlayer.initFlashPlayer();
             };
-            dev.nonPluginPlayer.state = devicePlayingState.BEGIN_PLAY;
-            dev.nonPluginPlayer.stateChangeCallback.fire();
+            dev.nonPluginPlayer.triggerPlay();
         };
     };
 
@@ -857,12 +862,16 @@ $(function () {
         }
     };
 
+    DeviceListView.prototype.showPlaying = function() {
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        this.hideViewSettingContent();
+        this.liveViewManageBoard();
+        this.playVideo(activeDev);
+    };
+
     DeviceListView.prototype.showLiveView = function() {
         if (this.isNeedRefreshPlaying()) {
-            var activeDev = this.model.findActiveDeviceArr()[0];
-            this.hideViewSettingContent();
-            this.liveViewManageBoard();
-            this.playVideo(activeDev);
+            this.showPlaying();
         };
     };
 
@@ -1026,7 +1035,7 @@ $(function () {
 
     contextGetDeviceList();
 
-    // setInterval(contextGetDeviceList, 60000);
+    setInterval(contextGetDeviceList, 60000);
 
     /******************************* software *******************************/
     function SoftwareController() {

@@ -1071,6 +1071,7 @@
         this.upgradeList = [];
         this.devices = [];
         this.lastActiveDeviceId = null;
+        this.activeDeviceChanged = false;
     };
 
     $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
@@ -1103,8 +1104,7 @@
             for (var i = 0; i < oldDevices.length; i++) {
                 var tmpIndex = this.findIndexForId(oldDevices[i].id);
                 if (tmpIndex >= 0 && tmpIndex < this.devices.length) {
-                    var tmpD = this.devices[tmpIndex];
-                    $.extend(true, oldDevices[i], tmpD);
+                    $.extend(true, oldDevices[i], response.msg[tmpIndex]);
                     this.devices[tmpIndex] = oldDevices[i];
                 } else {
                     oldDevices[i].clearRubbish();
@@ -1118,6 +1118,7 @@
             };
 
             var activeDeviceArr = this.findActiveDeviceArr();
+            this.activeDeviceChanged = false;
             if (activeDeviceArr.length <= 0 && this.devices.length > 0) {
                 this.changeActiveDevice(undefined, this.devices[0]);
             };
@@ -1839,6 +1840,12 @@
         }, _self.getResIdIntervalTime);
     };
 
+    Player.prototype.triggerPlay = function() {
+        var _self = this;
+        _self.state = devicePlayingState.BEGIN_PLAY;
+        _self.stateChangeCallback.fireWith(_self);
+    };
+
     Player.prototype.play = function() {
         var _self = this;
         var playArgs = {
@@ -1926,5 +1933,4 @@
     };
     
     $.ipc.RtmpPalyer = RtmpPalyer;
-    $.ipc.devicePlayingState = devicePlayingState;
 })(jQuery);
