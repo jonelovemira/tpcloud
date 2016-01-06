@@ -401,6 +401,13 @@
     margin-top: 6px;
     width: 72px;
 }
+.tpcamera-bar .ui-slider-handle{
+    width:10px;
+    height:10px;
+    border:0;
+    border-radius:0;
+    background: url("../img/admin/admin.png") 0 -66px no-repeat;
+}
 #volume-bar {
     float: left;
     height: 4px !important;

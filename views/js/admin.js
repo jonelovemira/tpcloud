@@ -260,7 +260,8 @@ $(function () {
             "#setting-tab": {"click": this.settingShow},
             "#reload": {"click": this.updateDeviceInfo},
             ".dev-item": {"click": this.changeActiveDevice},
-            "#upgrade-device": {"click": this.upgradeDevice}
+            "#upgrade-device": {"click": this.upgradeDevice},
+            "#volume-bar": {'slidestop': this.setVolume}
         };
 
         var selectorMsgProduceFuncMap = {
@@ -273,6 +274,10 @@ $(function () {
         };
 
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    DeviceListController.prototype.setVolume = function() {
+        // body...
     };
 
     DeviceListController.prototype.changeDeviceName = function(newName) {
