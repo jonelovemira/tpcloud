@@ -564,8 +564,8 @@
     };
     Channel.prototype.generateRelaydCommand = function(device) {
         if (undefined == device) {console.error("args error in generateRelaydCommand")};
-        var localResolutionStr = this.generateLocalResolutionStr(device);
-        var relayResolutionStr = this.generateRelayResolutionStr(device);
+        var localResolutionStr = this.generateLocalParam(device);
+        var relayResolutionStr = this.generateRelayParam(device);
         var url = this.url;
         var type = this.name;
         return "relayd -s 'http://127.0.0.1:8080" + url + "?" + localResolutionStr +
@@ -579,13 +579,13 @@
         this.name = 'video';
     };
     $.ipc.inheritPrototype(DevicePostChannelVideo, Channel);
-    DevicePostChannelVideo.prototype.generateLocalResolutionStr = function(dev){
+    DevicePostChannelVideo.prototype.generateLocalParam = function(dev){
         if (undefined == dev) {console.error("args error in gen local res str")};
-        return "resolution=" + dev.currentVideoResolution.name;
+        return $.param({resolution: dev.currentVideoResolution.name});
     };
-    DevicePostChannelVideo.prototype.generateRelayResolutionStr = function(dev){
+    DevicePostChannelVideo.prototype.generateRelayParam = function(dev){
         if (undefined == dev) {console.error("args error in gen local res str")};
-        return "resolution=" + dev.currentVideoResolution.name;
+        return $.param({resolution: dev.currentVideoResolution.name});
     };
 
     function DevicePostChannelAudio(){
@@ -593,13 +593,13 @@
         this.name = 'audio';
     };
     $.ipc.inheritPrototype(DevicePostChannelAudio, Channel);
-    DevicePostChannelAudio.prototype.generateLocalResolutionStr = function(dev){
+    DevicePostChannelAudio.prototype.generateLocalParam = function(dev){
         if (undefined == dev) {console.error("args error in gen local res str")};
-        return "resolution=" + dev.product.audioCodec.name;
+        return $.param({resolution: dev.product.audioCodec.name});
     };
-    DevicePostChannelAudio.prototype.generateRelayResolutionStr = function(dev){
+    DevicePostChannelAudio.prototype.generateRelayParam = function(dev){
         if (undefined == dev) {console.error("args error in gen local res str")};
-        return "resolution=" + dev.product.audioCodec.name;
+        return $.param({resolution: dev.product.audioCodec.name});
     };
 
     function DevicePostChannelMixed(){
@@ -607,14 +607,17 @@
         this.name = 'mixed';
     };
     $.ipc.inheritPrototype(DevicePostChannelMixed, Channel);
-    DevicePostChannelMixed.prototype.generateLocalResolutionStr = function(dev){
+    DevicePostChannelMixed.prototype.generateLocalParam = function(dev){
         if (undefined == dev) {console.error("args error in gen local res str")};
-        return "resolution=" + dev.currentVideoResolution.name + "&audio=" +
-                dev.product.audioCodec.name;
+        return $.param({
+            resolution: dev.currentVideoResolution.name,
+            audio: dev.product.audioCodec.name,
+            video: dev.product.videoCodec.name
+        });
     };
-    DevicePostChannelMixed.prototype.generateRelayResolutionStr = function(dev){
+    DevicePostChannelMixed.prototype.generateRelayParam = function(dev){
         if (undefined == dev) {console.error("args error in gen local res str")};
-        return "resolution=" + dev.currentVideoResolution.name;
+        return $.param({resolution: dev.currentVideoResolution.name});
     };
 
     $.ipc.DevicePostChannelVideo = DevicePostChannelVideo;
@@ -657,7 +660,7 @@
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
-        if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
+        /*if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
         var result = undefined;
         if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
@@ -692,7 +695,8 @@
                 console.info("unsupportted operation system");
                 result = undefined;
             }
-        }
+        }*/
+        var result = $.ipc.FLASH_PLAYER;
         return result;
     };
 
@@ -703,12 +707,16 @@
     var audioChannel = new $.ipc.DevicePostChannelAudio();
     audioChannel.url = '/stream/getaudioblock';
     var mixedChannel = new $.ipc.DevicePostChannelMixed();
-    mixedChannel.url = '/stream/mixed';
+    mixedChannel.url = '/stream/video/mixed';
 
     var pcmAudioCodec = new $.ipc.Codec();
     pcmAudioCodec.name = "PCM";
     var aacAudioCodec = new $.ipc.Codec();
     aacAudioCodec.name = "AAC";
+    var h264VideoCodec = new $.ipc.Codec();
+    h264VideoCodec.name = "h264";
+    var mjpegVideoCodec = new $.ipc.Codec();
+    mjpegVideoCodec.name = "mjpeg";
 
     var NC200 = new IpcProduct();
     NC200.name = "NC200";
@@ -719,6 +727,7 @@
     NC200.playerType = NC200.getPlayerType(NC200.mimeType);
     NC200.postDataChannel = [videoChannel, audioChannel];
     NC200.audioCodec = pcmAudioCodec;
+    NC200.videoCodec = mjpegVideoCodec;
     
     var NC210 = new IpcProduct();
     NC210.name = "NC210";
@@ -727,8 +736,9 @@
     NC210.smallImgCssClass = "NC210-small-img";
     NC210.middleImgCssClass = "NC210-middle-img";
     NC210.playerType = NC210.getPlayerType(NC210.mimeType);
-    NC210.postDataChannel = [mixedChannel];
+    NC210.postDataChannel = [videoChannel, audioChannel];
     NC210.audioCodec = aacAudioCodec;
+    NC210.videoCodec = h264VideoCodec;
 
     var NC220 = new IpcProduct();
     NC220.name = "NC220";
@@ -739,6 +749,7 @@
     NC220.playerType = NC220.getPlayerType(NC220.mimeType);
     NC220.postDataChannel = [videoChannel, audioChannel];
     NC220.audioCodec = aacAudioCodec;
+    NC220.videoCodec = h264VideoCodec;
 
     var NC230 = new IpcProduct();
     NC230.name = "NC230";
@@ -749,6 +760,7 @@
     NC230.playerType = NC230.getPlayerType(NC230.mimeType);
     NC230.postDataChannel = [mixedChannel];
     NC230.audioCodec = aacAudioCodec;
+    NC230.videoCodec = h264VideoCodec;
     
     var NC250 = new IpcProduct();
     NC250.name = "NC250";
@@ -759,6 +771,7 @@
     NC250.playerType = NC250.getPlayerType(NC250.mimeType);
     NC250.postDataChannel = [mixedChannel];
     NC250.audioCodec = aacAudioCodec;
+    NC250.videoCodec = h264VideoCodec;
 
     var NC350 = new IpcProduct();
     NC350.name = "NC350";
@@ -769,6 +782,7 @@
     NC350.playerType = NC350.getPlayerType(NC350.mimeType);
     NC350.postDataChannel = [mixedChannel];
     NC350.audioCodec = aacAudioCodec;
+    NC350.videoCodec = h264VideoCodec;
 
     var NC450 = new IpcProduct();
     NC450.name = "NC450";
@@ -779,6 +793,7 @@
     NC450.playerType = NC450.getPlayerType(NC450.mimeType);
     NC450.postDataChannel = [mixedChannel];
     NC450.audioCodec = aacAudioCodec;
+    NC450.videoCodec = h264VideoCodec;
 
     $.ipc.NC200 = NC200;
     $.ipc.NC210 = NC210;
@@ -1229,7 +1244,7 @@
         this.selectorHandlerMap = {};
         this.domClickCallbacks = $.Callbacks("unique stopOnFalse");
         var currentController = this;
-        this.domClickCallbacks.add(function(selector, eventName, data, event){
+        this.domClickCallbacks.add(function(selector, eventName, data, argumentsArr){
             var func = function(data){console.log("this element did not bind any handler: ", selector);};
             if (currentController.selectorHandlerMap && 
                 currentController.selectorHandlerMap[selector] && 
@@ -1238,7 +1253,7 @@
             };
 
             var contextFunc = $.proxy(func, currentController);
-            contextFunc(data, event);
+            contextFunc(data, argumentsArr);
         });
     };
 
@@ -1248,12 +1263,13 @@
         var selector = inputArgs["selector"];
         var eventName = inputArgs["eventName"];
     
-        $(document).on(eventName, selector, function(event){
+        $(document).on(eventName, selector, function(){
             var data = null;
             if (getMsgInformed) {
                 data = $.proxy(getMsgInformed, this)();
             };
-            currentController.domClickCallbacks.fire(selector, eventName, data, event);
+            var argumentsArr = arguments;
+            currentController.domClickCallbacks.fire(selector, eventName, data, argumentsArr);
         });
     };
 
@@ -1517,10 +1533,12 @@
         this.queryIsRelayReadyIntervalObj = null;
         this.queryIsRelayReadyAjaxArr = [];
         this.queryIsRelayReadyIntervalTime = 3000;
+        this.queryIsRelayReadyAjaxLimit = 20;
 
         this.getResIdIntervalObj = null;
         this.getResIdReadyAjaxArr = [];
         this.getResIdIntervalTime = 3000;
+        this.getResIdAjaxLimit = 20;
 
         this.state = devicePlayingState.IDLE;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
@@ -1750,11 +1768,16 @@
             changeState: changeStateFunc, 
             errCodeStrIndex: "error_code"
         };
-
+        var currentCount = 0;
         clearInterval(_self.queryIsRelayReadyIntervalObj);
         _self.queryIsRelayReadyIntervalObj = setInterval(function() {
             var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType); 
             _self.queryIsRelayReadyAjaxArr.push(ajaxObj);
+            currentCount += 1;
+            if (currentCount >= _self.queryIsRelayReadyAjaxLimit) {
+                clearInterval(_self.queryIsRelayReadyIntervalObj);
+                _self.back2Idle();
+            };
         }, _self.queryIsRelayReadyIntervalTime);
 
     };
@@ -1803,10 +1826,16 @@
             extendAjaxOptions: extendAjaxOptions
         };
 
+        var currentCount = 0;
         clearInterval(_self.getResIdIntervalObj);
         _self.getResIdIntervalObj = setInterval(function() {
             var ajaxObj = _self.makeAjaxRequest(requestArgs);
             _self.getResIdReadyAjaxArr.push(ajaxObj);
+            currentCount += 1;
+            if (currentCount >= _self.getResIdAjaxLimit) {
+                clearInterval(_self.getResIdIntervalObj);
+                _self.back2Idle();
+            };
         }, _self.getResIdIntervalTime);
     };
 
@@ -1857,7 +1886,7 @@
         var options = {
             width : 640,
             height : 480,
-            autostart: true,
+            // autostart: true,
             playlist: [{
                 sources: [{
                     file: args.resourcePath
@@ -1876,6 +1905,10 @@
         newPlayer.setup(options);
         RtmpPalyer.prototype.playerObj = newPlayer;
 
+        newPlayer.on('playlist', function(){
+            newPlayer.play();
+        });
+
         newPlayer.onSetupError(function(e){
             _self.playerObjErrorCallbacks.fire(e);
         });
@@ -1884,10 +1917,10 @@
     };
 
     RtmpPalyer.prototype.changePlayerSource = function(args) {
-        this.playerObj.load([{
+        var _self = this;
+        _self.playerObj.load([{
             file: args.resourcePath
         }]);
-        this.playerObj.play(); 
     };
 
     

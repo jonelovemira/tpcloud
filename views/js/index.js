@@ -90,10 +90,10 @@ $(function (){
 
     };
 
-    UserController.prototype.passwordInputKeyDown = function(data, event) {
-        if (event.keyCode == "13") {
+    UserController.prototype.passwordInputKeyDown = function(data, callbackArgsArr) {
+        if (callbackArgsArr[0].keyCode == "13") {
             this.loginUser();
-        } else if (event.keyCode == "27") {
+        } else if (callbackArgsArr[0].keyCode == "27") {
             this.loginUser();
         };
     };
@@ -108,10 +108,10 @@ $(function (){
         };
     };
 
-    UserController.prototype.rememberCheckboxKeyDown = function(data, event) {
-        if (event.keyCode == "32") {
+    UserController.prototype.rememberCheckboxKeyDown = function(data, callbackArgsArr) {
+        if (callbackArgsArr[0].keyCode == "32") {
             $("input.checkbox[name=remember]").click();
-        } else if (event.keyCode == "27") {
+        } else if (callbackArgsArr[0].keyCode == "13") {
             this.loginUser();
         };
     };
