@@ -60,7 +60,12 @@ $(function () {
         var password = $('#oldpwd').val();
         var newPassword = $('#newpwd').val();
         var newPasswordSecond = $("#cfpwd").val();
-        var args = {account: currentController.model.account, password: password, newPassword: newPassword, newPasswordSecond: newPasswordSecond};
+        var args = {
+            account: currentController.model.account, 
+            password: password, 
+            newPassword: newPassword, 
+            newPasswordSecond: newPasswordSecond
+        };
 
         var errCodeTipsMap = {
             "-1": tips.actions.changePassword.failed
@@ -261,8 +266,9 @@ $(function () {
             "#reload": {"click": this.updateDeviceInfo},
             ".dev-item": {"click": this.changeActiveDevice},
             "#upgrade-device": {"click": this.upgradeDevice},
-            "#volume-bar": {'slidestop': this.setVolume},
-            "#continue": {'click': this.continuePlay}
+            "#volume-bar": {"slidestop": this.setVolume},
+            "#continue": {"click": this.continuePlay},
+            "#refresh": {"click": this.refreshCameraInfo}
         };
 
         var selectorMsgProduceFuncMap = {
@@ -275,6 +281,36 @@ $(function () {
         };
 
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    DeviceListController.prototype.refreshCameraInfo = function() {
+        var currentController = this;
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev) {
+            var args = {
+                email: activeDev.owner.email,
+                id: activeDev.id
+            };
+            var inputCallbacks = {
+                "errorCodeCallbackMap": {
+                    0: function() {
+                        if(activeDev.isActive){
+                            currentController.view.showPlaying();
+                        }
+                    },
+                    "-1": function() {
+                        if(activeDev.isActive){
+                            currentController.view.showDeviceOffline(activeDev);
+                            currentController.view.renderMsg(tips.actions.changeIpcName.failed);
+                        }
+                    }
+                }
+            };
+            var validateResult = activeDev.get(args, inputCallbacks);
+            if (validateResult != undefined && !validateResult.code) {
+                console.error(validateResult.msg);
+            };
+        };
     };
 
     DeviceListController.prototype.continuePlay = function() {

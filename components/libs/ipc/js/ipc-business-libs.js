@@ -1498,6 +1498,7 @@
 
     Timer.prototype.start = function() {
         var _self = this;
+        _self.currentTime = 0;
         _self.updateIntervalObj = setInterval(function() {
             _self.currentTime += _self.intervalTime;
             if (_self.currentTime >= _self.timeout) {
