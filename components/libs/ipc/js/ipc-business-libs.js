@@ -660,7 +660,7 @@
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
-        /*if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
+        if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
         var result = undefined;
         if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
@@ -695,9 +695,10 @@
                 console.info("unsupportted operation system");
                 result = undefined;
             }
-        }*/
-        var result = $.ipc.FLASH_PLAYER;
+        }
         return result;
+        // var result = $.ipc.FLASH_PLAYER;
+        // return result;
     };
 
     var mimeTypesArr = ["application/x-tp-camera", "application/x-tp-camera-h264"];
@@ -834,6 +835,7 @@
         this.hasUpgradOnce = null;
         this.product = null;
         this.nonPluginPlayer = null;
+        this.pluginPlayer = null;
 
         this.currentVideoResolution = null;
         this.currentAudioCodec = null;
@@ -1498,7 +1500,7 @@
 
     Timer.prototype.start = function() {
         var _self = this;
-        _self.currentTime = 0;
+        _self.clearRubbish();
         _self.updateIntervalObj = setInterval(function() {
             _self.currentTime += _self.intervalTime;
             if (_self.currentTime >= _self.timeout) {
@@ -1525,7 +1527,7 @@
         PLAYING: 6
     };
 
-    function Player(){
+    function NonPluginPlayer(){
         $.ipc.Model.call(this, arguments);
         this.timer = null;
         this.device = null;
@@ -1546,8 +1548,11 @@
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
 
         this.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
+
+        this.coverRenderFunc = null;
+        this.flashRenderFunc = null;
     };
-    $.ipc.inheritPrototype(Player, $.ipc.Model);
+    $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.Model);
     var playerErrorCodeInfo = {
         "-20107": function(){console.log("args is invalid")},
         "-20501": function(){console.log("device is not exist")},
@@ -1555,10 +1560,10 @@
         "-20651": function(){console.log("token is out of date")},
         "-20652": function(){console.log("token is error")}
     };
-    Player.prototype.errorCodeCallbacks = Player.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
+    NonPluginPlayer.prototype.errorCodeCallbacks = NonPluginPlayer.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
 
-    Player.prototype.playerObj = null;
-    Player.prototype.clearAjaxArr = function(args) {
+    NonPluginPlayer.prototype.playerObj = null;
+    NonPluginPlayer.prototype.clearAjaxArr = function(args) {
         clearInterval(args.obj);
         for (var i = 0; i < args.arr.length; i++) {
             args.arr[i].abort();
@@ -1567,13 +1572,13 @@
         args.arr = [];
     };
 
-    Player.prototype.clearRubbish = function() {
+    NonPluginPlayer.prototype.clearRubbish = function() {
         this.stateChangeCallback.empty();
         this.playerObjErrorCallbacks.empty();
         this.back2Idle();
     };
 
-    Player.prototype.back2Idle = function() {
+    NonPluginPlayer.prototype.back2Idle = function() {
         this.clearAjaxArr({
             obj: this.queryIsRelayReadyIntervalObj,
             arr: this.queryIsRelayReadyAjaxArr
@@ -1593,7 +1598,7 @@
         };
     };
 
-    Player.prototype.flashPlayerStateChangeHandler = function() {
+    NonPluginPlayer.prototype.flashPlayerStateChangeHandler = function() {
         if (this.device.isActive == false) {
             this.back2Idle();
         } else {
@@ -1614,20 +1619,20 @@
         }
     };
 
-    Player.prototype.initFlashPlayer = function() {
+    NonPluginPlayer.prototype.initFlashPlayer = function() {
         this.stateChangeCallback.empty();
         var contextFunc = $.proxy(this.flashPlayerStateChangeHandler, this);
         this.stateChangeCallback.add(contextFunc);
     };
 
-    Player.prototype.generateAjaxUrl = function(args) {
+    NonPluginPlayer.prototype.generateAjaxUrl = function(args) {
         if (undefined == args.appServerUrl || undefined == args.token) {
             console.error("args error in generateAjaxUrl");
         };
         return args.appServerUrl + "/ipc?token=" + args.token;
     };
 
-    Player.prototype.getRelayUrl = function(args, inputCallbacks) {
+    NonPluginPlayer.prototype.getRelayUrl = function(args, inputCallbacks) {
         var _self = this;
         var data = JSON.stringify({
             "method": "requestUrl",
@@ -1669,7 +1674,7 @@
         _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
-    Player.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
+    NonPluginPlayer.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
         var _self = this;
         var data = JSON.stringify({
             "method": "requestRelayService",
@@ -1723,7 +1728,7 @@
         _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
-    Player.prototype.requestRelayService = function() {
+    NonPluginPlayer.prototype.requestRelayService = function() {
         var reachedFlag = {};
         var commandMap = this.device.generateRelaydCommand();
         for (var key in commandMap) {
@@ -1734,7 +1739,7 @@
         };
     };
 
-    Player.prototype.isRelayReady = function() {
+    NonPluginPlayer.prototype.isRelayReady = function() {
         var _self = this;
         var data = JSON.stringify({
             "method": "isRelayReady",
@@ -1784,7 +1789,7 @@
 
     };
 
-    Player.prototype.queryResid = function() {
+    NonPluginPlayer.prototype.queryResid = function() {
         var _self = this;
         var data = {
             "REQUEST": 'RTMPOPERATE',
@@ -1841,17 +1846,19 @@
         }, _self.getResIdIntervalTime);
     };
 
-    Player.prototype.triggerPlay = function() {
+    NonPluginPlayer.prototype.triggerPlay = function() {
         var _self = this;
+        _self.coverRenderFunc(_self.device);
         _self.state = devicePlayingState.BEGIN_PLAY;
         _self.stateChangeCallback.fireWith(_self);
     };
 
-    Player.prototype.play = function() {
+    NonPluginPlayer.prototype.play = function() {
         var _self = this;
         var playArgs = {
             resourcePath: _self.getResourcePath()
         }
+        _self.flashRenderFunc(_self.device);
         if (undefined == this.playerObj) {
             this.setupPlayer(playArgs);
         } else {
@@ -1860,13 +1867,13 @@
     };
 
     function RtmpPalyer() {
-        Player.call(this, arguments);
+        NonPluginPlayer.call(this, arguments);
 
         this.protocol = "rtmps://";
         this.port = 443;
         this.resourceFolder = "RtmpRelay";
     };
-    $.ipc.inheritPrototype(RtmpPalyer, Player);
+    $.ipc.inheritPrototype(RtmpPalyer, NonPluginPlayer);
 
     RtmpPalyer.prototype.getAuthArgs = function() {
         var result = null;
@@ -1934,4 +1941,21 @@
     };
     
     $.ipc.RtmpPalyer = RtmpPalyer;
+})(jQuery);
+
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function PluginPlayer () {
+        this.device = null;
+        this.playerObj = null;
+
+    }
+
+    PluginPlayer.prototype.triggerPlay = function() {
+    };
+    
+    $.ipc.PluginPlayer = PluginPlayer;
 })(jQuery);

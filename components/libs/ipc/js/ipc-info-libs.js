@@ -47,6 +47,9 @@ var tips = {
         "sendFindPasswordEmail": {
             "success": "E-mail is sent successfully.",
             "failed": "Failed to send the E-mail. Please try again later."
+        },
+        "refreshCamera": {
+            "failed": "Failed to refresh the camera info. Please try again later."
         }
     },
     "types": {

@@ -84,11 +84,13 @@
                             <div id="video-play-control">
                                 <ul>
                                     <li class="play-control-button" title="Take a picture" id="take-picture"></li>
-                                    <li class="play-control-button to-be-record" title="Recording" id="video-record"></li>
+                                    <li class="play-control-button" title="Record a video" id="video-record-start"></li>
+                                    <li class="play-control-button" title="Recording" id="video-record-stop"></li>
                                 </ul>
                                 <div id="video-volume-control">
                                     <span >
-                                        <span class="plugin-video-icon volume-open" title="Mute"></span>
+                                        <span class="play-volume-control plugin-video-icon volume-open" title="Mute"></span>
+                                        <span class="play-volume-control plugin-video-icon volume-mute" title="Mute"></span>
                                     </span>
                                 </div>
                                 <div class="toolbar-volumeset">
@@ -104,18 +106,19 @@
                                     </select>
                                 </div>
                                 <div id="video-zoom-control" class="video-control-sonclass">
-                                    <div id="zoom-minus" class="zoom-icon-container">
-                                        <span class="plugin-video-icon zoom-minus-img" title="Zoom"></span>
+                                    <div id="zoom-in" class="zoom-icon-container">
+                                        <span class="plugin-video-icon zoom-in-img" title="Zoom"></span>
                                     </div>
                                     <div id="zoom-bar" class="tpcamera-bar watchmode-bar"></div>
-                                    <div id="zoom-plus" class="zoom-icon-container zoom-icon-container-right">
-                                        <span class="plugin-video-icon zoom-plus-img" title="Zoom"></span>
+                                    <div id="zoom-out" class="zoom-icon-container zoom-icon-container-right">
+                                        <span class="plugin-video-icon zoom-out-img" title="Zoom"></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div id="flash-player-container" class="player">
+                        <div id="flash-player-cover"></div>
                         <div id="flash-player"></div>
                     </div>
                     <div id="img-tag-player-container" class="player"><div id="img-player"></div></div>
@@ -389,6 +392,7 @@
             step: 30,
             max: 90
         });
+        $("#zoom-bar .ui-slider-handle").attr("title", "X1");
     });
 </script>
 <script type="text/javascript" src="../../components/libs/player/flowplayer/flowplayer.min.js"></script>
