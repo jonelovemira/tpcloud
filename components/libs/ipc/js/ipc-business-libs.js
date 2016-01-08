@@ -1859,11 +1859,8 @@
             resourcePath: _self.getResourcePath()
         }
         _self.flashRenderFunc(_self.device);
-        if (undefined == this.playerObj) {
-            this.setupPlayer(playArgs);
-        } else {
-            this.changePlayerSource(playArgs);
-        }
+
+        this.setupPlayer(playArgs);
     };
 
     function RtmpPalyer() {
@@ -1898,6 +1895,11 @@
 
     RtmpPalyer.prototype.setupPlayer = function(args) {
         var _self = this;
+        
+        if (RtmpPalyer.prototype.playerObj != undefined) {
+            RtmpPalyer.prototype.playerObj.remove();
+        };
+
         var options = {
             width : 640,
             height : 480,
@@ -1918,6 +1920,7 @@
                 name: "ipc-jwplayer-skin"
             }
         };
+
         var newPlayer = jwplayer(_self.playerElementId);
         newPlayer.setup(options);
         RtmpPalyer.prototype.playerObj = newPlayer;
@@ -1926,18 +1929,20 @@
             newPlayer.play();
         });
 
+        newPlayer.on('ready', function() {
+            console.log("player ready");
+        });
+
+        newPlayer.on('playlistItem', function () {
+            console.log("playlistItem");
+        });
+
+
         newPlayer.onSetupError(function(e){
             _self.playerObjErrorCallbacks.fire(e);
         });
 
         _self.state = devicePlayingState.PLAYING;
-    };
-
-    RtmpPalyer.prototype.changePlayerSource = function(args) {
-        var _self = this;
-        _self.playerObj.load([{
-            file: args.resourcePath
-        }]);
     };
     
     $.ipc.RtmpPalyer = RtmpPalyer;
