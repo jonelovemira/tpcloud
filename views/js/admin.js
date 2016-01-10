@@ -892,6 +892,10 @@ $(function () {
         this.feedPluginDownloadLink(dev);
     };
 
+    DeviceListView.prototype.updatePluginPlayerCss = function() {
+        
+    };
+
     DeviceListView.prototype.pluginPlayVideo = function(dev) {
         if (dev && dev.isActive) {
             var playerType = dev.product.playerType;
@@ -909,6 +913,8 @@ $(function () {
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
                     };
+                    dev.pluginPlayer.initVolumeFromCookie();
+                    this.updatePluginPlayerCss();
                     dev.pluginPlayer.triggerPlay();
                 }
             } else {

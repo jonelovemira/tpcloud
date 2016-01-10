@@ -1956,10 +1956,20 @@
     function PluginPlayer () {
         this.device = null;
         this.playerObj = null;
-
+        this.volume = null;
     }
 
+    PluginPlayer.prototype.initVolumeFromCookie = function() {
+        var _self = this;
+        if (true == $.cookie("mute")) {
+            _self.volume = $.cookie("volume") || 100;
+        } else {
+            _self.volume = $.cookie("volume") || 0;
+        }
+    };
+
     PluginPlayer.prototype.triggerPlay = function() {
+        this.initVolumeFromCookie();
     };
     
     $.ipc.PluginPlayer = PluginPlayer;
