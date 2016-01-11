@@ -606,6 +606,7 @@
         this.height = null;
         this.str = null;
         this.playerContainerCss = null;
+        this.pluginStreamResCode = null;
     };
 
     var RESOLUTION_VIDEO_VGA = new Resolution();
@@ -614,18 +615,21 @@
     RESOLUTION_VIDEO_VGA.height = 480;
     RESOLUTION_VIDEO_VGA.str = RESOLUTION_VIDEO_VGA.width + "*" + RESOLUTION_VIDEO_VGA.height;
     RESOLUTION_VIDEO_VGA.playerContainerCss = $.ipc.vgaPlayerContainerCss;
+    RESOLUTION_VIDEO_VGA.pluginStreamResCode = 0;
     var RESOLUTION_VIDEO_QVGA = new Resolution();
     RESOLUTION_VIDEO_QVGA.name = "QVGA";
     RESOLUTION_VIDEO_QVGA.width = 320;
     RESOLUTION_VIDEO_QVGA.height = 240;
     RESOLUTION_VIDEO_QVGA.str = RESOLUTION_VIDEO_QVGA.width + "*" + RESOLUTION_VIDEO_QVGA.height;
     RESOLUTION_VIDEO_QVGA.playerContainerCss = $.ipc.qvgaPlayerContainerCss;
+    RESOLUTION_VIDEO_QVGA.pluginStreamResCode = 1;
     var RESOLUTION_VIDEO_HD = new Resolution();
     RESOLUTION_VIDEO_HD.name = "HD";
     RESOLUTION_VIDEO_HD.width = 1280;
     RESOLUTION_VIDEO_HD.height = 720;
     RESOLUTION_VIDEO_HD.str = RESOLUTION_VIDEO_HD.width + "*" + RESOLUTION_VIDEO_HD.height;
     RESOLUTION_VIDEO_HD.playerContainerCss = $.ipc.hdPlayerContainerCss;
+    RESOLUTION_VIDEO_HD.pluginStreamResCode = 2;
     var RESOLUTION_VIDEO_FULLHD = new Resolution();
     RESOLUTION_VIDEO_FULLHD.name = "FullHD";
     RESOLUTION_VIDEO_FULLHD.width = 1920;
@@ -652,6 +656,7 @@
         this.videoCodec = null;
         this.audioCodec = null;
         this.name = null;
+        this.pluginStreamTypeCode = null;
     };
     Channel.prototype.generateRelaydCommand = function(device) {
         if (undefined == device) {console.error("args error in generateRelaydCommand")};
@@ -668,6 +673,7 @@
     function DevicePostChannelVideo(){
         Channel.call(this, arguments);
         this.name = 'video';
+        this.pluginStreamTypeCode = 2;
     };
     $.ipc.inheritPrototype(DevicePostChannelVideo, Channel);
     DevicePostChannelVideo.prototype.generateLocalParam = function(dev){
@@ -678,10 +684,10 @@
         if (undefined == dev) {console.error("args error in gen local res str")};
         return $.param({resolution: dev.currentVideoResolution.name});
     };
-
     function DevicePostChannelAudio(){
         Channel.call(this, arguments);
         this.name = 'audio';
+        this.pluginStreamTypeCode = 2;
     };
     $.ipc.inheritPrototype(DevicePostChannelAudio, Channel);
     DevicePostChannelAudio.prototype.generateLocalParam = function(dev){
@@ -692,9 +698,9 @@
         if (undefined == dev) {console.error("args error in gen local res str")};
         return $.param({resolution: dev.product.audioCodec.name});
     };
-
     function DevicePostChannelMixed(){
         Channel.call(this, arguments);
+        this.pluginStreamTypeCode = 3;
         this.name = 'mixed';
     };
     $.ipc.inheritPrototype(DevicePostChannelMixed, Channel);
@@ -724,6 +730,7 @@
 
     function Codec() {
         this.name = null;
+        this.pluginAudioTypeCode = null;
     };
 
     $.ipc.Codec = Codec;
@@ -805,6 +812,7 @@
     pcmAudioCodec.name = "PCM";
     var aacAudioCodec = new $.ipc.Codec();
     aacAudioCodec.name = "AAC";
+    aacAudioCodec.pluginAudioTypeCode = 2;
     var h264VideoCodec = new $.ipc.Codec();
     h264VideoCodec.name = "h264";
     var mjpegVideoCodec = new $.ipc.Codec();
@@ -1066,7 +1074,7 @@
             data: data,
             changeState: $.noop,
             errCodeStrIndex: "error_code",
-            callbacks: inputCallbacks,
+            callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
     };
 
@@ -1098,6 +1106,7 @@
             data: data,
             changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
+            callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
     };
 
@@ -1164,7 +1173,7 @@
         this.upgradeList = [];
         this.devices = [];
         this.lastActiveDeviceId = null;
-        this.activeDeviceChanged = false;
+        this.playedDeviceChanged = false;
     };
 
     $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
@@ -1211,7 +1220,7 @@
             };
 
             var activeDeviceArr = this.findActiveDeviceArr();
-            this.activeDeviceChanged = false;
+            this.playedDeviceChanged = false;
             if (activeDeviceArr.length <= 0 && this.devices.length > 0) {
                 this.changeActiveDevice(undefined, this.devices[0]);
             };
@@ -1252,7 +1261,7 @@
             srcDevice.isActive = false;
         };
         destDevice.isActive = true;
-        this.activeDeviceChanged = true;
+        this.playedDeviceChanged = true;
     };
 
     DeviceList.prototype.findIdForIndex = function(devIndex) {
@@ -2057,14 +2066,14 @@
         this.device = null;
         this.playerObj = null;
         this.volume = 100;
+
         this.recordCallback = null;
+        this.snapshotCallback = null;
         this.timeupCallback = null;
 
         this.state = null;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
     };
-
-
 
     PluginPlayer.prototype.triggerPlay = function() {
         if (this.playerObj) {
@@ -2073,7 +2082,14 @@
         };
     };
 
-    PluginPlayer.prototype.initPluginPlayer = function() {
+    PluginPlayer.prototype.initPluginPlayer = function(args) {
+        args = args || {};
+        this.recordCallback = args.recordCallback;
+        this.snapshotCallback = args.snapshotCallback;
+        this.timeupCallback = args.snapshotCallback;
+        this.iePluginRecordCallback = args.iePluginRecordCallback;
+        this.iePluginTimeupCallback = args.iePluginTimeupCallback;
+
         var contextFunc = $.proxy(this.pluginPlayerStateChangeHandler, this);
         this.stateChangeCallback.add(contextFunc);
     };
@@ -2129,6 +2145,75 @@
         };
         this.volume = volume;
     };
+
+    PluginPlayer.prototype.play = function() {
+        this.feedPluginArgs();
+        this.playerObj.PlayVideo();
+        this.playerObj.PlayAudio();
+
+        this.gatherStatics()
+    };
+
+    PluginPlayer.prototype.feedPluginArgs = function() {
+        this.feedNormalPluginArgs();
+        this.feedMyArgs();
+    };
+
+    PluginPlayer.prototype.feedNormalPluginArgs = function() {
+        var _self = this;
+        _self.playerObj.username = _self.device["auth_name"];
+        _self.playerObj.password = _self.device["password"];
+        _self.playerObj.port = Number(_self.device["stream_port"]) || 8080;
+        _self.playerObj.ip = _self.device["iip"];
+        _self.playerObj.web_port = _self.device["web_port"];
+        _self.playerObj.cloud = true;
+        _self.playerObj.recordcb = _self.recordCallback;
+        _self.playerObj.snapshotcb = _self.snapshotCallback;
+        _self.playerObj.devname = _self.device.name;
+        _self.playerObj.timeout = 2;
+        _self.playerObj.cldusr = _self.device.owner.account;
+        _self.playerObj.cldtoken = _self.device.owner.token;
+        _self.playerObj.clddns = _self.device.appServerUrl;
+        _self.playerObj.cldmac = _self.device.mac;
+        _self.playerObj.cldtime = 30;
+        _self.playerObj.clddevid = _self.device.id;
+        _self.playerObj.streamtype = _self.device.product.postDataChannel[0].pluginStreamTypeCode;
+        _self.playerObj.streamresolution = _self.device.currentVideoResolution.pluginStreamResCode;
+        _self.playerObj.audiostreamtype = _self.device.product.audioCodec.pluginAudioTypeCode;
+    };
+
+    PluginPlayer.prototype.gatherStatics = function() {
+        
+    };
     
+
+    function IEPluginPlayer () {
+        PluginPlayer.call(this, arguments);
+        this.iePluginRecordCallback = null;
+        this.iePluginTimeupCallback = null;
+    };
+    $.ipc.inheritPrototype(IEPluginPlayer, PluginPlayer);
+   
+
+    IEPluginPlayer.prototype.feedMyArgs = function() {
+        var _self = this;
+        _self.playerObj.recordcbinvoke(_self.iePluginRecordCallback);
+        _self.playerObj.overtimecallback(_self.iePluginTimeupCallback);
+        _self.playerObj.SetCloudDevID(_self.device.id);
+    };
+
+
+    function NonIEPluginPlayer () {
+        PluginPlayer.call(this, arguments);
+    };
+    $.ipc.inheritPrototype(NonIEPluginPlayer, PluginPlayer);
+    
+    NonIEPluginPlayer.prototype.feedMyArgs = function() {
+        var _self = this;
+        _self.playerObj.overtimecb = _self.timeupCallback;
+    };
+
+
     $.ipc.PluginPlayer = PluginPlayer;
+    $.ipc.NonIEPluginPlayer = NonIEPluginPlayer;
 })(jQuery);

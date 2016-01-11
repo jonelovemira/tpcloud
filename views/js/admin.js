@@ -940,6 +940,16 @@ $(function () {
         };
     };
 
+    DeviceListView.prototype.feedPluginPlayerCallbacks = function(device) {
+        if (device) {
+            this.recordCallback = args.recordCallback;
+            this.snapshotCallback = args.snapshotCallback;
+            this.timeupCallback = args.snapshotCallback;
+            this.iePluginRecordCallback = args.iePluginRecordCallback;
+            this.iePluginTimeupCallback = args.iePluginTimeupCallback;
+        };
+    };
+
     DeviceListView.prototype.pluginPlayVideo = function(dev) {
         if (dev && dev.isActive) {
             var playerType = dev.product.playerType;
@@ -952,15 +962,24 @@ $(function () {
                     this.showPluginUpdateNeeded(dev);
                 } else {
                     if (undefined == dev.pluginPlayer) {
-                        var tmpPlayer = new $.ipc.PluginPlayer();
-                        tmpPlayer.playerObj = $("#" + id);
+                        var tmpPlayer = new $.ipc.NonIEPluginPlayer();
+                        tmpPlayer.playerObj = document.getElementById(id);
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
 
-                        dev.pluginPlayer.initPluginPlayer();
+                        var args = {
+                            recordCallback: $.noop,
+                            snapshotCallback: $.noop,
+                            timeupCallback: $.noop,
+                            iePluginRecordCallback: $.noop,
+                            iePluginTimeupCallback: $.noop
+                        }
+
+                        dev.pluginPlayer.initPluginPlayer(args);
                     };
                     this.updatePluginPlayerView(dev);
                     this.updateResolutionSelect(dev);
+                    this.model.playedDeviceChanged = false;
                     dev.pluginPlayer.triggerPlay();
                 }
             } else {
@@ -1014,6 +1033,7 @@ $(function () {
                 dev.nonPluginPlayer = tmpPlayer;
                 dev.nonPluginPlayer.initFlashPlayer();
             };
+            this.model.playedDeviceChanged = false;
             dev.nonPluginPlayer.triggerPlay();
         };
     };
@@ -1094,7 +1114,7 @@ $(function () {
 
     DeviceListView.prototype.isNeedRefreshPlaying = function() {
         var result = true;
-        if (this.model.activeDeviceChanged == true) {
+        if (this.model.playedDeviceChanged == true) {
             result = true;
         } else {
             var elementIdFlagMap = {
