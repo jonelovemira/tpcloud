@@ -511,6 +511,92 @@
 
 (function ($) {
     "use strict";
+    $.ipc = $.ipc || {};
+    
+    function PlayerContainerCss () {
+        this.player = {};
+        this.loadingImg = {};
+        this.loadingTips = {};
+        this.controlBoard = {};
+    };
+
+    var vgaPlayerContainerCss = new PlayerContainerCss();
+    vgaPlayerContainerCss.player = {
+        width: 640,
+        height: 480,
+        "margin-left": "103px"
+    };
+    vgaPlayerContainerCss.loadingImg = {
+        left: "400px",
+        height: "270px"
+    };
+    vgaPlayerContainerCss.loadingTips = {
+        "right": "4px"
+    };
+    vgaPlayerContainerCss.controlBoard = {
+        width: vgaPlayerContainerCss.player.width
+    };
+
+    var qvgaPlayerContainerCss = new PlayerContainerCss();
+    qvgaPlayerContainerCss.player = {
+        width: 640,
+        height: 480,
+        "margin-left": "103px"
+    };
+    qvgaPlayerContainerCss.loadingImg = {
+        left: "400px",
+        height: "270px"
+    };
+    qvgaPlayerContainerCss.loadingTips = {
+        "right": "4px"
+    };
+    qvgaPlayerContainerCss.controlBoard = {
+        width: qvgaPlayerContainerCss.player.width
+    };
+
+    var hdPlayerContainerCss = new PlayerContainerCss();
+    hdPlayerContainerCss.player = {
+        width: 768,
+        height: 432,
+        "margin-left": "40px"
+    };
+    hdPlayerContainerCss.loadingImg = {
+        left: "400px",
+        height: "250px"
+    };
+    hdPlayerContainerCss.loadingTips = {
+        "right": "4px"
+    };
+    hdPlayerContainerCss.controlBoard = {
+        width: hdPlayerContainerCss.player.width
+    };
+
+    var fullhdPlayerContainerCss = new PlayerContainerCss();
+    fullhdPlayerContainerCss.player = {
+        width: 768,
+        height: 432,
+        "margin-left": "40px"
+    };
+    fullhdPlayerContainerCss.loadingImg = {
+        left: "400px",
+        height: "250px"
+    };
+    fullhdPlayerContainerCss.loadingTips = {
+        "right": "4px"
+    };
+    fullhdPlayerContainerCss.controlBoard = {
+        width: fullhdPlayerContainerCss.player.width
+    };
+
+    $.ipc.vgaPlayerContainerCss = vgaPlayerContainerCss;
+    $.ipc.qvgaPlayerContainerCss = qvgaPlayerContainerCss;
+    $.ipc.hdPlayerContainerCss = hdPlayerContainerCss;
+    $.ipc.fullhdPlayerContainerCss = fullhdPlayerContainerCss;
+
+})(jQuery);
+
+(function ($) {
+    "use strict";
 
     $.ipc = $.ipc || {};
 
@@ -519,6 +605,7 @@
         this.width = null;
         this.height = null;
         this.str = null;
+        this.playerContainerCss = null;
     };
 
     var RESOLUTION_VIDEO_VGA = new Resolution();
@@ -526,21 +613,25 @@
     RESOLUTION_VIDEO_VGA.width = 640;
     RESOLUTION_VIDEO_VGA.height = 480;
     RESOLUTION_VIDEO_VGA.str = RESOLUTION_VIDEO_VGA.width + "*" + RESOLUTION_VIDEO_VGA.height;
+    RESOLUTION_VIDEO_VGA.playerContainerCss = $.ipc.vgaPlayerContainerCss;
     var RESOLUTION_VIDEO_QVGA = new Resolution();
     RESOLUTION_VIDEO_QVGA.name = "QVGA";
     RESOLUTION_VIDEO_QVGA.width = 320;
     RESOLUTION_VIDEO_QVGA.height = 240;
     RESOLUTION_VIDEO_QVGA.str = RESOLUTION_VIDEO_QVGA.width + "*" + RESOLUTION_VIDEO_QVGA.height;
+    RESOLUTION_VIDEO_QVGA.playerContainerCss = $.ipc.qvgaPlayerContainerCss;
     var RESOLUTION_VIDEO_HD = new Resolution();
     RESOLUTION_VIDEO_HD.name = "HD";
     RESOLUTION_VIDEO_HD.width = 1280;
     RESOLUTION_VIDEO_HD.height = 720;
     RESOLUTION_VIDEO_HD.str = RESOLUTION_VIDEO_HD.width + "*" + RESOLUTION_VIDEO_HD.height;
+    RESOLUTION_VIDEO_HD.playerContainerCss = $.ipc.hdPlayerContainerCss;
     var RESOLUTION_VIDEO_FULLHD = new Resolution();
     RESOLUTION_VIDEO_FULLHD.name = "FullHD";
     RESOLUTION_VIDEO_FULLHD.width = 1920;
     RESOLUTION_VIDEO_FULLHD.height = 1080;
     RESOLUTION_VIDEO_FULLHD.str = RESOLUTION_VIDEO_FULLHD.width + "*" + RESOLUTION_VIDEO_FULLHD.height;
+    RESOLUTION_VIDEO_FULLHD.playerContainerCss = $.ipc.fullhdPlayerContainerCss;
 
     $.ipc.Resolution = Resolution;
     $.ipc.RESOLUTION_VIDEO_VGA = RESOLUTION_VIDEO_VGA;
@@ -1900,9 +1991,12 @@
             RtmpPalyer.prototype.playerObj.remove();
         };
 
+        var width = _self.device.currentVideoResolution.playerContainerCss.player.width;
+        var height = _self.device.currentVideoResolution.playerContainerCss.player.height;
+
         var options = {
-            width : 640,
-            height : 480,
+            width : width,
+            height : height,
             playlist: [{
                 sources: [{
                     file: args.resourcePath
@@ -1953,23 +2047,87 @@
 
     $.ipc = $.ipc || {};
 
+    var devicePlayingState = {
+        IDLE : 0,
+        BEGIN_PLAY : 1,
+        DEVICE_LOCAL_INFO_READY: 2
+    };
+
     function PluginPlayer () {
         this.device = null;
         this.playerObj = null;
-        this.volume = null;
-    }
+        this.volume = 100;
+        this.recordCallback = null;
+        this.timeupCallback = null;
 
-    PluginPlayer.prototype.initVolumeFromCookie = function() {
+        this.state = null;
+        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+    };
+
+
+
+    PluginPlayer.prototype.triggerPlay = function() {
+        if (this.playerObj) {
+            this.state = devicePlayingState.BEGIN_PLAY;
+            this.stateChangeCallback.fireWith(this);
+        };
+    };
+
+    PluginPlayer.prototype.initPluginPlayer = function() {
+        var contextFunc = $.proxy(this.pluginPlayerStateChangeHandler, this);
+        this.stateChangeCallback.add(contextFunc);
+    };
+
+    PluginPlayer.prototype.back2Idle = function() {
+        this.state = devicePlayingState.IDLE;
+    };
+
+    PluginPlayer.prototype.getDeviceLocalInfo = function() {
         var _self = this;
-        if (true == $.cookie("mute")) {
-            _self.volume = $.cookie("volume") || 100;
+        var args = {
+            appServerUrl: _self.device.appServerUrl,
+            token: _self.device.owner.token,
+            id: _self.device.id
+        };
+
+        var inputCallbacks = {
+            "errorCodeCallbackMap": {
+                0: function() {
+                    _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
+                    _self.stateChangeCallback.fireWith(_self);
+                }
+            }
+        };
+
+        var validateResult = _self.device.getLocalInfo(args, inputCallbacks);
+        if (validateResult != undefined && !validateResult.code) {
+            console.error(validateResult.msg);
+        };
+    };
+
+    PluginPlayer.prototype.pluginPlayerStateChangeHandler = function() {
+        if (this.device.isActive == false) {
+            this.back2Idle();
         } else {
-            _self.volume = $.cookie("volume") || 0;
+            var stateLogicMap = {};
+            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getDeviceLocalInfo;
+            stateLogicMap[devicePlayingState.DEVICE_LOCAL_INFO_READY] = this.play;
+
+            var defaultFunc = function() {
+                console.log("unkonw current state: " + currentState + ", back to idle");
+                this.back2Idle();
+            };
+            var currentState = this.state;
+            var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
+            contextFunc();
         }
     };
 
-    PluginPlayer.prototype.triggerPlay = function() {
-        this.initVolumeFromCookie();
+    PluginPlayer.prototype.setVolume = function(volume) {
+        if (volume < 0 || volume > 100) {
+            console.error("args error in setVolume");
+        };
+        this.volume = volume;
     };
     
     $.ipc.PluginPlayer = PluginPlayer;

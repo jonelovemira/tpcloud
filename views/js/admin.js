@@ -266,7 +266,7 @@ $(function () {
             "#reload": {"click": this.updateDeviceInfo},
             ".dev-item": {"click": this.changeActiveDevice},
             "#upgrade-device": {"click": this.upgradeDevice},
-            "#volume-bar": {"slidestop": this.volumeChange},
+            "#volume-bar": {"slidestop": this.volumeChangeCallback},
             "#zoom-bar": {"slidestop": this.setZoom},
             "#continue": {"click": this.continuePlay},
             "#refresh": {"click": this.refreshCameraInfo},
@@ -298,20 +298,13 @@ $(function () {
     };
 
     DeviceListController.prototype.volumeMute = function() {
-        $(".volume-open").hide();
-        $(".volume-mute").show();
-        $("#volume-bar").slider("value", 0);
         $.cookie("mute", true);
-        this.setVolume();
+        this.view.volumeMute();
     };
 
     DeviceListController.prototype.volumeOpen = function() {
-        $(".volume-open").show();
-        $(".volume-mute").hide();
-        var volume = $.cookie("volume") || 0;
-        $("#volume-bar").slider("option", "value", volume);
         $.removeCookie("mute");
-        this.setVolume();
+        this.view.volumeOpen();
     };
     
     DeviceListController.prototype.videoRecordStart = function() {
@@ -353,18 +346,13 @@ $(function () {
         $("#zoom-bar .ui-slider-handle").attr("title", "X" + times);
     };
 
-    DeviceListController.prototype.volumeChange = function() {
-        $(".volume-open").show();
-        $(".volume-mute").hide();
-        $.removeCookie("mute");
-        this.setVolume();
-    };
+    
 
-    DeviceListController.prototype.setVolume = function() {
+    DeviceListController.prototype.volumeChangeCallback = function() {
+        $.removeCookie("mute");
         var volume = $("#volume-bar").slider("option", "value");
-        if (undefined == $.cookie("mute")) {
-            $.cookie("volume", volume);
-        };
+        $.cookie("volume", volume);
+        this.view.volumeChangeCallback();
     };
 
     DeviceListController.prototype.refreshCameraInfo = function() {
@@ -892,8 +880,64 @@ $(function () {
         this.feedPluginDownloadLink(dev);
     };
 
-    DeviceListView.prototype.updatePluginPlayerCss = function() {
-        
+    DeviceListView.prototype.volumeMute = function() {
+        this.volumeViewChange();
+        this.volumeChange();
+    };
+
+    DeviceListView.prototype.volumeViewChange = function() {
+        var mute = $.cookie("mute") || false;
+        if (mute) {
+            $(".volume-open").hide();
+            $(".volume-mute").show();
+            $("#volume-bar").slider("value", 0);
+        } else {
+            $(".volume-open").show();
+            $(".volume-mute").hide();
+            var volume = $.cookie("volume") || 0;
+            $("#volume-bar").slider("option", "value", volume);
+        }
+    };
+
+    DeviceListView.prototype.volumeOpen = function() {
+        this.volumeViewChange();
+        this.volumeChange();
+    };
+
+    DeviceListView.prototype.volumeChangeCallback = function() {
+        this.volumeViewChange();
+        this.volumeChange();
+    };
+
+    DeviceListView.prototype.volumeChange = function() {
+        var volume = $("#volume-bar").slider("option", "value");
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev.pluginPlayer) {
+            activeDev.pluginPlayer.setVolume(volume);
+        };
+    };
+
+    DeviceListView.prototype.updatePluginPlayerView = function(dev) {
+        if (dev) {
+            $("#plugin-player-set").css(dev.currentVideoResolution.playerContainerCss.player);
+            $("#loading-img-container").css(dev.currentVideoResolution.playerContainerCss.loadingImg);
+            $("#loading-tips-text").css(dev.currentVideoResolution.playerContainerCss.loadingTips);
+            $(".control-board").css(dev.currentVideoResolution.playerContainerCss.controlBoard);
+
+            this.volumeViewChange();
+        };
+    };
+
+    DeviceListView.prototype.updateResolutionSelect = function(dev) {
+        if (dev) {
+            $("#resolution-select").empty();
+            var resArr = dev.product.supportVideoResArr;
+            for (var i = 0; i < resArr.length; i++) {
+                $("#resolution-select").append("<option name=" + resArr[i].name + ">" + resArr[i].str + "</option>");
+            };
+            $("#resolution-select option:first-child").attr("selected", true);
+            $("#resolution-select").Select({slideOptionHeight: 16});
+        };
     };
 
     DeviceListView.prototype.pluginPlayVideo = function(dev) {
@@ -912,9 +956,11 @@ $(function () {
                         tmpPlayer.playerObj = $("#" + id);
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
+
+                        dev.pluginPlayer.initPluginPlayer();
                     };
-                    dev.pluginPlayer.initVolumeFromCookie();
-                    this.updatePluginPlayerCss();
+                    this.updatePluginPlayerView(dev);
+                    this.updateResolutionSelect(dev);
                     dev.pluginPlayer.triggerPlay();
                 }
             } else {
@@ -1052,7 +1098,7 @@ $(function () {
             result = true;
         } else {
             var elementIdFlagMap = {
-                "objouter": false,
+                "plugin-player-set": false,
                 "flash-player-container": false,
                 "refreshtips": false,
                 "reloadtips": false,

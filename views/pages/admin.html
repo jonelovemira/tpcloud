@@ -79,7 +79,10 @@
                             <object  id="non-ie-mjpeg" type="application/x-tp-camera"  class="non-ie-plugin-player-obj" style="display:none;"></object>
                             <object  id="non-ie-h264" type="application/x-tp-camera-h264" class="non-ie-plugin-player-obj" style="display:none;"></object>
                         </div>
-                        <div id="loading-img-container"> <img id="loading-img" src="../img/admin/loadings.gif"  alt="loading" /> <span id="loading-tips-text">Loading</span> </div>
+                        <div id="loading-img-container">
+                            <img id="loading-img" src="../img/admin/loadings.gif"  alt="loading" />                        
+                            <span id="loading-tips-text">Loading</span>
+                        </div>
                         <div class="control-board">
                             <div id="video-play-control">
                                 <ul>
@@ -377,7 +380,7 @@
 <script type="text/javascript" src="../../components/widget/form/js/select.js"></script>
 <script type="text/javascript">
     $(function(){
-        $("select.select").Select({slideOptionHeight: 16});
+        $("select.select").Select();
 
         $("#volume-bar").slider({
             range: "min",

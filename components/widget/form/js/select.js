@@ -183,7 +183,7 @@
         pluginSelectWidth           :       200,
         optionWidth                 :       null,
         slideMaxHeight              :       288,
-        slideOptionHeight           :       25,
+        slideOptionHeight           :       16,
         hotKey                      :       false,
         disabled                    :       false 
     };

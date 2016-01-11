@@ -75,8 +75,7 @@ $(function(){
         };
         $("#model_select").empty();
         $("#model_select").Select({
-            addedOptions: addedOptions,
-            slideOptionHeight: 16
+            addedOptions: addedOptions
         });
     };
 
