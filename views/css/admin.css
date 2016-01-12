@@ -35,7 +35,10 @@
 #userinfo-title-changepwd:hover{
     text-decoration: underline;
 }
-
+#non-ie-h264 {
+    width: 640; 
+    height: 480;
+}
 .account-btn{
     width:95px;
     font-size:1.5em;
