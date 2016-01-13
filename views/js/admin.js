@@ -277,7 +277,8 @@ $(function () {
             "#video-record-stop": {"click": this.videoRecordStop},
             ".volume-open": {"click": this.volumeMute},
             ".volume-mute": {"click": this.volumeOpen},
-            "#resolution-select": {"change": this.setResolution}
+            "#resolution-select": {"change": this.setResolution},
+            "#failed-back-button": {"click": this.upgradeFailedBack}
         };
 
         var selectorMsgProduceFuncMap = {
@@ -353,6 +354,12 @@ $(function () {
         var volume = $("#volume-bar").slider("option", "value");
         $.cookie("volume", volume);
         this.view.volumeChangeCallback();
+    };
+    
+    DeviceListController.prototype.upgradeFailedBack = function() {
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        activeDev.hasUpgradOnce = false;
+        this.view.clearBoardAndShow();
     };
 
     DeviceListController.prototype.refreshCameraInfo = function() {
@@ -480,6 +487,7 @@ $(function () {
     DeviceListController.prototype.upgradeDevice = function() {
         var currentController = this;
         var activeDev = this.model.findActiveDeviceArr()[0];
+        var mac = activeDev.mac.toLowerCase().match(/.{2}/g).join(":");
         if (activeDev) {
             if (activeDev.isOnline) {
                 var args = {
@@ -998,6 +1006,7 @@ $(function () {
         if (device && device.isActive) {
             this.flashManageBoard();
             $("#flash-player-cover").show();
+            $("#flash-player-cover").html("<b>Playing video use" + device.name +"</b>");
         };
     };
 
@@ -1005,6 +1014,14 @@ $(function () {
         if (device && device.isActive) {
             this.flashManageBoard();
             $("#flash-player").show();
+        };
+    };
+
+    DeviceListView.prototype.renderFlashNetError = function(device) {
+        if (device && device.isActive) {
+            this.flashManageBoard();
+            $("#flash-player-cover").show();
+            $("#flash-player-cover").html("<b>No Internet connection available. Please check your network.</b>");
         };
     };
 
@@ -1026,9 +1043,11 @@ $(function () {
 
                 var contextCoverFunc = $.proxy(this.renderFlashCover, this);
                 var contextFlashFunc = $.proxy(this.renderFlashPlayer, this);
+                var contextFlashNetErr = $.proxy(this.renderFlashNetError, this);
 
                 tmpPlayer.coverRenderFunc = contextCoverFunc;
                 tmpPlayer.flashRenderFunc = contextFlashFunc;
+                tmpPlayer.flashNetErrRenderFunc = contextFlashNetErr;
 
                 dev.nonPluginPlayer = tmpPlayer;
                 dev.nonPluginPlayer.initFlashPlayer();

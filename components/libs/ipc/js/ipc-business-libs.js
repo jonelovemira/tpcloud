@@ -943,6 +943,8 @@
         this.resId = null;
 
         this.isActive = false;
+
+        this.BACK_END_WEB_PROTOCAL = "";
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -976,6 +978,7 @@
                             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {return validateResult;};
 
+        var urlPrefix = this.BACK_END_WEB_PROTOCAL + this.webServerUrl;
         var data = JSON.stringify({
             "email": args.email,
             "id": args.id
@@ -987,7 +990,19 @@
             this.stateChangeCallbacks.fire(this);
         };
 
-        this.makeAjaxRequest({url: "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
+        this.makeAjaxRequest({url: urlPrefix + "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
+    };
+    Device.prototype.addNc200UpgradeCookie = function() {
+        var device = this;
+        var deviceModel = device.model;
+        var fwVer = device.firmware;
+        var deviceHwVer = device.hardware;
+        if (deviceModel == "NC200(UN)" && fwVer == "2.1.3 Build 151125 Rel.24992" && deviceHwVer == "1.0" ) {
+            var date = new Date();
+            var minutes = 10;
+            date.setTime(date.getTime() + (minutes * 60 * 1000));
+            $.cookie(device.id, "upgrading", { expires: date });
+        };
     };
 
     Device.prototype.upgrade = function(args, inputCallbacks) {
@@ -998,7 +1013,7 @@
             console.error("args error in upgrade");
         }
 
-        var urlPrefix = args.urlPrefix || this.webServerUrl;
+        var urlPrefix = this.BACK_END_WEB_PROTOCAL + this.webServerUrl;
 
         var data = {
             "REQUEST": "FIRMWAREUPGRADE",
@@ -1015,13 +1030,21 @@
             this.systemStatus = "downloading";
             this.hasUpgradOnce = true;
             this.stateChangeCallbacks.fire(this);
+
+            this.addNc200UpgradeCookie();
         };
 
         var extendAjaxOptions = {
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({url: urlPrefix + "/init3.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions}, $.xAjax.defaults.xType);
+        this.makeAjaxRequest({
+            url: urlPrefix + "/init.php", 
+            data: data, 
+            callbacks: inputCallbacks, 
+            changeState: changeStateFunc, 
+            extendAjaxOptions: extendAjaxOptions
+        }, $.xAjax.defaults.xType);
     };
 
     Device.prototype.changeName = function(args, inputCallbacks) {
@@ -1188,6 +1211,27 @@
 
     DeviceList.prototype.errorCodeCallbacks = DeviceList.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceListErrorCodeInfo});
 
+    DeviceList.prototype.clearNc200UpgradeCookie = function(response) {
+        if (response && response.msg) {
+            for (var i = 0; i < response.msg.length; i++) {
+                if(undefined == response.msg[i].needForceUpgrade || 0 == response.msg[i].needForceUpgrade) {
+                    $.removeCookie(response.msg[i].id);
+                }
+            };
+        };
+    };
+
+    DeviceList.prototype.updateFromNc200UpgradeCookie = function(response) {
+        if (response) {
+            for (var i = 0; i < response.msg.length; i++) {
+                if ($.cookie(response.msg[i].id)) {
+                    response.msg[i].system_status = $.cookie(response.msg[i].id);
+                };
+            };
+        };
+        return response;
+    };
+
     DeviceList.prototype.getDeviceList = function(inputCallbacks) {
         if (undefined == this.owner) {console.error("owner of device list is undefined")};
         var data = {};
@@ -1196,6 +1240,10 @@
             var oldDevices = this.devices;
             
             this.devices = [];
+            
+            this.clearNc200UpgradeCookie(response);
+            response = this.updateFromNc200UpgradeCookie(response);
+
             for (var i = 0; i < response.msg.length; i++) {
                 var newDevice = new $.ipc.Device();
                 newDevice.init(response.msg[i]);
@@ -1624,7 +1672,9 @@
         REQUEST_RELAY_SERVICE_SUCCESS: 3,
         RELAY_READY: 4,
         RESOURCE_READY: 5,
-        PLAYING: 6
+        PLAYING: 6,
+        NETWORK_ERROR: 7,
+        NEED_RETRY_REQUEST_SERVICE: 8
     };
 
     function NonPluginPlayer(){
@@ -1644,6 +1694,11 @@
         this.getResIdIntervalTime = 3000;
         this.getResIdAjaxLimit = 20;
 
+        this.retryRequestRelayServiceTimes = 0;
+        this.retryRequestRelayServiceLimit = 3;
+
+        this.rubbisAjaxArr = [];
+
         this.state = devicePlayingState.IDLE;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
 
@@ -1651,6 +1706,7 @@
 
         this.coverRenderFunc = null;
         this.flashRenderFunc = null;
+        this.flashNetErrRenderFunc = null;
     };
     $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.Model);
     var playerErrorCodeInfo = {
@@ -1696,6 +1752,30 @@
         if (this.playerObj) {
             this.playerObj.stop();
         };
+
+        for (var i = 0; i < this.rubbisAjaxArr.length; i++) {
+            this.rubbisAjaxArr[i].abort();
+        };
+        delete this.rubbisAjaxArr;
+        this.rubbisAjaxArr = [];
+
+        this.retryRequestRelayServiceTimes = 0;
+    };
+
+    NonPluginPlayer.prototype.renderNetworkError = function() {
+        if (this.flashNetErrRenderFunc) {
+            this.back2Idle();
+            this.flashNetErrRenderFunc(this.device);
+        };
+    };
+
+    NonPluginPlayer.prototype.retryRequestRelayService = function() {
+        this.retryRequestRelayServiceTimes += 1;
+        if (this.retryRequestRelayServiceTimes <= this.retryRequestRelayServiceLimit) {
+            this.changeStateTo(devicePlayingState.RELAY_URL_READY);
+        } else {
+            this.changeStateTo(devicePlayingState.NETWORK_ERROR);
+        }
     };
 
     NonPluginPlayer.prototype.flashPlayerStateChangeHandler = function() {
@@ -1708,6 +1788,8 @@
             stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
             stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
             stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
+            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.renderNetworkError;
+            stateLogicMap[devicePlayingState.NEED_RETRY_REQUEST_SERVICE] = this.retryRequestRelayService;
 
             var defaultFunc = function() {
                 console.log("unkonw current state: " + currentState + ", back to idle");
@@ -1717,6 +1799,14 @@
             var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
             contextFunc();
         }
+    };
+
+    NonPluginPlayer.prototype.changeStateTo = function(toState) {
+        if (toState) {
+            var _self = this;
+            _self.state = toState;
+            _self.stateChangeCallback.fireWith(_self);
+        };
     };
 
     NonPluginPlayer.prototype.initFlashPlayer = function() {
@@ -1734,6 +1824,12 @@
 
     NonPluginPlayer.prototype.getRelayUrl = function(args, inputCallbacks) {
         var _self = this;
+        
+        if (_self.device.relayUrl) {
+            _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+            return;
+        };
+
         var data = JSON.stringify({
             "method": "requestUrl",
             "params": {
@@ -1744,17 +1840,17 @@
         var retryLimit = 3;
         var changeStateFunc = function(response) {
             _self.device.relayUrl = response.result.relayUrl;
-            _self.state = devicePlayingState.RELAY_URL_READY;
-            _self.stateChangeCallback.fireWith(_self);
+            _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
         };
 
         var extendAjaxOptions = {
             error: function(xhr) {
-                retryCount += 1;
                 if (retryCount < retryLimit) {
-                    _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                    retryCount += 1;
+                    var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                    _self.rubbisAjaxArr.push(ajaxObj);
                 } else {
-                    console.log("xhr error: ", xhr);
+                    _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
                 }
             }
         };
@@ -1771,7 +1867,8 @@
             extendAjaxOptions: extendAjaxOptions
         };
 
-        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+        _self.rubbisAjaxArr.push(ajaxObj);
     };
 
     NonPluginPlayer.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
@@ -1797,18 +1894,18 @@
             };
 
             if (isAllReached) {
-                _self.state = devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS;
-                _self.stateChangeCallback.fireWith(_self);
+                _self.changeStateTo(devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS);
             };
         };
 
         var extendAjaxOptions = {
             error: function(xhr) {
-                retryCount += 1;
                 if (retryCount < retryLimit) {
-                    _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                    retryCount += 1;
+                    var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                    _self.rubbisAjaxArr.push(ajaxObj);
                 } else {
-                    console.log("xhr error: ", xhr);
+                    _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
                 }
             }
         };
@@ -1825,7 +1922,8 @@
             extendAjaxOptions: extendAjaxOptions
         };
 
-        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+        _self.rubbisAjaxArr.push(ajaxObj);
     };
 
     NonPluginPlayer.prototype.requestRelayService = function() {
@@ -1860,8 +1958,7 @@
                 var cookieValue = _self.device.ELBcookie.split("=")[1];
                 document.cookie = cookieKey + "=" + cookieValue + "; domain=.tplinkcloud.com";
 
-                _self.state = devicePlayingState.RELAY_READY;
-                _self.stateChangeCallback.fireWith(_self);
+                _self.changeStateTo(devicePlayingState.RELAY_READY);
             };
         };
 
@@ -1881,9 +1978,9 @@
             var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType); 
             _self.queryIsRelayReadyAjaxArr.push(ajaxObj);
             currentCount += 1;
-            if (currentCount >= _self.queryIsRelayReadyAjaxLimit) {
+            if (currentCount > _self.queryIsRelayReadyAjaxLimit) {
                 clearInterval(_self.queryIsRelayReadyIntervalObj);
-                _self.back2Idle();
+                _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
             };
         }, _self.queryIsRelayReadyIntervalTime);
 
@@ -1914,10 +2011,7 @@
                 _self.getResIdReadyAjaxArr[i].abort();
             };
             _self.device.resId = response.msg.resourceid;
-
-            _self.state = devicePlayingState.RESOURCE_READY;
-            _self.stateChangeCallback.fireWith(_self);
-
+            _self.changeStateTo(devicePlayingState.RESOURCE_READY);
             _self.timer.start();
         };
 
@@ -1925,8 +2019,10 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
+        var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
+
         var requestArgs = {
-            url: "https://alpha.tplinkcloud.com/init3.php", 
+            url: urlPrefix + "/init3.php", 
             data: data, 
             callbacks: undefined, 
             changeState: changeStateFunc,
@@ -1939,9 +2035,9 @@
             var ajaxObj = _self.makeAjaxRequest(requestArgs);
             _self.getResIdReadyAjaxArr.push(ajaxObj);
             currentCount += 1;
-            if (currentCount >= _self.getResIdAjaxLimit) {
+            if (currentCount >= 3) {
                 clearInterval(_self.getResIdIntervalObj);
-                _self.back2Idle();
+                _self.changeStateTo(devicePlayingState.NEED_RETRY_REQUEST_SERVICE);
             };
         }, _self.getResIdIntervalTime);
     };
@@ -1949,8 +2045,7 @@
     NonPluginPlayer.prototype.triggerPlay = function() {
         var _self = this;
         _self.coverRenderFunc(_self.device);
-        _self.state = devicePlayingState.BEGIN_PLAY;
-        _self.stateChangeCallback.fireWith(_self);
+        _self.changeStateTo(devicePlayingState.BEGIN_PLAY);
     };
 
     NonPluginPlayer.prototype.play = function() {
