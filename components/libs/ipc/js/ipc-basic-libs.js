@@ -132,8 +132,7 @@
         "MSIE 10": ieXDomainAjax
     };
 
-    $.xAjax = function(options, xDomain)
-    {
+    $.xAjax = function(options, xDomain){
         var ajaxFunction = xDomainAjaxMap[xDomain] || normalAjax;
         var ajaxObj = ajaxFunction(options);
         return ajaxObj;
@@ -222,29 +221,5 @@
         }
 
         return 0;
-    };
-})(jQuery);
-
-(function ($) {
-
-    "use strict";
-
-    $.ipc = $.ipc || {};
-    
-    $.ipc.inheritPrototype = function (subType, baseType) {
-        if (undefined == baseType || undefined == subType) {
-            console.error( "args error in inherit");
-        };
-
-        subType.prototype = $.ipc.create(baseType.prototype);
-        subType.prototype.constructor = subType;
-    };
-
-    $.ipc.initClassPrototype = function(tmp, classPrototype) {
-        if (undefined == tmp || undefined == classPrototype) {
-            console.error("args error in initClassPrototype");
-        };
-        var cloneTmp = $.extend(true, {}, tmp);
-        $.extend(true, classPrototype, cloneTmp);
     };
 })(jQuery);

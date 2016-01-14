@@ -84,7 +84,7 @@ var tips = {
             "account": {
                 "cantBeEmpty": "Please enter an E-mail address or username."
             },
-            "product": {
+            "productName": {
                 "cantBeEmpty": "Please select a product model."
             }
         },

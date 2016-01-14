@@ -55,6 +55,30 @@
 })(jQuery);
 
 (function ($) {
+
+    "use strict";
+
+    $.ipc = $.ipc || {};
+    
+    $.ipc.inheritPrototype = function (subType, baseType) {
+        if (undefined == baseType || undefined == subType) {
+            console.error( "args error in inherit");
+        };
+
+        subType.prototype = $.ipc.create(baseType.prototype);
+        subType.prototype.constructor = subType;
+    };
+
+    $.ipc.initClassPrototype = function(tmp, classPrototype) {
+        if (undefined == tmp || undefined == classPrototype) {
+            console.error("args error in initClassPrototype");
+        };
+        var cloneTmp = $.extend(true, {}, tmp);
+        $.extend(true, classPrototype, cloneTmp);
+    };
+})(jQuery);
+
+(function ($) {
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -937,7 +961,6 @@
         this.pluginPlayer = null;
 
         this.currentVideoResolution = null;
-        this.currentAudioCodec = null;
         this.relayUrl = null;
         this.ELBcookie = null;
         this.resId = null;
@@ -1519,7 +1542,7 @@
     function Feedback () {
         $.ipc.Model.call(this, arguments);
         this.account = null;
-        this.product = null;
+        this.productName = null;
         this.country = null;
         this.problemType = null;
         this.description = null;
@@ -1537,7 +1560,7 @@
 
     Feedback.prototype.send = function(args, inputCallbacks) {
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
-            (!this.validateProduct(args.product).code && this.validateProduct(args.product)) ||
+            (!this.validateProductName(args.productName).code && this.validateProductName(args.productName)) ||
             (!this.validateDescription(args.description).code && this.validateDescription(args.description));
         if (validateResult.code == false) {return validateResult;}; 
 
@@ -1552,7 +1575,7 @@
                 "email": args.account,
                 "subject": "User Feedback",
                 "content": "From:" + args.account + "<br/>" +
-                            "Model: " + args.product +  "<br/>" +
+                            "Model: " + args.productName +  "<br/>" +
                             "Country: " + args.country + "<br/>" +
                             "Problem: " + args.problemType + "<br/>" +
                             "Description: " + args.description,
@@ -1608,14 +1631,14 @@
         return this.validateAttr(validateArgs);
     };
 
-    Feedback.prototype.validateProduct = function(product) {
-        if (undefined == product) {
-            console.error("args error in validateProduct");
+    Feedback.prototype.validateProductName = function(productName) {
+        if (undefined == productName) {
+            console.error("args error in validateProductName");
         };
 
         var validateArgs = {
-            "attr": product,
-            "attrEmptyMsg": tips.types.contact.product.cantBeEmpty,
+            "attr": productName,
+            "attrEmptyMsg": tips.types.contact.productName.cantBeEmpty,
             "maxLength": 6,
             "minLength": 1,
             "attrOutOfLimitMsg": "product name is out of limit",
@@ -1954,9 +1977,7 @@
                 };
 
                 _self.device.ELBcookie = response.result.realServerKey;
-                var cookieKey = _self.device.ELBcookie.split("=")[0];
-                var cookieValue = _self.device.ELBcookie.split("=")[1];
-                document.cookie = cookieKey + "=" + cookieValue + "; domain=.tplinkcloud.com";
+                document.cookie = _self.device.ELBcookie + "; domain=.tplinkcloud.com";
 
                 _self.changeStateTo(devicePlayingState.RELAY_READY);
             };

@@ -33,7 +33,7 @@ $(function(){
     SoftwareController.prototype.sendFeedBack = function() {
         var currentController = this;
         var args = {account: $('#contact_account').attr('value'),
-                    product: $('#model_select').attr('value'),
+                    productName: $('#model_select').attr('value'),
                     country: $('#rCountry').attr('value'),
                     problemType: $('#problem_select').attr('value'),
                     description: $("#contact_content").attr('value')};
