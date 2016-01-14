@@ -22,6 +22,10 @@
                 return "MSIE " + ieVer;
             };
         };
+        if(/trident/i.test(M[1])){
+            tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+            return 'MSIE '+(tem[1] || '');
+        }
         if(M[1]=== 'Chrome'){
             tem= ua.match(/\bOPR\/(\d+)/);
             if(tem!= null) return 'Opera '+tem[1];
