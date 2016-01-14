@@ -936,6 +936,15 @@ $(function () {
         };
     };
 
+    DeviceListView.prototype.updatePlayerObjView = function(dev) {
+        if (dev && dev.isActive) {
+            var playerType = dev.product.playerType;
+            var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
+            $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
+            $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
+        };
+    };
+
     DeviceListView.prototype.updateResolutionSelect = function(dev) {
         if (dev) {
             $("#resolution-select").empty();
@@ -958,6 +967,32 @@ $(function () {
         };
     };
 
+    DeviceListView.prototype.renderPluginVideoLoading = function(dev) {
+        if (dev && dev.isActive) {
+            var playerType = dev.product.playerType;
+            var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
+            $("#" + id).css("width", 1);
+            $("#" + id).css("height", 1);
+            $("#plugin-player-set").show();
+            $("#loading-img-container").show();
+        };
+    };
+
+    DeviceListView.prototype.renderPluginPlayer = function() {
+        $("#plugin-player-set").show();
+        $("#plugin-player-container").show();
+        $("#loading-img-container").hide();
+    };
+
+    DeviceListView.prototype.hidePluginPlayers = function(device) {
+        if (device && device.isActive) {
+            var playerType = device.product.playerType;
+            var id = playerType.prototype.mimetypeCssMap[device.product.mimeType];
+            $("#" + id).hide();
+            $("#plugin-player-set").hide();
+        };
+    };
+
     DeviceListView.prototype.pluginPlayVideo = function(dev) {
         if (dev && dev.isActive) {
             var playerType = dev.product.playerType;
@@ -966,7 +1001,7 @@ $(function () {
             $("#" + id).show();
             if (this.isEnvSupportPluginPlay(dev)) {
                 if (this.isPluginNeedUpgrade(dev)) {
-                    this.hidePluginPlayers();
+                    this.hidePluginPlayers(dev);
                     this.showPluginUpdateNeeded(dev);
                 } else {
                     if (undefined == dev.pluginPlayer) {
@@ -975,12 +1010,18 @@ $(function () {
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
 
+                        var contextPluginVideoLoadingRenderFunc = $.proxy(this.renderPluginVideoLoading, this);
+                        var contextPluginPlayerRender = $.proxy(this.renderPluginPlayer, this);
+                        var contextUpdatePlayerObjView = $.proxy(this.updatePlayerObjView, this);
                         var args = {
                             recordCallback: $.noop,
                             snapshotCallback: $.noop,
                             timeupCallback: $.noop,
                             iePluginRecordCallback: $.noop,
-                            iePluginTimeupCallback: $.noop
+                            iePluginTimeupCallback: $.noop,
+                            videoLoadingRenderFunc: contextPluginVideoLoadingRenderFunc,
+                            pluginPlayerRender: contextPluginPlayerRender,
+                            updatePlayerObjView: contextUpdatePlayerObjView
                         }
 
                         dev.pluginPlayer.initPluginPlayer(args);
@@ -991,7 +1032,7 @@ $(function () {
                     dev.pluginPlayer.triggerPlay();
                 }
             } else {
-                this.hidePluginPlayers();
+                this.hidePluginPlayers(dev);
                 this.showPluginNeed(dev);
             }
         };

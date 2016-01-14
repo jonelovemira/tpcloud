@@ -528,7 +528,7 @@
     };
     vgaPlayerContainerCss.loadingImg = {
         left: "400px",
-        height: "270px"
+        top: "270px"
     };
     vgaPlayerContainerCss.loadingTips = {
         "right": "4px"
@@ -545,7 +545,7 @@
     };
     qvgaPlayerContainerCss.loadingImg = {
         left: "400px",
-        height: "270px"
+        top: "270px"
     };
     qvgaPlayerContainerCss.loadingTips = {
         "right": "4px"
@@ -562,7 +562,7 @@
     };
     hdPlayerContainerCss.loadingImg = {
         left: "400px",
-        height: "250px"
+        top: "250px"
     };
     hdPlayerContainerCss.loadingTips = {
         "right": "4px"
@@ -579,7 +579,7 @@
     };
     fullhdPlayerContainerCss.loadingImg = {
         left: "400px",
-        height: "250px"
+        top: "250px"
     };
     fullhdPlayerContainerCss.loadingTips = {
         "right": "4px"
@@ -2160,20 +2160,26 @@
     function PluginPlayer () {
         this.device = null;
         this.playerObj = null;
-        this.volume = 100;
+        this.volume = 0;
 
         this.recordCallback = null;
         this.snapshotCallback = null;
         this.timeupCallback = null;
 
+        this.videoLoadingRenderFunc = null;
+        this.pluginPlayerRender = null;
+        this.updatePlayerObjView = null;
+
         this.state = null;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+        this.videoReadyCallback = $.Callbacks("unique stopOnFalse");
     };
 
     PluginPlayer.prototype.triggerPlay = function() {
         if (this.playerObj) {
             this.state = devicePlayingState.BEGIN_PLAY;
             this.stateChangeCallback.fireWith(this);
+            this.videoLoadingRenderFunc(this.device);
         };
     };
 
@@ -2184,9 +2190,23 @@
         this.timeupCallback = args.snapshotCallback;
         this.iePluginRecordCallback = args.iePluginRecordCallback;
         this.iePluginTimeupCallback = args.iePluginTimeupCallback;
+        this.videoLoadingRenderFunc = args.videoLoadingRenderFunc;
+        this.pluginPlayerRender = args.pluginPlayerRender;
+        this.updatePlayerObjView = args.updatePlayerObjView;
 
         var contextFunc = $.proxy(this.pluginPlayerStateChangeHandler, this);
         this.stateChangeCallback.add(contextFunc);
+
+        this.videoReadyCallback.add(this.pluginPlayerRender);
+        this.videoReadyCallback.add(this.updatePlayerObjView);
+        var contextSetVolume = $.proxy(this.setVideoVolume, this);
+        this.videoReadyCallback.add(contextSetVolume);
+    };
+
+    PluginPlayer.prototype.setVideoVolume = function() {
+        if (this.playerObj && this.volume) {
+            this.playerObj.SetAudioVolume(parseInt(this.volume));
+        };
     };
 
     PluginPlayer.prototype.back2Idle = function() {
@@ -2239,12 +2259,25 @@
             console.error("args error in setVolume");
         };
         this.volume = volume;
+        this.setVideoVolume();
+    };
+
+    PluginPlayer.prototype.detectVideoReady = function() {
+        var _self = this;
+        var interval = setInterval(function(){
+            if (_self.playerObj.resolution) {
+                clearInterval(interval);
+                _self.videoReadyCallback.fire(_self.device);
+            };
+        }, 2000);
     };
 
     PluginPlayer.prototype.play = function() {
         this.feedPluginArgs();
+        this.playerObj.SetAudioVolume(0);
         this.playerObj.PlayVideo();
         this.playerObj.PlayAudio();
+        this.detectVideoReady();
 
         this.gatherStatics()
     };

@@ -35,10 +35,6 @@
 #userinfo-title-changepwd:hover{
     text-decoration: underline;
 }
-#non-ie-h264 {
-    width: 640; 
-    height: 480;
-}
 .account-btn{
     width:95px;
     font-size:1.5em;
@@ -98,20 +94,9 @@
     margin-left: 60px;
 }
 
-#Player{
-    height:480px;
-    width:640px;
-}
-#Player_220{
-    height:480px;
-    width:640px;
-    position:absolute;
-    left:0px;
-    top:0px;
-}
-#Player_250 {
-    height:1px;
-    width:1px;
+.plugin-player-obj {
+    width: 1px;
+    height: 1px;
 }
 
 .reload-btn{
