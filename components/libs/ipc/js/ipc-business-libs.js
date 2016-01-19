@@ -488,7 +488,7 @@
     function PLUGIN_IE_X64(){};
     function PLUGIN_MAC(){};
     function FLASH_PLAYER(){};
-    function IMG_PLAYER(){}
+    function IMG_PLAYER(){};
 
     PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {
         "application/x-tp-camera": "non-ie-mjpeg",
@@ -819,8 +819,6 @@
             }
         }
         return result;
-        // var result = $.ipc.FLASH_PLAYER;
-        // return result;
     };
 
     var mimeTypesArr = ["application/x-tp-camera", "application/x-tp-camera-h264"];
@@ -1697,7 +1695,8 @@
         RESOURCE_READY: 5,
         PLAYING: 6,
         NETWORK_ERROR: 7,
-        NEED_RETRY_REQUEST_SERVICE: 8
+        NEED_RES_FAILED_RETRY: 8,
+        NEED_RELAY_READY_FAILED_TRY: 9
     };
 
     function NonPluginPlayer(){
@@ -1707,14 +1706,17 @@
         this.swfPath = null;
         this.playerElementId = null;
 
+        this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
+        this.maxRlyRdyFailedRtryReqRlySrvCnt = 3;
+
         this.queryIsRelayReadyIntervalTime = 3000;
-        this.queryIsRelayReadyAjaxLimit = 20;
+        this.queryIsRelayReadyAjaxLimit = 10;
 
         this.getResIdIntervalTime = 3000;
         this.getResIdAjaxLimit = 3;
 
-        this.retryRequestRelayServiceTimes = 0;
-        this.retryRequestRelayServiceLimit = 3;
+        this.curResFailedRtryReqRlySrvCnt = 0;
+        this.maxResFailedRtryReqRlySrvCnt = 3;
 
         this.rubbisAjaxArr = [];
         this.rubbisIntervalObjArr = [];
@@ -1725,8 +1727,8 @@
         this.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
 
         this.coverRenderFunc = null;
-        this.flashRenderFunc = null;
-        this.flashNetErrRenderFunc = null;
+        this.playerRenderFunc = null;
+        this.netErrRenderFunc = null;
     };
     $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.Model);
     var playerErrorCodeInfo = {
@@ -1772,7 +1774,8 @@
             this.playerObj.stop();
         };
 
-        this.retryRequestRelayServiceTimes = 0;
+        this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
+        this.curResFailedRtryReqRlySrvCnt = 0;
     };
 
     NonPluginPlayer.prototype.renderNetworkError = function() {
@@ -1782,41 +1785,21 @@
         };
     };
 
-    NonPluginPlayer.prototype.retryRequestRelayService = function() {
-        this.retryRequestRelayServiceTimes += 1;
-        if (this.retryRequestRelayServiceTimes <= this.retryRequestRelayServiceLimit) {
+    NonPluginPlayer.prototype.residFailedRetryRelayService = function() {
+        this.curResFailedRtryReqRlySrvCnt += 1;
+        if (this.curResFailedRtryReqRlySrvCnt <= this.maxResFailedRtryReqRlySrvCnt) {
             this.changeStateTo(devicePlayingState.RELAY_URL_READY);
         } else {
             this.changeStateTo(devicePlayingState.NETWORK_ERROR);
         }
     };
 
-    NonPluginPlayer.prototype.preparePlay = function() {
-        this.luckyTryForResId();
-        this.getRelayUrl();
-    };
-
-    NonPluginPlayer.prototype.flashPlayerStateChangeHandler = function() {
-        if (this.device.isActive == false) {
-            this.back2Idle();
+    NonPluginPlayer.prototype.relayReadyFailedRetryRelayService = function() {
+        this.curRlyRdyFailedRtryReqRlySrvCnt += 1;
+        if (this.curRlyRdyFailedRtryReqRlySrvCnt <= this.maxRlyRdyFailedRtryReqRlySrvCnt) {
+            this.changeStateTo(devicePlayingState.RELAY_URL_READY);
         } else {
-            this.clearLastStepRubbish();
-            var stateLogicMap = {};
-            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.preparePlay;
-            stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
-            stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
-            stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
-            stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
-            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.renderNetworkError;
-            stateLogicMap[devicePlayingState.NEED_RETRY_REQUEST_SERVICE] = this.retryRequestRelayService;
-
-            var defaultFunc = function() {
-                console.log("unkonw current state: " + currentState + ", back to idle");
-                this.back2Idle();
-            };
-            var currentState = this.state;
-            var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
-            contextFunc();
+            this.changeStateTo(devicePlayingState.NETWORK_ERROR);
         }
     };
 
@@ -1826,12 +1809,6 @@
             _self.state = toState;
             _self.stateChangeCallback.fireWith(_self);
         };
-    };
-
-    NonPluginPlayer.prototype.initFlashPlayer = function() {
-        this.stateChangeCallback.empty();
-        var contextFunc = $.proxy(this.flashPlayerStateChangeHandler, this);
-        this.stateChangeCallback.add(contextFunc);
     };
 
     NonPluginPlayer.prototype.generateAjaxUrl = function(args) {
@@ -1859,6 +1836,11 @@
         var retryLimit = 3;
         var changeStateFunc = function(response) {
             _self.device.relayUrl = response.result.relayUrl;
+            $.cookie("relayUrl", _self.device.relayUrl, {
+                path: "/",
+                domain: ".tplinkcloud.com",
+                expires: 1
+            });
             _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
         };
 
@@ -1972,11 +1954,15 @@
         var changeStateFunc = function(response) {
             if (response.result.realServerKey.indexOf("AWSELB") >= 0) {
                 _self.device.ELBcookie = response.result.realServerKey;
-                var exp = new Date(); 
-                exp.setTime(exp.getTime() + 86400000); 
-                document.cookie = _self.device.ELBcookie + "; domain=.tplinkcloud.com; expires="+exp.toGMTString();
+                $.cookie(_self.device.ELBcookie.split("=")[0], _self.device.ELBcookie.split("=")[1], {
+                    path: "/",
+                    domain: ".tplinkcloud.com",
+                    expires: 1
+                });
                 _self.changeStateTo(devicePlayingState.RELAY_READY);
-            };
+            } else if (response.result.realServerKey.indexOf("continue") >= 0) {
+                _self.changeStateTo(devicePlayingState.NEED_RELAY_READY_FAILED_TRY);
+            }
         };
 
         var requestArgs = {
@@ -2004,90 +1990,6 @@
         _self.rubbisIntervalObjArr.push(intervalObj);
     };
 
-    NonPluginPlayer.prototype.generateQueryResidArgs = function(ELBcookie) {
-        var _self = this;
-        var data = {
-            "REQUEST": 'RTMPOPERATE',
-            "DATA": {
-                "relayUrl": 'http://' + _self.device.relayUrl,
-                "Xtoken": _self.device.owner.token,
-                "devId": _self.device.id,
-                "data": {
-                    "service": "getrtmp",
-                    "command": {
-                        "resolution": _self.device.currentVideoResolution.name
-                    }
-                },
-                "token": _self.device.owner.token,
-                "AWSELB": ELBcookie
-            }
-        };
-
-        var changeStateFunc = function (response) {
-            _self.device.resId = response.msg.resourceid;
-            _self.changeStateTo(devicePlayingState.RESOURCE_READY);
-            _self.timer.start();
-        };
-
-        var extendAjaxOptions = {
-            contentType: "application/x-www-form-urlencoded;charset=utf-8"
-        };
-
-        var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
-
-        var requestArgs = {
-            url: urlPrefix + "/init3.php", 
-            data: data, 
-            callbacks: undefined, 
-            changeState: changeStateFunc,
-            extendAjaxOptions: extendAjaxOptions
-        };
-
-        return requestArgs;
-    };
-
-    NonPluginPlayer.prototype.luckyTryForResId = function() {
-        var _self = this;
-        var ELBcookie = "AWSELB=" + ($.cookie("AWSELB") || "");
-        var requestArgs = _self.generateQueryResidArgs(ELBcookie);
-        var currentCount = 1;
-        var errorCallback = function(){
-            if (currentCount < 3) {
-                currentCount += 1;
-                _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-            };
-        };
-
-        var extendRequestArgs = {
-            callbacks: {
-                "errorCodeCallbackMap": {
-                    "-1" : errorCallback
-                },
-                "errorCallback" : errorCallback
-            }
-        }
-        requestArgs = $.extend(true, requestArgs, extendRequestArgs);
-        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-    };
-
-    NonPluginPlayer.prototype.queryResid = function() {
-        var _self = this;
-        var requestArgs = _self.generateQueryResidArgs(_self.device.ELBcookie);
-
-        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        var currentCount = 1;
-        this.rubbisAjaxArr.push(ajaxObj);
-        var intervalObj = setInterval(function() {
-            ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-            _self.getResIdReadyAjaxArr.push(ajaxObj);
-            currentCount += 1;
-            if (currentCount >= _self.getResIdAjaxLimit) {
-                _self.changeStateTo(devicePlayingState.NEED_RETRY_REQUEST_SERVICE);
-            };
-        }, _self.getResIdIntervalTime);
-        this.rubbisIntervalObjArr.push(intervalObj);
-    };
-
     NonPluginPlayer.prototype.triggerPlay = function() {
         var _self = this;
         _self.coverRenderFunc(_self.device);
@@ -2099,7 +2001,7 @@
         var playArgs = {
             resourcePath: _self.getResourcePath()
         }
-        _self.flashRenderFunc(_self.device);
+        _self.playerRenderFunc(_self.device);
 
         this.setupPlayer(playArgs);
     };
@@ -2159,7 +2061,8 @@
             primary: "flash",
             repeat: false,
             stagevideo: false,
-            stretching: "uniform",
+            stretching: "exactfit",
+            responsive: true,
             skin: {
                 name: "ipc-jwplayer-skin"
             }
@@ -2188,8 +2091,191 @@
 
         _self.state = devicePlayingState.PLAYING;
     };
+
+    RtmpPalyer.prototype.initPlayer = function() {
+        this.stateChangeCallback.empty();
+        var contextFunc = $.proxy(this.stateChangeHandler, this);
+        this.stateChangeCallback.add(contextFunc);
+    };
+
+    RtmpPalyer.prototype.stateChangeHandler = function() {
+        if (this.device.isActive == false) {
+            this.back2Idle();
+        } else {
+            this.clearLastStepRubbish();
+            var stateLogicMap = {};
+            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.preparePlay;
+            stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
+            stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
+            stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
+            stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
+            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.renderNetworkError;
+            stateLogicMap[devicePlayingState.NEED_RETRY_REQUEST_SERVICE] = this.retryRequestRelayService;
+
+            var defaultFunc = function() {
+                console.log("unkonw current state: " + currentState + ", back to idle");
+                this.back2Idle();
+            };
+            var currentState = this.state;
+            var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
+            contextFunc();
+        }
+    };
+
+    RtmpPalyer.prototype.preparePlay = function() {
+        this.luckyTryForResId();
+        this.getRelayUrl();
+    };
+
+    RtmpPalyer.prototype.luckyTryForResId = function() {
+        var _self = this;
+        var ELBcookie = "AWSELB=" + ($.cookie("AWSELB") || "");
+        var requestArgs = _self.generateQueryResidArgs(ELBcookie);
+        var currentCount = 1;
+        var errorCallback = function(){
+            if (currentCount < 3) {
+                currentCount += 1;
+                _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+            };
+        };
+
+        var extendRequestArgs = {
+            callbacks: {
+                "errorCodeCallbackMap": {
+                    "-1" : errorCallback
+                },
+                "errorCallback" : errorCallback
+            }
+        }
+        requestArgs = $.extend(true, requestArgs, extendRequestArgs);
+        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+    };
+
+    RtmpPalyer.prototype.generateQueryResidArgs = function(ELBcookie) {
+        var _self = this;
+        var data = {
+            "REQUEST": 'RTMPOPERATE',
+            "DATA": {
+                "relayUrl": 'http://' + _self.device.relayUrl,
+                "Xtoken": _self.device.owner.token,
+                "devId": _self.device.id,
+                "data": {
+                    "service": "getrtmp",
+                    "command": {
+                        "resolution": _self.device.currentVideoResolution.name
+                    }
+                },
+                "token": _self.device.owner.token,
+                "AWSELB": ELBcookie
+            }
+        };
+
+        var changeStateFunc = function (response) {
+            _self.device.resId = response.msg.resourceid;
+            _self.changeStateTo(devicePlayingState.RESOURCE_READY);
+            _self.timer.start();
+        };
+
+        var extendAjaxOptions = {
+            contentType: "application/x-www-form-urlencoded;charset=utf-8"
+        };
+
+        var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
+
+        var requestArgs = {
+            url: urlPrefix + "/init3.php", 
+            data: data, 
+            callbacks: undefined, 
+            changeState: changeStateFunc,
+            extendAjaxOptions: extendAjaxOptions
+        };
+
+        return requestArgs;
+    };
+
+    RtmpPalyer.prototype.queryResid = function() {
+        var _self = this;
+        var requestArgs = _self.generateQueryResidArgs(_self.device.ELBcookie);
+
+        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+        var currentCount = 1;
+        this.rubbisAjaxArr.push(ajaxObj);
+        var intervalObj = setInterval(function() {
+            ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+            _self.getResIdReadyAjaxArr.push(ajaxObj);
+            currentCount += 1;
+            if (currentCount >= _self.getResIdAjaxLimit) {
+                _self.changeStateTo(devicePlayingState.NEED_RETRY_REQUEST_SERVICE);
+            };
+        }, _self.getResIdIntervalTime);
+        this.rubbisIntervalObjArr.push(intervalObj);
+    };
     
     $.ipc.RtmpPalyer = RtmpPalyer;
+
+
+    function ImgPlayer() {
+        NonPluginPlayer.call(this, arguments);
+
+        this.audioPlayerElementId = null;
+
+        this.protocol = "http://";
+        this.port = 80;
+    };
+    $.ipc.inheritPrototype(ImgPlayer, NonPluginPlayer);
+
+    ImgPlayer.prototype.initPlayer = function() {
+        this.stateChangeCallback.empty();
+        var contextFunc = $.proxy(this.stateChangeHandler, this);
+        this.stateChangeCallback.add(contextFunc);
+    };
+
+    ImgPlayer.prototype.stateChangeHandler = function() {
+        if (this.device.isActive == false) {
+            this.back2Idle();
+        } else {
+            this.clearLastStepRubbish();
+            var stateLogicMap = {};
+            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getRelayUrl;
+            stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
+            stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
+            stateLogicMap[devicePlayingState.RELAY_READY] = this.play;
+            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.renderNetworkError;
+
+            var defaultFunc = function() {
+                console.log("unkonw current state: " + currentState + ", back to idle");
+                this.back2Idle();
+            };
+            var currentState = this.state;
+            var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
+            contextFunc();
+        }
+    };
+
+    ImgPlayer.prototype.getResourcePath = function(first_argument) {
+        var _self = this;
+        var videoUrl = _self.protocol + _self.device.relayUrl + ":" 
+            + _self.port + "/relayservice?" + $.param({
+                deviceid: _self.device.id,
+                type: "video",
+                resolution: _self.device.currentVideoResolution.name,
+                "X-token": _self.device.owner.token});
+        var audioUrl = _self.protocol + _self.device.relayUrl + ":" 
+            + _self.port + "/relayservice?" + $.param({
+                deviceid: _self.device.id,
+                type: "audio",
+                resolution: _self.device.product.audioCodec.name,
+                "X-token": _self.device.owner.token});
+        return {videoUrl: videoUrl, audioUrl: audioUrl};
+    };
+
+    ImgPlayer.prototype.setupPlayer = function(playArgs) {
+        var _self = this;
+        $("#" + _self.playerElementId).attr("src", playArgs.resourcePath.videoUrl);
+        $("#" + _self.audioPlayerElementId + " source").attr("src", playArgs.resourcePath.audioUrl);
+    };
+
+    $.ipc.ImgPlayer = ImgPlayer;
 })(jQuery);
 
 (function ($) {

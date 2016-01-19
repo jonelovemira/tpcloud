@@ -476,6 +476,16 @@
     width: 640px;
     height: 480px; 
 }
+#img-tag-player-container {
+    display: none;
+    margin-left: 80px;
+    margin-top: 40px;
+}
+#img-player-cover {
+    width: 640px;
+    height: 480px; 
+    background-color: rgb(170, 170, 170);
+}
 #setting{
     width:670px;
     margin-left: 40px
@@ -906,10 +916,6 @@
     font-family: 'MYRIADPRO-LIGHTSEMIEXT';
     font-size: 1.2em;
     margin-top:7px;
-}
-
-#img-tag-player-container {
-    display: none;
 }
 
 .plugin-download-link {

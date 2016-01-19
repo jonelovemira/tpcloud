@@ -1087,11 +1087,11 @@ $(function () {
                 var contextFlashNetErr = $.proxy(this.renderFlashNetError, this);
 
                 tmpPlayer.coverRenderFunc = contextCoverFunc;
-                tmpPlayer.flashRenderFunc = contextFlashFunc;
-                tmpPlayer.flashNetErrRenderFunc = contextFlashNetErr;
+                tmpPlayer.playerRenderFunc = contextFlashFunc;
+                tmpPlayer.netErrRenderFunc = contextFlashNetErr;
 
                 dev.nonPluginPlayer = tmpPlayer;
-                dev.nonPluginPlayer.initFlashPlayer();
+                dev.nonPluginPlayer.initPlayer();
             };
             this.model.playedDeviceChanged = false;
             dev.nonPluginPlayer.triggerPlay();
@@ -1104,8 +1104,67 @@ $(function () {
         $("#continuetips").show();
     };
 
+    DeviceListView.prototype.imgPlayerManageBoard = function() {
+        $("#img-tag-player-container").show();
+        $("#img-tag-player-container").children().hide();
+    };
+
+    DeviceListView.prototype.renderImgCover = function(device) {
+        if (device && device.isActive) {
+            this.imgPlayerManageBoard();
+            $("#img-player-cover").show();
+            $("#img-player-cover").html("<b>Playing video use" + device.name +"</b>");
+        };
+    };
+
+    DeviceListView.prototype.renderImgNetError = function(device) {
+        if (device && device.isActive) {
+            this.flashManageBoard();
+            $("#img-player-cover").show();
+            $("#img-player-cover").html("<b>No Internet connection available. Please check your network.</b>");
+        };
+    };
+
+
+    DeviceListView.prototype.renderImgPlayer = function(device) {
+        if (device && device.isActive) {
+            this.imgPlayerManageBoard();
+            $("#img-player").show();
+            $("#audio-player").show();
+        };
+    };
+
     DeviceListView.prototype.imgPlayVideo = function(dev) {
-        
+        if (dev && dev.isActive) {
+            this.imgPlayerManageBoard();
+            if (undefined == dev.nonPluginPlayer) {
+                var tmpPlayer = new $.ipc.ImgPlayer();
+                tmpPlayer.playerElementId = "img-player";
+                tmpPlayer.audioPlayerElementId = "audio-player";
+                tmpPlayer.device = dev;
+
+                var tmpTimer = new $.ipc.Timer();
+                tmpTimer.timeout = dev.relayVideoTime * 1000;
+                var contextShowFunc = $.proxy(this.showTimeout, this);
+                tmpTimer.timeoutCallback.add(contextShowFunc);
+                var contextFunc = $.proxy(tmpPlayer.back2Idle, tmpPlayer);
+                tmpTimer.timeoutCallback.add(contextFunc);
+                tmpPlayer.timer = tmpTimer;
+
+                var contextCoverFunc = $.proxy(this.renderImgCover, this);
+                var contextPlayerFunc = $.proxy(this.renderImgPlayer, this);
+                var contextNetErr = $.proxy(this.renderImgNetError, this);
+
+                tmpPlayer.coverRenderFunc = contextCoverFunc;
+                tmpPlayer.playerRenderFunc = contextPlayerFunc;
+                tmpPlayer.netErrRenderFunc = contextNetErr;
+
+                dev.nonPluginPlayer = tmpPlayer;
+                dev.nonPluginPlayer.initPlayer();
+            };
+            this.model.playedDeviceChanged = false;
+            dev.nonPluginPlayer.triggerPlay();
+        };
     };
 
     DeviceListView.prototype.isPluginPlayer = function(playerType) {
@@ -1180,6 +1239,7 @@ $(function () {
             var elementIdFlagMap = {
                 "plugin-player-set": false,
                 "flash-player-container": false,
+                "img-tag-player-container": false,
                 "refreshtips": false,
                 "reloadtips": false,
                 "continuetips": false 
