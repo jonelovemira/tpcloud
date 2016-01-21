@@ -2,6 +2,8 @@ $(function () {
 
     function User () {
         $.ipc.User.call(this, arguments);
+        this.activateDeviceAdminCallback = $.Callbacks("unique stopOnFalse");
+        this.activateUserAdminCallback = $.Callbacks("unique stopOnFalse");
     };
 
     $.ipc.inheritPrototype(User, $.ipc.User);
@@ -16,13 +18,31 @@ $(function () {
         var appendedSelectorHandlerMap = {
             "#logout": {"click": this.logoutUser},
             "#userinfo-title-changepwd": {"click": this.gotoChangePassword},
-            "#backaccount": {"click": this.gotoAccountAdmin},
+            "#backaccount": {"click": this.backaccountClickCallback},
             "#changepwd": {"click": this.changePassword},
-            "#device": {"click": this.gotoDeviceAdmin},
-            "#account": {"click": this.gotoAccountAdmin}
+            "#device": {"click": this.devTabClickCallback},
+            "#account": {"click": this.accountTabClickCallback}
         };
         var selectorMsgProduceFuncMap = {};
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    UserController.prototype.devTabClickCallback = function() {
+        if(!$("#device").hasClass("navselected")) {
+            this.view.renderDeviceAdmin();
+            this.model.activateDeviceAdminCallback.fire();
+        }
+    };
+
+    UserController.prototype.accountTabClickCallback = function() {
+        if(!$("#account").hasClass("navselected")) {
+            this.view.renderAccountAdmin();
+            this.model.activateUserAdminCallback.fire();
+        }
+    };
+
+    UserController.prototype.backaccountClickCallback = function() {
+        this.view.renderAccountAdmin();
     };
 
     UserController.prototype.logoutUser = function() {
@@ -105,16 +125,8 @@ $(function () {
         this.view.renderAlert(alertOptions);
     };
 
-    UserController.prototype.gotoDeviceAdmin = function() {
-        this.view.renderDeviceAdmin();
-    };
-
     UserController.prototype.gotoChangePassword = function() {
         this.view.renderChangePasswod();
-    };
-
-    UserController.prototype.gotoAccountAdmin = function() {
-        this.view.renderAccountAdmin();
     };
 
     UserController.prototype.gotoPage = function(page) {
@@ -252,6 +264,8 @@ $(function () {
 
     function DeviceListController() {
         $.ipc.BaseController.call(this, arguments);
+        this.intervalUpdateDeviceListTime = 60000;
+        this.intervalUpdateDeviceListObj = null;
     }
     $.ipc.inheritPrototype(DeviceListController, $.ipc.BaseController);
 
@@ -291,6 +305,17 @@ $(function () {
         };
 
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    DeviceListController.prototype.clearPageRubbish = function() {
+        clearInterval(this.intervalUpdateDeviceListObj);
+        var activeDevArr = this.model.findActiveDeviceArr();
+        for (var i = 0; i < activeDevArr.length; i++) {
+            if (activeDevArr[i] && activeDevArr[i].nonPluginPlayer) {
+                activeDevArr[i].nonPluginPlayer.back2Idle();
+            };
+            activeDevArr[i].isActive = false;
+        };
     };
 
     DeviceListController.prototype.setResolution = function() {
@@ -498,6 +523,9 @@ $(function () {
                 }
                 var inputCallbacks = {
                     "errorCodeCallbackMap": {
+                        0: function() {
+                            currentController.intervalUpdateDeviceList();
+                        },
                         "-1": function() {
                             if(activeDev.isActive){
                                 currentController.view.renderMsg(tips.actions.deviceOperate.failed);
@@ -541,6 +569,17 @@ $(function () {
             }
         };
         currentController.model.getDeviceList(inputCallbacks);
+    };
+
+    DeviceListController.prototype.intervalUpdateDeviceList = function() {
+        clearInterval(this.intervalUpdateDeviceListObj);
+        var contextGetDeviceList = $.proxy(this.getDeviceList, this);
+        this.intervalUpdateDeviceListObj = setInterval(contextGetDeviceList, this.intervalUpdateDeviceListTime);
+    }
+
+    DeviceListController.prototype.intervalUpdateDeviceListWithInit = function() {
+        this.intervalUpdateDeviceList();
+        this.getDeviceList();
     };
 
     function DeviceListView() {
@@ -1376,12 +1415,13 @@ $(function () {
 
     var contextRenderDeviceInfo = $.proxy(dlv.updateDeviceInfo, dlv);
     $.ipc.Device.prototype.stateChangeCallbacks.add(contextRenderDeviceInfo);
-
-    var contextGetDeviceList = $.proxy(dlc.getDeviceList, dlc);
-
-    contextGetDeviceList();
-
-    setInterval(contextGetDeviceList, 60000);
+    
+    dlc.intervalUpdateDeviceListWithInit();
+    
+    var contextClearRubbish = $.proxy(dlc.clearPageRubbish, dlc);
+    u.activateUserAdminCallback.add(contextClearRubbish);
+    var contextIntervalUpdateDeviceList = $.proxy(dlc.intervalUpdateDeviceListWithInit, dlc);
+    u.activateDeviceAdminCallback.add(contextIntervalUpdateDeviceList)
 
     /******************************* software *******************************/
     function SoftwareController() {

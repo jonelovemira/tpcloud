@@ -486,6 +486,10 @@
     height: 480px; 
     background-color: rgb(170, 170, 170);
 }
+#img-player {
+    width: 640px;
+    height: 480px;
+}
 #setting{
     width:670px;
     margin-left: 40px
