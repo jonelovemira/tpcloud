@@ -1670,6 +1670,7 @@
         this.updateIntervalObj = null;
         this.currentTime = 0;
         this.intervalTime = 1000;
+        this.networkFactorDelta = 20000;
         this.timeoutCallback = $.Callbacks("unique stopOnFalse");
     };
 
@@ -1716,6 +1717,7 @@
         this.device = null;
         this.swfPath = null;
         this.playerElementId = null;
+        this.playerObj = null;
 
         this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
         this.maxRlyRdyFailedRtryReqRlySrvCnt = 3;
@@ -1747,8 +1749,6 @@
         "-20652": function(){console.log("token is error")}
     };
     NonPluginPlayer.prototype.errorCodeCallbacks = NonPluginPlayer.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
-
-    NonPluginPlayer.prototype.playerObj = null;
 
     NonPluginPlayer.prototype.clearRubbish = function() {
         this.stateChangeCallback.empty();
@@ -2054,8 +2054,8 @@
     RtmpPalyer.prototype.setupPlayer = function(args) {
         var _self = this;
         
-        if (RtmpPalyer.prototype.playerObj != undefined) {
-            RtmpPalyer.prototype.playerObj.remove();
+        if (_self.playerObj) {
+            _self.playerObj.remove();
         };
 
         var width = _self.device.currentVideoResolution.playerContainerCss.player.width;
@@ -2085,23 +2085,43 @@
 
         var newPlayer = jwplayer(_self.playerElementId);
         newPlayer.setup(options);
-        RtmpPalyer.prototype.playerObj = newPlayer;
+        _self.playerObj = newPlayer;
 
-        newPlayer.on('playlist', function(){
-            newPlayer.play();
-        });
 
         newPlayer.on('ready', function() {
             console.log("player ready");
         });
 
-        newPlayer.on('playlistItem', function () {
-            console.log("playlistItem");
+        newPlayer.on('setupError', function(e){
+            _self.playerObjErrorCallbacks.fire(e);
+            // console.log("setupError");
         });
 
+        newPlayer.on('playlist', function(){
+            newPlayer.play();
+        });
 
-        newPlayer.onSetupError(function(e){
-            _self.playerObjErrorCallbacks.fire(e);
+        newPlayer.on('idle', function () {
+            console.log("idle");
+        });
+
+        newPlayer.on('buffer', function () {
+            console.log("buffer");
+        });
+
+        newPlayer.on('bufferChange', function () {
+            console.log("bufferChange");
+        });
+
+        newPlayer.on('complete', function () {
+            if (_self.timer.currentTime >= _self.timer.timeout - _self.timer.networkFactorDelta) {
+                _self.timer.currentTime == _self.timer.timeout;
+            } else {
+                _self.playerObjErrorCallbacks.fire();
+            }
+        });
+        newPlayer.on('error', function () {
+            console.log("error");
         });
 
         _self.state = devicePlayingState.PLAYING;
@@ -2230,6 +2250,8 @@
     RtmpPalyer.prototype.clearPlayerElementRubbish = function() {
         if (this.playerObj) {
             this.playerObj.stop();
+            this.playerObj.remove();
+            this.playerObj = null;
         };
         this.curResFailedRtryReqRlySrvCnt = 0;
     };
@@ -2358,7 +2380,7 @@
 
     ImgPlayer.prototype.clearPlayerElementRubbish = function() {
         var _self = this;
-        $("#" + _self.playerElementId).attr("src", "#");
+        $("#" + _self.playerElementId).attr("src", "javascript:void(0);");
         _self.killAllRelayClient();
     };
 
