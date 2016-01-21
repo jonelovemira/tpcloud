@@ -470,7 +470,18 @@
 #flash-player-cover {
     width: 640px;
     height: 480px; 
-    background-color: rgb(170, 170, 170);
+    background-color: #666;
+    display: table;
+    overflow: hidden;
+}
+.network-tips {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+.nonplugin-player-tips {
+    color: #fff;
+    text-align: center;
 }
 #flash-player {
     width: 640px;
