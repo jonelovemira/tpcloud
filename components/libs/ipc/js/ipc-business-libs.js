@@ -784,13 +784,13 @@
     IpcProduct.prototype.getPlayerType = function(mt) {
         if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
         var result = undefined;
-        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+        // if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
                 result = $.ipc.IMG_PLAYER;
             } else {
                 result = $.ipc.FLASH_PLAYER;
             }
-        } else {
+        /*} else {
             if ($.ipc.Browser.prototype.os == "MacOS") {
                 result = $.ipc.PLUGIN_MAC;
             } else if ($.ipc.Browser.prototype.os == "Windows") {
@@ -817,7 +817,7 @@
                 console.info("unsupportted operation system");
                 result = undefined;
             }
-        }
+        }*/
         return result;
         // return $.ipc.IMG_PLAYER;
     };
@@ -1736,6 +1736,7 @@
 
         this.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
 
+        this.hideCoverFunc = null;
         this.coverRenderFunc = null;
         this.playerRenderFunc = null;
         this.netErrRenderFunc = null;
@@ -2097,6 +2098,10 @@
             _self.playerObjErrorCallbacks.fire(e);
             // console.log("setupError");
         });
+
+        newPlayer.on('play', function() {
+            _self.hideCoverFunc();
+        })
 
         newPlayer.on('playlist', function(){
             newPlayer.play();

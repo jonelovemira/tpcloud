@@ -1096,9 +1096,12 @@ $(function () {
 
     DeviceListView.prototype.renderFlashPlayer = function(device) {
         if (device && device.isActive) {
-            this.flashManageBoard();
             $("#flash-player").show();
         };
+    };
+
+    DeviceListView.prototype.hideFlashCover = function() {
+        $("#flash-player-cover").hide();
     };
 
     DeviceListView.prototype.renderFlashNetError = function(device) {
@@ -1130,12 +1133,14 @@ $(function () {
                 tmpPlayer.timer = tmpTimer;
 
                 var contextCoverFunc = $.proxy(this.renderFlashCover, this);
+                var contextHideCoverFunc = $.proxy(this.hideFlashCover, this);
                 var contextFlashFunc = $.proxy(this.renderFlashPlayer, this);
                 var contextFlashNetErr = $.proxy(this.renderFlashNetError, this);
 
                 tmpPlayer.coverRenderFunc = contextCoverFunc;
                 tmpPlayer.playerRenderFunc = contextFlashFunc;
                 tmpPlayer.netErrRenderFunc = contextFlashNetErr;
+                tmpPlayer.hideCoverFunc = contextHideCoverFunc;
 
                 dev.nonPluginPlayer = tmpPlayer;
                 dev.nonPluginPlayer.initPlayer();

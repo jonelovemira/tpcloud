@@ -473,6 +473,10 @@
     background-color: #666;
     display: table;
     overflow: hidden;
+    z-index: 2;
+    position: absolute;
+    top: 90px;
+    left: 80px;
 }
 .network-tips {
     display: table-cell;
