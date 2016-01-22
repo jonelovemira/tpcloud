@@ -1791,9 +1791,9 @@
     };
 
     NonPluginPlayer.prototype.renderNetworkError = function() {
-        if (this.flashNetErrRenderFunc) {
+        if (this.netErrRenderFunc) {
             this.back2Idle();
-            this.flashNetErrRenderFunc(this.device);
+            this.netErrRenderFunc(this.device);
         };
     };
 
@@ -2004,7 +2004,7 @@
         var playArgs = {
             resourcePath: _self.getResourcePath()
         }
-        _self.playerRenderFunc(_self.device);
+        
 
         this.setupPlayer(playArgs);
     };
@@ -2053,6 +2053,7 @@
 
     RtmpPalyer.prototype.setupPlayer = function(args) {
         var _self = this;
+        _self.playerRenderFunc(_self.device);
         
         if (_self.playerObj) {
             _self.playerObj.remove();
@@ -2216,7 +2217,7 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        var urlPrefix = "";
+        var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
 
         var requestArgs = {
             url: urlPrefix + "/init3.php", 
@@ -2321,12 +2322,16 @@
 
     ImgPlayer.prototype.setupPlayer = function(playArgs) {
         var _self = this;
+
         $("#" + _self.playerElementId).off();
+        var width = _self.device.currentVideoResolution.playerContainerCss.player.width;
+        var height = _self.device.currentVideoResolution.playerContainerCss.player.height;
+        $("#" + _self.playerElementId).width(width).height(height);
         $("#" + _self.playerElementId).attr("src", playArgs.resourcePath.videoUrl);
         $("#" + _self.playerElementId).on('load', function(){
-            console.log("img loaded");
+            _self.playerRenderFunc(_self.device);
         }).on('error', function() {
-            console.log("img load error");
+            _self.netErrRenderFunc(_self.device);
         });
 
     };

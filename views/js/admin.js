@@ -1085,8 +1085,12 @@ $(function () {
     DeviceListView.prototype.renderFlashCover = function(device) {
         if (device && device.isActive) {
             this.flashManageBoard();
+            var width = device.currentVideoResolution.playerContainerCss.player.width;
+            var height = device.currentVideoResolution.playerContainerCss.player.height;
+            $("#flash-player-cover").width(width).height(height);
             $("#flash-player-cover").show();
-            $("#flash-player-cover").html("<b>Playing video use" + device.name +"</b>");
+            $("#flash-player-cover").children().hide();
+            $("#flash-player-cover .loading-tips").css({"display": "table-cell"});
         };
     };
 
@@ -1100,8 +1104,12 @@ $(function () {
     DeviceListView.prototype.renderFlashNetError = function(device) {
         if (device && device.isActive) {
             this.flashManageBoard();
+            var width = device.currentVideoResolution.playerContainerCss.player.width;
+            var height = device.currentVideoResolution.playerContainerCss.player.height;
+            $("#flash-player-cover").width(width).height(height);
             $("#flash-player-cover").show();
-            $("#flash-player-cover").html("<b>No Internet connection available. Please check your network.</b>");
+            $("#flash-player-cover").children().hide();
+            $("#flash-player-cover .network-tips").css({"display": "table-cell"});
         };
     };
 
@@ -1151,16 +1159,24 @@ $(function () {
     DeviceListView.prototype.renderImgCover = function(device) {
         if (device && device.isActive) {
             this.imgPlayerManageBoard();
+            var width = device.currentVideoResolution.playerContainerCss.player.width;
+            var height = device.currentVideoResolution.playerContainerCss.player.height;
+            $("#img-player-cover").width(width).height(height);
             $("#img-player-cover").show();
-            $("#img-player-cover").html("<b>Playing video use" + device.name +"</b>");
+            $("#img-player-cover").children().hide();
+            $("#img-player-cover .loading-tips").css({"display": "table-cell"});
         };
     };
 
     DeviceListView.prototype.renderImgNetError = function(device) {
         if (device && device.isActive) {
             this.flashManageBoard();
+            var width = device.currentVideoResolution.playerContainerCss.player.width;
+            var height = device.currentVideoResolution.playerContainerCss.player.height;
+            $("#img-player-cover").width(width).height(height);
             $("#img-player-cover").show();
-            $("#img-player-cover").html("<b>No Internet connection available. Please check your network.</b>");
+            $("#img-player-cover").children().hide();
+            $("#img-player-cover .network-tips").css({"display": "table-cell"});
         };
     };
 
