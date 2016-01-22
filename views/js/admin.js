@@ -1120,7 +1120,7 @@ $(function () {
         if (dev && dev.isActive) {
             this.flashManageBoard();
             if (undefined == dev.nonPluginPlayer) {
-                var tmpPlayer = new $.ipc.RtmpPalyer();
+                var tmpPlayer = new $.ipc.RtmpPlayer();
                 tmpPlayer.playerElementId = "flash-player";
                 tmpPlayer.device = dev;
 

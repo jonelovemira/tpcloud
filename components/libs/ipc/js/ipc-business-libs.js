@@ -2010,7 +2010,7 @@
         this.setupPlayer(playArgs);
     };
 
-    function RtmpPalyer() {
+    function RtmpPlayer() {
         NonPluginPlayer.call(this, arguments);
 
         this.protocol = "rtmps://";
@@ -2020,9 +2020,9 @@
         this.curResFailedRtryReqRlySrvCnt = 0;
         this.maxResFailedRtryReqRlySrvCnt = 3;
     };
-    $.ipc.inheritPrototype(RtmpPalyer, NonPluginPlayer);
+    $.ipc.inheritPrototype(RtmpPlayer, NonPluginPlayer);
 
-    RtmpPalyer.prototype.getAuthArgs = function() {
+    RtmpPlayer.prototype.getAuthArgs = function() {
         var result = null;
         var _self = this;
         var args = {
@@ -2033,7 +2033,7 @@
         return result;
     };
 
-    RtmpPalyer.prototype.residFailedRetryRelayService = function() {
+    RtmpPlayer.prototype.residFailedRetryRelayService = function() {
         this.curResFailedRtryReqRlySrvCnt += 1;
         if (this.curResFailedRtryReqRlySrvCnt <= this.maxResFailedRtryReqRlySrvCnt) {
             this.changeStateTo(devicePlayingState.RELAY_URL_READY);
@@ -2042,7 +2042,7 @@
         }
     };
 
-    RtmpPalyer.prototype.getResourcePath = function() {
+    RtmpPlayer.prototype.getResourcePath = function() {
         var _self = this;
         var resourceArgs = _self.getAuthArgs();
         var str = "";
@@ -2052,7 +2052,7 @@
         return str;
     };
 
-    RtmpPalyer.prototype.setupPlayer = function(args) {
+    RtmpPlayer.prototype.setupPlayer = function(args) {
         var _self = this;
         _self.playerRenderFunc(_self.device);
         
@@ -2096,7 +2096,6 @@
 
         newPlayer.on('setupError', function(e){
             _self.playerObjErrorCallbacks.fire(e);
-            // console.log("setupError");
         });
 
         newPlayer.on('play', function() {
@@ -2127,19 +2126,27 @@
             }
         });
         newPlayer.on('error', function () {
-            console.log("error");
+            _self.playerObjErrorCallbacks.fire();
         });
 
         _self.state = devicePlayingState.PLAYING;
     };
 
-    RtmpPalyer.prototype.initPlayer = function() {
-        this.stateChangeCallback.empty();
-        var contextFunc = $.proxy(this.stateChangeHandler, this);
-        this.stateChangeCallback.add(contextFunc);
+    RtmpPlayer.prototype.fireNetworkError = function() {
+        this.changeStateTo(devicePlayingState.NETWORK_ERROR);
     };
 
-    RtmpPalyer.prototype.stateChangeHandler = function() {
+    RtmpPlayer.prototype.initPlayer = function() {
+        var _self = this;
+        _self.stateChangeCallback.empty();
+        var contextFunc = $.proxy(_self.stateChangeHandler, _self);
+        _self.stateChangeCallback.add(contextFunc);
+
+        var contextFireNetErr = $.proxy(_self.fireNetworkError, _self);
+        _self.playerObjErrorCallbacks.add(contextFireNetErr);
+    };
+
+    RtmpPlayer.prototype.stateChangeHandler = function() {
         if (this.device.isActive == false) {
             this.back2Idle();
         } else {
@@ -2164,12 +2171,12 @@
         }
     };
 
-    RtmpPalyer.prototype.preparePlay = function() {
+    RtmpPlayer.prototype.preparePlay = function() {
         this.luckyTryForResId();
         this.getRelayUrl();
     };
 
-    RtmpPalyer.prototype.luckyTryForResId = function() {
+    RtmpPlayer.prototype.luckyTryForResId = function() {
         var _self = this;
         var ELBcookie = "AWSELB=" + ($.cookie("AWSELB") || "");
         var requestArgs = _self.generateQueryResidArgs(ELBcookie);
@@ -2193,7 +2200,7 @@
         _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
-    RtmpPalyer.prototype.generateQueryResidArgs = function(ELBcookie) {
+    RtmpPlayer.prototype.generateQueryResidArgs = function(ELBcookie) {
         var _self = this;
         var data = {
             "REQUEST": 'RTMPOPERATE',
@@ -2235,7 +2242,7 @@
         return requestArgs;
     };
 
-    RtmpPalyer.prototype.queryResid = function() {
+    RtmpPlayer.prototype.queryResid = function() {
         var _self = this;
         var requestArgs = _self.generateQueryResidArgs(_self.device.ELBcookie);
 
@@ -2253,7 +2260,7 @@
         this.rubbisIntervalObjArr.push(intervalObj);
     };
 
-    RtmpPalyer.prototype.clearPlayerElementRubbish = function() {
+    RtmpPlayer.prototype.clearPlayerElementRubbish = function() {
         if (this.playerObj) {
             this.playerObj.stop();
             this.playerObj.remove();
@@ -2262,7 +2269,7 @@
         this.curResFailedRtryReqRlySrvCnt = 0;
     };
     
-    $.ipc.RtmpPalyer = RtmpPalyer;
+    $.ipc.RtmpPlayer = RtmpPlayer;
 
 
     function ImgPlayer() {
