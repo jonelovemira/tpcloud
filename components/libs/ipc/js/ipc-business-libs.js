@@ -1336,7 +1336,7 @@
         };
         if (srcDevice != undefined) {
             if (srcDevice.nonPluginPlayer) {
-                srcDevice.nonPluginPlayer.back2Idle();
+                srcDevice.nonPluginPlayer.back2Idle($.ipc.stopReasonCodeMap.USER_STOPPED_VIDEO);
             };
             srcDevice.isActive = false;
         };
@@ -1686,12 +1686,98 @@
             _self.currentTime += _self.intervalTime;
             if (_self.currentTime >= _self.timeout) {
                 clearInterval(_self.updateIntervalObj);
-                _self.timeoutCallback.fire();
+                _self.timeoutCallback.fire($.ipc.stopReasonCodeMap.VIDEO_TIME_UP);
             };
         }, _self.intervalTime);
     };
 
     $.ipc.Timer = Timer;
+})(jQuery);
+
+(function ($) {
+    "use strict";
+    $.ipc = $.ipc || {};
+
+    function getUrl () {
+        var analyticUrlServerTypeMap = {
+            "alpha": "https://analytics-alpha.tplinkcloud.com/stat",
+            "beta": "https://analytics-beta.tplinkcloud.com/stat"
+        };
+        var url = "https://analytics.tplinkcloud.com/stat";
+        for (var type in analyticUrlServerTypeMap) {
+            if (window.location.href.indexOf(type) >= 0) {
+                url = analyticUrlServerTypeMap[type];
+            };
+        };
+        return url;
+    }
+
+    function Statistics () {
+        $.ipc.Model.call(this, arguments);
+        
+        this.url = getUrl();
+        this.token = null;
+
+        this.SUCCESS = 0;
+        this.ERROR = 1;
+
+        this.devID = null;
+        this.clientType = $.ipc.Browser.prototype.type + ' ' + $.ipc.Browser.prototype.version;
+        this.devModel = null;
+        this.firmwareVersion = null;
+        this.type = null;
+        this.success = [];
+        this.stopReason = [];
+        this.watchTime = null;
+    };
+
+    $.ipc.inheritPrototype(Statistics, $.ipc.Model);
+
+    Statistics.prototype.send = function(ajaxOptions) {
+        var _self = this;
+        var data = JSON.stringify({
+            "version": "0.1",
+            "type": "webSession",
+            "data": {
+                "basic": {
+                    "devID": _self.devID,
+                    "clientType": _self.clientType,
+                    "devModel": _self.devModel,
+                    "firmwareVersion": _self.firmwareVersion
+                },
+                "stream": {
+                    "type": _self.type,
+                    "success": _self.success,
+                    "stopReason": _self.stopReason,
+                    "watchTime": _self.watchTime
+                }
+            }
+        });
+
+        var extendAjaxOptions = $.extend(true, {headers: {'X-Token': this.token}}, ajaxOptions);
+
+        _self.makeAjaxRequest({
+            url: _self.url,
+            data: data,
+            callbacks: undefined, 
+            changeState: $.noop, 
+            errCodeStrIndex: "errorCode",
+            extendAjaxOptions: extendAjaxOptions
+        }, $.xAjax.defaults.xType)
+    };
+
+    var stopReasonCodeMap = {
+        LEAVE_PAGE: 0,
+        USER_STOPPED_VIDEO: 1,
+        VIDEO_TIME_UP: 2,
+        DEVICE_UNBOUND: 3,
+        NETWORK_ERROR: -1,
+        VIEW_VIDEO_FAILED: -2,
+        UNKNOWN_ERROR: -3
+    };
+
+    $.ipc.Statistics = Statistics;
+    $.ipc.stopReasonCodeMap = stopReasonCodeMap;
 })(jQuery);
 
 (function ($) {
@@ -1714,6 +1800,7 @@
     function NonPluginPlayer(){
         $.ipc.Model.call(this, arguments);
         this.timer = null;
+        this.statistics = null;
         this.device = null;
         this.swfPath = null;
         this.playerElementId = null;
@@ -1754,7 +1841,7 @@
     NonPluginPlayer.prototype.clearRubbish = function() {
         this.stateChangeCallback.empty();
         this.playerObjErrorCallbacks.empty();
-        this.back2Idle();
+        this.back2Idle($.ipc.stopReasonCodeMap.DEVICE_UNBOUND);
     };
 
     NonPluginPlayer.prototype.clearLastStepRubbish = function() {
@@ -1771,12 +1858,16 @@
        this.rubbisIntervalObjArr = [];
     };
 
-    NonPluginPlayer.prototype.back2Idle = function() {
+    NonPluginPlayer.prototype.back2Idle = function(stopReasonCode) {
         this.clearLastStepRubbish();
 
         if (this.timer) {
-            if (this.timer.currentTime > 0) {
-                this.gatherAndSendStatics();
+            if (this.statistics) {
+                this.statistics.watchTime += Math.round(this.timer.currentTime / 1000);
+                Object.prototype.toString.call(this.statistics.stopReason) === '[object Array]' && this.statistics.stopReason.push(stopReasonCode);
+                this.statistics.send();
+                delete this.statistics;
+                this.statistics = null;
             };
             this.timer.clearRubbish();
         };
@@ -1787,13 +1878,9 @@
         this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
     };
 
-    NonPluginPlayer.prototype.gatherAndSendStatics = function() {
-        
-    };
-
     NonPluginPlayer.prototype.renderNetworkError = function() {
         if (this.netErrRenderFunc) {
-            this.back2Idle();
+            this.back2Idle($.ipc.stopReasonCodeMap.NETWORK_ERROR);
             this.netErrRenderFunc(this.device);
         };
     };
@@ -1876,7 +1963,7 @@
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
         _self.rubbisAjaxArr.push(ajaxObj);
-    };
+    };    
 
     NonPluginPlayer.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
         var _self = this;
@@ -1994,8 +2081,18 @@
         _self.rubbisIntervalObjArr.push(intervalObj);
     };
 
+    NonPluginPlayer.prototype.createNewStatisticsObj = function() {
+        this.statistics = new $.ipc.Statistics();
+        this.statistics.devID = this.device.id;
+        this.statistics.devModel = this.device.model.substring(0, 5);
+        this.statistics.firmwareVersion = this.device.fwVer;
+        this.statistics.token = this.device.owner.token;
+    };
+
     NonPluginPlayer.prototype.triggerPlay = function() {
         var _self = this;
+        _self.createNewStatisticsObj();
+        _self.updateStatisticsType();
         _self.coverRenderFunc(_self.device);
         _self.changeStateTo(devicePlayingState.BEGIN_PLAY);
     };
@@ -2006,7 +2103,6 @@
             resourcePath: _self.getResourcePath()
         }
         
-
         this.setupPlayer(playArgs);
     };
 
@@ -2099,6 +2195,7 @@
         });
 
         newPlayer.on('play', function() {
+            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.success.push(_self.statistics.SUCCESS);
             _self.hideCoverFunc();
         })
 
@@ -2107,7 +2204,11 @@
         });
 
         newPlayer.on('idle', function () {
-            console.log("idle");
+            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.stopReason.push($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
+        });
+
+        newPlayer.on('pause', function () {
+            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.stopReason.push($.ipc.stopReasonCodeMap.USER_STOPPED_VIDEO);
         });
 
         newPlayer.on('buffer', function () {
@@ -2146,9 +2247,13 @@
         _self.playerObjErrorCallbacks.add(contextFireNetErr);
     };
 
+    RtmpPlayer.prototype.updateStatisticsType = function() {
+        this.statistics && (this.statistics.type = "rtmp");
+    };
+
     RtmpPlayer.prototype.stateChangeHandler = function() {
         if (this.device.isActive == false) {
-            this.back2Idle();
+            this.back2Idle($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
         } else {
             this.clearLastStepRubbish();
             var stateLogicMap = {};
@@ -2163,7 +2268,7 @@
 
             var defaultFunc = function() {
                 console.log("unkonw current state: " + currentState + ", back to idle");
-                this.back2Idle();
+                this.back2Idle($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
             };
             var currentState = this.state;
             var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
@@ -2295,7 +2400,7 @@
 
     ImgPlayer.prototype.stateChangeHandler = function() {
         if (this.device.isActive == false) {
-            this.back2Idle();
+            this.back2Idle($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
         } else {
             this.clearLastStepRubbish();
             var stateLogicMap = {};
@@ -2307,7 +2412,7 @@
             stateLogicMap[devicePlayingState.NEED_RELAY_READY_FAILED_TRY] = this.relayReadyFailedRetryRelayService;
             var defaultFunc = function() {
                 console.log("unkonw current state: " + currentState + ", back to idle");
-                this.back2Idle();
+                this.back2Idle($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
             };
             var currentState = this.state;
             var contextFunc = $.proxy(stateLogicMap[currentState] || defaultFunc, this);
@@ -2341,11 +2446,16 @@
         $("#" + _self.playerElementId).width(width).height(height);
         $("#" + _self.playerElementId).attr("src", playArgs.resourcePath.videoUrl);
         $("#" + _self.playerElementId).on('load', function(){
+            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.success.push(_self.statistics.SUCCESS);
             _self.playerRenderFunc(_self.device);
         }).on('error', function() {
             _self.netErrRenderFunc(_self.device);
         });
 
+    };
+
+    ImgPlayer.prototype.updateStatisticsType = function() {
+        this.statistics && (this.statistics.type = "image");
     };
 
     ImgPlayer.prototype.killGetImgClient = function(args) {
@@ -2397,7 +2507,7 @@
 
     ImgPlayer.prototype.clearPlayerElementRubbish = function() {
         var _self = this;
-        $("#" + _self.playerElementId).attr("src", "javascript:void(0);");
+        $("#" + _self.playerElementId).attr("src", "//:0");
         _self.killAllRelayClient();
     };
 

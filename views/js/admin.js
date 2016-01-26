@@ -37,7 +37,7 @@ $(function () {
     UserController.prototype.accountTabClickCallback = function() {
         if(!$("#account").hasClass("navselected")) {
             this.view.renderAccountAdmin();
-            this.model.activateUserAdminCallback.fire();
+            this.model.activateUserAdminCallback.fire(0);
         }
     };
 
@@ -295,6 +295,11 @@ $(function () {
             "#failed-back-button": {"click": this.upgradeFailedBack}
         };
 
+        var contextBeforeLeave = $.proxy(this.beforeLeave, this);
+
+        window.onbeforeunload = contextBeforeLeave;
+        window.onunload = contextBeforeLeave;
+
         var selectorMsgProduceFuncMap = {
             ".dev-item": function() {
                 return $(this).attr("id");
@@ -307,12 +312,24 @@ $(function () {
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
     };
 
-    DeviceListController.prototype.clearPageRubbish = function() {
+    var _wasPageCleanedUp = false;
+
+    DeviceListController.prototype.beforeLeave = function() {
+        if (!_wasPageCleanedUp) {
+            var device = this.model.findActiveDeviceArr()[0];
+            if (device.nonPluginPlayer && device.nonPluginPlayer.statistics) {
+                device.nonPluginPlayer.statistics.send();
+            };
+            _wasPageCleanedUp = true;
+        };
+    };
+
+    DeviceListController.prototype.clearPageRubbish = function(stopReasonCode) {
         clearInterval(this.intervalUpdateDeviceListObj);
         var activeDevArr = this.model.findActiveDeviceArr();
         for (var i = 0; i < activeDevArr.length; i++) {
             if (activeDevArr[i] && activeDevArr[i].nonPluginPlayer) {
-                activeDevArr[i].nonPluginPlayer.back2Idle();
+                activeDevArr[i].nonPluginPlayer.back2Idle(stopReasonCode);
             };
             activeDevArr[i].isActive = false;
         };
@@ -550,7 +567,7 @@ $(function () {
 
         var activeDev = this.model.findActiveDeviceArr()[0];
         if (activeDev && activeDev.nonPluginPlayer) {
-            activeDev.nonPluginPlayer.back2Idle();
+            activeDev.nonPluginPlayer.back2Idle($.ipc.stopReasonCodeMap.LEAVE_PAGE);
         };
     };
 
