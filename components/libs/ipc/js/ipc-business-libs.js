@@ -550,6 +550,7 @@
         height: 480,
         "margin-left": "103px"
     };
+
     vgaPlayerContainerCss.loadingImg = {
         left: "400px",
         top: "270px"
@@ -621,6 +622,36 @@
 
 (function ($) {
     "use strict";
+    $.ipc = $.ipc || {};
+
+    function PluginPlayerObjCss () {
+        this.css = null;
+    };
+
+    var qvgaPluginPlayerObjCss = new PluginPlayerObjCss();
+    qvgaPluginPlayerObjCss.css = {
+        width: 320,
+        height: 240,
+        left: 160,
+        top: 120,
+        position: "relative"
+    };
+
+    var vgaPluginPlayerObjCss = new PluginPlayerObjCss();
+    vgaPluginPlayerObjCss.css = {
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        position: "relative"
+    };
+
+    $.ipc.qvgaPluginPlayerObjCss = qvgaPluginPlayerObjCss;
+    $.ipc.vgaPluginPlayerObjCss = vgaPluginPlayerObjCss;
+})(jQuery);
+
+(function ($) {
+    "use strict";
 
     $.ipc = $.ipc || {};
 
@@ -631,6 +662,7 @@
         this.str = null;
         this.playerContainerCss = null;
         this.pluginStreamResCode = null;
+        this.pluginPlayerObjCss = null;
     };
 
     var RESOLUTION_VIDEO_VGA = new Resolution();
@@ -640,6 +672,7 @@
     RESOLUTION_VIDEO_VGA.str = RESOLUTION_VIDEO_VGA.width + "*" + RESOLUTION_VIDEO_VGA.height;
     RESOLUTION_VIDEO_VGA.playerContainerCss = $.ipc.vgaPlayerContainerCss;
     RESOLUTION_VIDEO_VGA.pluginStreamResCode = 0;
+    RESOLUTION_VIDEO_VGA.pluginPlayerObjCss = $.ipc.vgaPluginPlayerObjCss;
     var RESOLUTION_VIDEO_QVGA = new Resolution();
     RESOLUTION_VIDEO_QVGA.name = "QVGA";
     RESOLUTION_VIDEO_QVGA.width = 320;
@@ -647,6 +680,7 @@
     RESOLUTION_VIDEO_QVGA.str = RESOLUTION_VIDEO_QVGA.width + "*" + RESOLUTION_VIDEO_QVGA.height;
     RESOLUTION_VIDEO_QVGA.playerContainerCss = $.ipc.qvgaPlayerContainerCss;
     RESOLUTION_VIDEO_QVGA.pluginStreamResCode = 1;
+    RESOLUTION_VIDEO_QVGA.pluginPlayerObjCss = $.ipc.qvgaPluginPlayerObjCss;
     var RESOLUTION_VIDEO_HD = new Resolution();
     RESOLUTION_VIDEO_HD.name = "HD";
     RESOLUTION_VIDEO_HD.width = 1280;
@@ -784,13 +818,13 @@
     IpcProduct.prototype.getPlayerType = function(mt) {
         if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
         var result = undefined;
-        // if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
                 result = $.ipc.IMG_PLAYER;
             } else {
                 result = $.ipc.FLASH_PLAYER;
             }
-        /*} else {
+        } else {
             if ($.ipc.Browser.prototype.os == "MacOS") {
                 result = $.ipc.PLUGIN_MAC;
             } else if ($.ipc.Browser.prototype.os == "Windows") {
@@ -817,7 +851,7 @@
                 console.info("unsupportted operation system");
                 result = undefined;
             }
-        }*/
+        }
         return result;
         // return $.ipc.IMG_PLAYER;
     };
@@ -2526,6 +2560,7 @@
     };
 
     function PluginPlayer () {
+        $.ipc.Model.call(this, arguments);
         this.device = null;
         this.playerObj = null;
         this.volume = 0;
@@ -2542,6 +2577,8 @@
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
         this.videoReadyCallback = $.Callbacks("unique stopOnFalse");
     };
+
+    $.ipc.inheritPrototype(PluginPlayer, $.ipc.Model);
 
     PluginPlayer.prototype.triggerPlay = function() {
         if (this.playerObj) {
@@ -2681,21 +2718,74 @@
     PluginPlayer.prototype.gatherStatics = function() {
         
     };
+
+    PluginPlayer.prototype.generateAjaxUrl = function(args) {
+        if (undefined == args.appServerUrl || undefined == args.token) {
+            console.error("args error in generateAjaxUrl");
+        };
+        return args.appServerUrl + "/ipc?token=" + args.token;
+    };
     
 
     function IEPluginPlayer () {
         PluginPlayer.call(this, arguments);
-        this.iePluginRecordCallback = null;
-        this.iePluginTimeupCallback = null;
     };
     $.ipc.inheritPrototype(IEPluginPlayer, PluginPlayer);
    
 
     IEPluginPlayer.prototype.feedMyArgs = function() {
         var _self = this;
-        _self.playerObj.recordcbinvoke(_self.iePluginRecordCallback);
-        _self.playerObj.overtimecallback(_self.iePluginTimeupCallback);
+        _self.playerObj.recordcbinvoke(_self.recordCallback);
+        _self.playerObj.overtimecallback(_self.timeupCallback);
         _self.playerObj.SetCloudDevID(_self.device.id);
+    };
+
+    IEPluginPlayer.prototype.setResolution = function(val) {
+        var _self = this;
+        var width = null;
+        var height = null;
+        if (_self.device.currentVideoResolution.pluginPlayerObjCss) {
+            width = _self.device.currentVideoResolution.pluginPlayerObjCss.css.width;
+            height = _self.device.currentVideoResolution.pluginPlayerObjCss.css.height;
+        } else {
+            width = _self.device.currentVideoResolution.playerContainerCss.player.width;
+            height = _self.device.currentVideoResolution.playerContainerCss.player.height;
+        };
+        var data = JSON.stringify({
+            "method": "passthrough",
+            "params": {
+                "requestData": {
+                    "command": "SET_RESOLUTION",
+                    "content": {
+                        "width": width,
+                        "height": height
+                    }
+                },
+                "deviceId": _self.device.id
+            }
+        });
+
+        var changeStateFunc = function (response) {
+            this.playerObj.PlayVideo();
+            this.playerObj.PlayAudio();
+        };
+        var callbacks = {
+            "errorCodeCallbackMap": {
+                "-1" : $.proxy(changeStateFunc, _self)
+            },
+            "errorCallback" : $.proxy(changeStateFunc, _self)
+        };
+
+        var args = {
+            url: _self.generateAjaxUrl({
+                appServerUrl: _self.device.appServerUrl,
+                token: _self.device.owner.token,
+            }),
+            data: data,
+            callbacks: callbacks, 
+            changeState: changeStateFunc
+        };
+        _self.makeAjaxRequest(args, $.xAjax.defaults.xType);
     };
 
 
@@ -2709,8 +2799,14 @@
         _self.playerObj.overtimecb = _self.timeupCallback;
     };
 
+    NonIEPluginPlayer.prototype.setResolution = function(val) {
+        var code = this.device.currentVideoResolution.pluginStreamResCode;
+        this.playerObj.ChangeStreamResolution(code);
+    };
+
 
     $.ipc.PluginPlayer = PluginPlayer;
     $.ipc.NonIEPluginPlayer = NonIEPluginPlayer;
+    $.ipc.IEPluginPlayer = IEPluginPlayer;
 })(jQuery);
  

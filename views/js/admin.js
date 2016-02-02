@@ -37,7 +37,7 @@ $(function () {
     UserController.prototype.accountTabClickCallback = function() {
         if(!$("#account").hasClass("navselected")) {
             this.view.renderAccountAdmin();
-            this.model.activateUserAdminCallback.fire(0);
+            this.model.activateUserAdminCallback.fire($.ipc.stopReasonCodeMap.LEAVE_PAGE);
         }
     };
 
@@ -292,7 +292,7 @@ $(function () {
             ".volume-open": {"click": this.volumeMute},
             ".volume-mute": {"click": this.volumeOpen},
             "#resolution-select": {"change": this.setResolution},
-            "#failed-back-button": {"click": this.upgradeFailedBack}
+            "#failed-back-button": {"click": this.upgradeFailedBack},
         };
 
         var contextBeforeLeave = $.proxy(this.beforeLeave, this);
@@ -316,8 +316,9 @@ $(function () {
 
     DeviceListController.prototype.beforeLeave = function() {
         if (!_wasPageCleanedUp) {
+            this.clearPageRubbish($.ipc.stopReasonCodeMap.LEAVE_PAGE);
             var device = this.model.findActiveDeviceArr()[0];
-            if (device.nonPluginPlayer && device.nonPluginPlayer.statistics) {
+            if (device && device.nonPluginPlayer && device.nonPluginPlayer.statistics) {
                 device.nonPluginPlayer.statistics.send();
             };
             _wasPageCleanedUp = true;
@@ -336,8 +337,17 @@ $(function () {
     };
 
     DeviceListController.prototype.setResolution = function() {
-        // body...
-        console.log("setResolution");
+        var val = $("#resolution-select").val();
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device) {
+            for (var i = 0; i < device.product.supportVideoResArr.length; i++) {
+                if (device.product.supportVideoResArr[i].pluginStreamResCode == val) {
+                    device.currentVideoResolution = device.product.supportVideoResArr[i];
+                };
+            };
+        };
+        
+        this.view.setResolution();
     };
 
     DeviceListController.prototype.volumeMute = function() {
@@ -351,19 +361,15 @@ $(function () {
     };
     
     DeviceListController.prototype.videoRecordStart = function() {
-        // body...
-        console.log("videoRecordStart");
-        $("#video-record-start").hide();
-        $("#video-record-stop").show();
+        this.view.recordStart();        
     };
 
     DeviceListController.prototype.takePicture = function() {
-        console.log("takePicture");
+        this.view.takePicture();
     };
 
     DeviceListController.prototype.videoRecordStop = function() {
-        $("#video-record-start").show();
-        $("#video-record-stop").hide();
+        this.view.recordStop();
     };
 
     DeviceListController.prototype.zoomIn = function() {
@@ -387,6 +393,7 @@ $(function () {
         var val = $("#zoom-bar").slider("option", "value");
         var times = val/step + 1;
         $("#zoom-bar .ui-slider-handle").attr("title", "X" + times);
+        this.view.setZoom();
     };
 
     
@@ -996,8 +1003,13 @@ $(function () {
         if (dev && dev.isActive) {
             var playerType = dev.product.playerType;
             var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
-            $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
-            $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
+            if (dev.currentVideoResolution.pluginPlayerObjCss) {
+                $("#" + id).css(dev.currentVideoResolution.pluginPlayerObjCss.css);
+            } else {
+                $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
+                $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
+            }
+            
         };
     };
 
@@ -1006,7 +1018,7 @@ $(function () {
             $("#resolution-select").empty();
             var resArr = dev.product.supportVideoResArr;
             for (var i = 0; i < resArr.length; i++) {
-                $("#resolution-select").append("<option name=" + resArr[i].name + ">" + resArr[i].str + "</option>");
+                $("#resolution-select").append("<option name=" + resArr[i].name + " value=" + resArr[i].pluginStreamResCode + ">" + resArr[i].str + "</option>");
             };
             $("#resolution-select option:first-child").attr("selected", true);
             $("#resolution-select").Select({slideOptionHeight: 16});
@@ -1049,6 +1061,114 @@ $(function () {
         };
     };
 
+    DeviceListView.prototype.recordStart = function() {
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device) {
+            var ieRecordMask = device.pluginPlayer.playerObj.Record();
+            if ($.ipc.Browser.prototype.type.indexOf("MSIE") >= 0 && ieRecordMask) {
+                this.showRecordStart();
+            };
+        };
+    };
+
+    DeviceListView.prototype.showRecordStart = function() {
+        $("#video-record-start").hide();
+        $("#video-record-stop").show();
+    };
+
+    DeviceListView.prototype.recordStop = function() {
+        $("#video-record-start").show();
+        $("#video-record-stop").hide();
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device) {
+            device.pluginPlayer.playerObj.StopRecord();
+        };
+    };
+
+    DeviceListView.prototype.recordCallback = function(record) {
+        if (record == 0) {
+            this.showRecordStart();
+        } else if (record == 1) {
+            this.recordStop();
+        } else if (record == 2) {
+            this.recordStop();
+            $.ipc.Msg({
+                type: "alert",
+                info: tips.actions.record.interrupt.networkError
+            });
+        } else if (record == 3) {
+            this.recordStop();
+            $.ipc.Msg({
+                type: "alert",
+                info: tips.actions.record.interrupt.diskFull
+            });
+        } else if (record == 4) {
+            this.recordStop();
+            $.ipc.Msg({
+                type: "alert",
+                info: tips.actions.record.interrupt.timeup
+            });
+        }
+    };
+
+    DeviceListView.prototype.snapshotCallback = function(shoot) {
+        if (shoot == 3) {
+            $.ipc.Msg({
+                type: "alert",
+                info: tips.actions.snapshot.diskFull
+            });
+        };
+    };
+
+    DeviceListView.prototype.showWatchHideSon = function() {
+        $("#watch").show();
+        $("#watch").children().hide();
+    };
+
+    DeviceListView.prototype.showReloadTips = function() {
+        this.showWatchHideSon();
+        $("#reloadtips").show();
+    };
+
+    DeviceListView.prototype.timeupCallback = function(code) {
+        if (code == 0){
+            this.showTimeout();
+        }
+        if (code == 1){
+            this.showReloadTips();
+        }
+
+        if ($("#video-record-start").length > 0 && !$("#video-record-start").is(":hidden")) {
+            this.recordStop();
+        };
+    };
+
+    DeviceListView.prototype.takePicture = function() {
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device) {
+            device.pluginPlayer.playerObj.Snapshot("snapshot");
+        };
+    };
+
+    DeviceListView.prototype.setZoom = function() {
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device) {
+            var step = $("#zoom-bar").slider("option", "step");
+            var val = $("#zoom-bar").slider("option", "value");
+            var times = val/step + 1;
+            device.pluginPlayer.playerObj.SetVideoZoom(parseInt(times));
+        };
+    };
+
+    DeviceListView.prototype.setResolution = function() {
+        var val = $("#resolution-select").val();
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device && device.pluginPlayer) {
+            this.updatePlayerObjView(device);
+            device.pluginPlayer.setResolution(val);
+        };
+    };
+
     DeviceListView.prototype.pluginPlayVideo = function(dev) {
         if (dev && dev.isActive) {
             var playerType = dev.product.playerType;
@@ -1061,7 +1181,12 @@ $(function () {
                     this.showPluginUpdateNeeded(dev);
                 } else {
                     if (undefined == dev.pluginPlayer) {
-                        var tmpPlayer = new $.ipc.NonIEPluginPlayer();
+                        var tmpPlayer = null;
+                        if ($.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
+                            tmpPlayer = new $.ipc.IEPluginPlayer();
+                        } else {
+                            tmpPlayer = new $.ipc.NonIEPluginPlayer();
+                        }
                         tmpPlayer.playerObj = document.getElementById(id);
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
@@ -1070,11 +1195,9 @@ $(function () {
                         var contextPluginPlayerRender = $.proxy(this.renderPluginPlayer, this);
                         var contextUpdatePlayerObjView = $.proxy(this.updatePlayerObjView, this);
                         var args = {
-                            recordCallback: $.noop,
-                            snapshotCallback: $.noop,
-                            timeupCallback: $.noop,
-                            iePluginRecordCallback: $.noop,
-                            iePluginTimeupCallback: $.noop,
+                            recordCallback: $.proxy(this.recordCallback, this),
+                            snapshotCallback: $.proxy(this.snapshotCallback, this),
+                            timeupCallback: $.proxy(this.timeupCallback, this),
                             videoLoadingRenderFunc: contextPluginVideoLoadingRenderFunc,
                             pluginPlayerRender: contextPluginPlayerRender,
                             updatePlayerObjView: contextUpdatePlayerObjView
@@ -1170,7 +1293,21 @@ $(function () {
     DeviceListView.prototype.showTimeout = function() {
         this.hideViewSettingContent();
         this.liveViewManageBoard();
-        $("#continuetips").show();
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device) {
+            this.showWatchHideSon();
+            $("#continuetips").show();
+            var maxVideoTime = "10 minutes";
+            var currentDeviceTimeUpLength = device.relayVideoTime;
+            if (currentDeviceTimeUpLength < 3600) {
+                maxVideoTime = (currentDeviceTimeUpLength / 60).toFixed(0) + " minute(s)";
+            } else if (currentDeviceTimeUpLength < 86400) {
+                maxVideoTime = (currentDeviceTimeUpLength / 3600).toFixed(0) + " hour(s)";
+            } else {
+                maxVideoTime = (currentDeviceTimeUpLength / 86400).toFixed(0) + " day(s)";
+            } 
+            $("#max-relay-video-time").text(maxVideoTime);
+        };
     };
 
     DeviceListView.prototype.imgPlayerManageBoard = function() {

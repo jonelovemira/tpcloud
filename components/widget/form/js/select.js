@@ -126,9 +126,12 @@
             select.removeClass("select-slide");
             var value = selectedOption.attr("xvalue");
             var selectedText = selectedOption.text();
+            var oldText = select.find(".selected span").text();
             select.find(".selected span").text(selectedText);
             originSelect.val(value);
-            originSelect.change();
+            if (oldText != selectedText) {
+                originSelect.change();
+            };
             e.stopPropagation();
         },
         addScrollbar: function(select) {
