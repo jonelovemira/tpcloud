@@ -26,7 +26,8 @@ var tips = {
             "failed": "Login failed. Please try again later."
         },
         "deviceOperate": {
-            "failed": "Operation failed. Please try again later."
+            "failed": "Operation failed. Please try again later.",
+            "notLogin": "Operation failed. Please log in again."
         },
         "record": {
             "interrupt": {
