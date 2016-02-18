@@ -1,3 +1,14 @@
+(function () {
+    Function.prototype.before = function (func) {
+        var _self = this;
+        return function () {
+            if (func.apply( this, arguments) === false) {
+                return false;
+            };
+            return _self.apply(this, arguments);
+        }
+    }
+})();
 (function ($) {
 
     "use strict";
