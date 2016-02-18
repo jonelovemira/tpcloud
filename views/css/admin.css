@@ -998,3 +998,42 @@
     text-decoration: underline;
     cursor:pointer;
 }
+
+#unbind-msg-body-sample {
+    display: none;
+}
+
+.unbind-msg-body {
+    padding-left: 45px;
+    width: 85%;
+}
+
+.unbind-msg-body > .msg-cell{
+    color: #323232;
+    font-size: 1.0em;
+    height: auto;
+    padding-bottom: 10px;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+}
+
+.unbind-msg-body > .msg-cell > .title {
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-weight: bold;
+}
+
+.unbind-msg-body .arrow {
+    height: 10px;
+    position: relative;
+    top: 3px;
+    width: 15px;
+    float: left;
+    background: url("../img/admin/admin.png") 0 -186px no-repeat;
+}
+
+.unbind-msg-body .camera-info {
+    margin-top: 20px;
+}
+
+.unbind-msg-body #remove-dev-name {
+    word-break:break-all;
+}
