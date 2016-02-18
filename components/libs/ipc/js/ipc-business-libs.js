@@ -714,7 +714,6 @@
         this.videoCodec = null;
         this.audioCodec = null;
         this.name = null;
-        this.pluginStreamTypeCode = null;
     };
     Channel.prototype.generateRelaydCommand = function(device) {
         if (undefined == device) {console.error("args error in generateRelaydCommand")};
@@ -731,7 +730,6 @@
     function DevicePostChannelVideo(){
         Channel.call(this, arguments);
         this.name = 'video';
-        this.pluginStreamTypeCode = 2;
     };
     $.ipc.inheritPrototype(DevicePostChannelVideo, Channel);
     DevicePostChannelVideo.prototype.generateLocalParam = function(dev){
@@ -745,7 +743,6 @@
     function DevicePostChannelAudio(){
         Channel.call(this, arguments);
         this.name = 'audio';
-        this.pluginStreamTypeCode = 2;
     };
     $.ipc.inheritPrototype(DevicePostChannelAudio, Channel);
     DevicePostChannelAudio.prototype.generateLocalParam = function(dev){
@@ -758,7 +755,6 @@
     };
     function DevicePostChannelMixed(){
         Channel.call(this, arguments);
-        this.pluginStreamTypeCode = 3;
         this.name = 'mixed';
     };
     $.ipc.inheritPrototype(DevicePostChannelMixed, Channel);
@@ -788,10 +784,22 @@
 
     function Codec() {
         this.name = null;
-        this.pluginAudioTypeCode = null;
     };
 
-    $.ipc.Codec = Codec;
+    function AudioCodec () {
+        Codec.call(this, arguments);
+        this.pluginAudioTypeCode = null;
+    };
+    $.ipc.inheritPrototype(AudioCodec, Codec);
+
+    function VideoCodec () {
+        Codec.call(this, arguments);
+        this.pluginStreamTypeCode = null;
+    };
+    $.ipc.inheritPrototype(VideoCodec, Codec);
+
+    $.ipc.AudioCodec = AudioCodec;
+    $.ipc.VideoCodec = VideoCodec;
 })(jQuery);
 
 (function ($) {
@@ -875,14 +883,15 @@
     var mixedChannel = new $.ipc.DevicePostChannelMixed();
     mixedChannel.url = '/stream/video/mixed';
 
-    var pcmAudioCodec = new $.ipc.Codec();
+    var pcmAudioCodec = new $.ipc.AudioCodec();
     pcmAudioCodec.name = "PCM";
-    var aacAudioCodec = new $.ipc.Codec();
+    var aacAudioCodec = new $.ipc.AudioCodec();
     aacAudioCodec.name = "AAC";
     aacAudioCodec.pluginAudioTypeCode = 2;
-    var h264VideoCodec = new $.ipc.Codec();
+    var h264VideoCodec = new $.ipc.VideoCodec();
     h264VideoCodec.name = "h264";
-    var mjpegVideoCodec = new $.ipc.Codec();
+    h264VideoCodec.pluginStreamTypeCode = 2;
+    var mjpegVideoCodec = new $.ipc.VideoCodec();
     mjpegVideoCodec.name = "mjpeg";
 
     var NC200 = new IpcProduct();
@@ -925,7 +934,7 @@
     NC230.smallImgCssClass = "NC230-small-img";
     NC230.middleImgCssClass = "NC230-middle-img";
     NC230.playerType = NC230.getPlayerType(NC230.mimeType);
-    NC230.postDataChannel = [mixedChannel];
+    NC230.postDataChannel = [videoChannel, audioChannel];
     NC230.audioCodec = aacAudioCodec;
     NC230.videoCodec = h264VideoCodec;
     
@@ -936,7 +945,7 @@
     NC250.smallImgCssClass = "NC250-small-img";
     NC250.middleImgCssClass = "NC250-middle-img";
     NC250.playerType = NC250.getPlayerType(NC250.mimeType);
-    NC250.postDataChannel = [mixedChannel];
+    NC250.postDataChannel = [videoChannel, audioChannel];
     NC250.audioCodec = aacAudioCodec;
     NC250.videoCodec = h264VideoCodec;
 
@@ -947,7 +956,7 @@
     NC350.smallImgCssClass = "NC350-small-img";
     NC350.middleImgCssClass = "NC350-middle-img";
     NC350.playerType = NC350.getPlayerType(NC350.mimeType);
-    NC350.postDataChannel = [mixedChannel];
+    NC350.postDataChannel = [videoChannel, audioChannel];
     NC350.audioCodec = aacAudioCodec;
     NC350.videoCodec = h264VideoCodec;
 
@@ -958,7 +967,7 @@
     NC450.smallImgCssClass = "NC450-small-img";
     NC450.middleImgCssClass = "NC450-middle-img";
     NC450.playerType = NC450.getPlayerType(NC450.mimeType);
-    NC450.postDataChannel = [mixedChannel];
+    NC450.postDataChannel = [videoChannel, audioChannel];
     NC450.audioCodec = aacAudioCodec;
     NC450.videoCodec = h264VideoCodec;
 
@@ -984,6 +993,7 @@
         this.owner = null;
         this.id = null;
         this.type = null;
+        this.model = null;
         this.mac = null;
         this.isOnline = null;
         this.fwVer = null;
@@ -998,6 +1008,7 @@
         this.fwUrl = null;
         this.relayVideoTime = 600;
 
+        this.hasGetCrossRegionInfo = false;
         this.hasUpgradOnce = null;
         this.product = null;
         this.nonPluginPlayer = null;
@@ -1053,6 +1064,7 @@
         var changeStateFunc = function(response) {
             this.init(response.msg);
             this.isSameRegion = true;
+            this.hasGetCrossRegionInfo = true;
             this.stateChangeCallbacks.fire(this);
         };
 
@@ -2710,9 +2722,13 @@
         _self.playerObj.cldmac = _self.device.mac;
         _self.playerObj.cldtime = 30;
         _self.playerObj.clddevid = _self.device.id;
-        _self.playerObj.streamtype = _self.device.product.postDataChannel[0].pluginStreamTypeCode;
-        _self.playerObj.streamresolution = _self.device.currentVideoResolution.pluginStreamResCode;
-        _self.playerObj.audiostreamtype = _self.device.product.audioCodec.pluginAudioTypeCode;
+        if ($.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
+            _self.playerObj.recordcbinvoke(_self.recordCallback);
+            _self.playerObj.overtimecallback(_self.timeupCallback);
+            _self.playerObj.SetCloudDevID(_self.device.id);
+        } else {
+            _self.playerObj.overtimecb = _self.timeupCallback;
+        }
     };
 
     PluginPlayer.prototype.gatherStatics = function() {
@@ -2727,20 +2743,15 @@
     };
     
 
-    function IEPluginPlayer () {
+    function MjpegPluginPlayer () {
         PluginPlayer.call(this, arguments);
     };
-    $.ipc.inheritPrototype(IEPluginPlayer, PluginPlayer);
+    $.ipc.inheritPrototype(MjpegPluginPlayer, PluginPlayer);
    
 
-    IEPluginPlayer.prototype.feedMyArgs = function() {
-        var _self = this;
-        _self.playerObj.recordcbinvoke(_self.recordCallback);
-        _self.playerObj.overtimecallback(_self.timeupCallback);
-        _self.playerObj.SetCloudDevID(_self.device.id);
-    };
+    MjpegPluginPlayer.prototype.feedMyArgs = function() {};
 
-    IEPluginPlayer.prototype.setResolution = function(val) {
+    MjpegPluginPlayer.prototype.setResolution = function(val) {
         var _self = this;
         var width = null;
         var height = null;
@@ -2789,24 +2800,26 @@
     };
 
 
-    function NonIEPluginPlayer () {
+    function H264PluginPlayer () {
         PluginPlayer.call(this, arguments);
     };
-    $.ipc.inheritPrototype(NonIEPluginPlayer, PluginPlayer);
+    $.ipc.inheritPrototype(H264PluginPlayer, PluginPlayer);
     
-    NonIEPluginPlayer.prototype.feedMyArgs = function() {
+    H264PluginPlayer.prototype.feedMyArgs = function() {
         var _self = this;
-        _self.playerObj.overtimecb = _self.timeupCallback;
+        _self.playerObj.streamtype = _self.device.product.videoCodec.pluginStreamTypeCode;
+        _self.playerObj.streamresolution = _self.device.currentVideoResolution.pluginStreamResCode;
+        _self.playerObj.audiostreamtype = _self.device.product.audioCodec.pluginAudioTypeCode;
     };
 
-    NonIEPluginPlayer.prototype.setResolution = function(val) {
+    H264PluginPlayer.prototype.setResolution = function(val) {
         var code = this.device.currentVideoResolution.pluginStreamResCode;
         this.playerObj.ChangeStreamResolution(code);
     };
 
 
     $.ipc.PluginPlayer = PluginPlayer;
-    $.ipc.NonIEPluginPlayer = NonIEPluginPlayer;
-    $.ipc.IEPluginPlayer = IEPluginPlayer;
+    $.ipc.H264PluginPlayer = H264PluginPlayer;
+    $.ipc.MjpegPluginPlayer = MjpegPluginPlayer;
 })(jQuery);
  

@@ -88,7 +88,9 @@ $(function () {
         };
 
         var errCodeTipsMap = {
-            "-1": tips.actions.changePassword.failed
+            "-1": tips.actions.changePassword.failed,
+            "1023": tips.types.password.wrongForChange,
+            "1024": tips.types.password.wrongForChange
         };
 
         var inputCallbacks = {
@@ -98,6 +100,12 @@ $(function () {
                 },
                 "-1" : function() {
                     currentController.view.renderError(errCodeTipsMap["-1"]);
+                },
+                "1023": function() {
+                    currentController.view.renderError(errCodeTipsMap["1023"]);
+                },
+                "1024": function() {
+                    currentController.view.renderError(errCodeTipsMap["1024"]);
                 }
             },
             "errorCallback" : function() {
@@ -274,7 +282,7 @@ $(function () {
             "#dev-right-arrow": {"click": this.showNextDevicePage},
             "#dev-left-arrow": {"click": this.showPreDevicePage},
             "#dev-setting-save": {"click": this.changeDeviceName},
-            "#dev-setting-remove": {"click": this.removeDevice},
+            "#dev-setting-remove": {"click": this.makeRemoveConfirm},
             "#live-view-tab": {"click": this.liveView},
             "#setting-tab": {"click": this.settingShow},
             "#reload": {"click": this.updateDeviceInfo},
@@ -296,6 +304,7 @@ $(function () {
         };
 
         var contextBeforeLeave = $.proxy(this.beforeLeave, this);
+        var contextOnLeave = $.proxy(this.onLeavePage, this);
 
         window.onbeforeunload = contextBeforeLeave;
         window.onunload = contextBeforeLeave;
@@ -312,16 +321,26 @@ $(function () {
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
     };
 
-    var _wasPageCleanedUp = false;
+    DeviceListController.prototype.recordBreakConfirm = function() {
+        if (this.view.isRecording()) {
+            return confirm(tips.actions.record.interrupt.optionTips);
+        } else {
+            return true;
+        }
+    };
+
+    DeviceListController.prototype.onLeavePage = function() {
+        this.clearPageRubbish($.ipc.stopReasonCodeMap.LEAVE_PAGE);
+        var device = this.model.findActiveDeviceArr()[0];
+        if (device && device.nonPluginPlayer && device.nonPluginPlayer.statistics) {
+            device.nonPluginPlayer.statistics.send();
+        };
+    };
+
 
     DeviceListController.prototype.beforeLeave = function() {
-        if (!_wasPageCleanedUp) {
-            this.clearPageRubbish($.ipc.stopReasonCodeMap.LEAVE_PAGE);
-            var device = this.model.findActiveDeviceArr()[0];
-            if (device && device.nonPluginPlayer && device.nonPluginPlayer.statistics) {
-                device.nonPluginPlayer.statistics.send();
-            };
-            _wasPageCleanedUp = true;
+        if (this.view.isRecording()) {
+            return tips.actions.record.interrupt.optionTips;
         };
     };
 
@@ -349,6 +368,8 @@ $(function () {
         
         this.view.setResolution();
     };
+
+    DeviceListController.prototype.setResolution = (DeviceListController.prototype.setResolution || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
 
     DeviceListController.prototype.volumeMute = function() {
         $.cookie("mute", true);
@@ -454,63 +475,113 @@ $(function () {
         var currentController = this;
         var activeDev = this.model.findActiveDeviceArr()[0];
         if (activeDev && activeDev.isActive) {
-            if (newName != activeDev.name) {
-                var args = {
-                    id: activeDev.id,
-                    name: newName
-                };
-                var errorFunc = function() {
-                    if(activeDev.isActive){
-                        currentController.view.renderMsg(tips.actions.changeIpcName.failed);
-                    }
-                };
-                var inputCallbacks = {
-                    "errorCodeCallbackMap": {
-                        0: function() {
-                            if(activeDev.isActive){
-                                currentController.view.renderMsg(tips.actions.changeIpcName.success);
-                            }
+            if (activeDev.isOnline == 1) {
+                if (newName != activeDev.name) {
+                    var args = {
+                        id: activeDev.id,
+                        name: newName
+                    };
+                    var errorFunc = function() {
+                        if(activeDev.isActive){
+                            currentController.view.renderMsg(tips.actions.changeIpcName.failed);
+                        }
+                    };
+                    var notLoginErrFunc = function() {
+                        if(activeDev.isActive){
+                            currentController.view.renderMsg(tips.actions.deviceOperate.notLogin);
+                        }
+                    };
+                    var offlineErrFunc = function() {
+                        if(activeDev.isActive){
+                            currentController.view.renderMsg(tips.types.camera.offline);
+                        }
+                    };
+                    var inputCallbacks = {
+                        "errorCodeCallbackMap": {
+                            0: function() {
+                                if(activeDev.isActive){
+                                    currentController.view.renderMsg(tips.actions.changeIpcName.success);
+                                }
+                            },
+                            "-1": errorFunc,
+                            "-20571": offlineErrFunc,
+                            "-20651": notLoginErrFunc
                         },
-                        "-1": errorFunc
-                    },
-                    "errorCallback": errorFunc
-                };
-                var validateResult = activeDev.changeName(args, inputCallbacks);
-                if (validateResult != undefined && !validateResult.code) {
-                    currentController.view.renderMsg(validateResult.msg);
-                };
+                        "errorCallback": errorFunc
+                    };
+                    var validateResult = activeDev.changeName(args, inputCallbacks);
+                    if (validateResult != undefined && !validateResult.code) {
+                        currentController.view.renderMsg(validateResult.msg);
+                    };
+                } else {
+                    console.log("new name is equal to origin name");
+                }
             } else {
-                console.log("new name is equal to origin name");
+                currentController.view.renderMsg(tips.types.camera.offline);
             }
         };
+    };
+
+    DeviceListController.prototype.makeRemoveConfirm = function() {
+        var currentController = this;
+        var activeDev = this.model.findActiveDeviceArr()[0];
+        if (activeDev && activeDev.isActive) {
+            $("#unbind-msg-body-sample #remove-dev-name").text(activeDev.name);
+            $("#unbind-msg-body-sample #remove-dev-model").text(activeDev.model);
+            $.ipc.Msg({
+                type: "confirm",
+                info: $("#unbind-msg-body-sample").html(),
+                height: 310,
+                btnConfirm: "Remove",
+                confirm: $.proxy(currentController.removeDevice, currentController) 
+            });
+        };
+        
     };
 
     DeviceListController.prototype.removeDevice = function() {
         var currentController = this;
         var activeDev = this.model.findActiveDeviceArr()[0];
         if (activeDev && activeDev.isActive) {
-            var args = {
-                id: activeDev.id,
-                account: activeDev.owner.account
-            };
-            var errorFunc = function() {
-                if(activeDev.isActive){
-                    currentController.view.renderMsg(tips.actions.deviceOperate.failed);
-                }
-            };
-            var inputCallbacks = {
-                "errorCodeCallbackMap": {
-                    0: function() {
-                        currentController.getDeviceList();
+            if (activeDev.isOnline == 1) {
+                var args = {
+                    id: activeDev.id,
+                    account: activeDev.owner.account
+                };
+                var errorFunc = function() {
+                    if(activeDev.isActive){
+                        currentController.view.renderMsg(tips.actions.deviceOperate.failed);
+                    }
+                };
+                var notLoginErrFunc = function() {
+                    if(activeDev.isActive){
+                        currentController.view.renderMsg(tips.actions.deviceOperate.notLogin);
+                    }
+                };
+                var offlineErrFunc = function() {
+                    if(activeDev.isActive){
+                        currentController.view.renderMsg(tips.types.camera.offline);
+                    }
+                };
+                var inputCallbacks = {
+                    "errorCodeCallbackMap": {
+                        0: function() {
+                            currentController.getDeviceList();
+                        },
+                        "-1": errorFunc,
+                        "-20571": offlineErrFunc,
+                        "-20651": notLoginErrFunc
                     },
-                    "-1": errorFunc
-                },
-                "errorCallback": errorFunc
+                    "errorCallback": errorFunc
+                };
+                var validateResult = activeDev.unbind(args, inputCallbacks);
+                if (validateResult != undefined && !validateResult.code) {
+                    currentController.view.renderMsg(validateResult.msg);
+                };
+            } else {
+                currentController.view.renderMsg(tips.types.camera.offline);
             };
-            var validateResult = activeDev.unbind(args, inputCallbacks);
-            if (validateResult != undefined && !validateResult.code) {
-                currentController.view.renderMsg(validateResult.msg);
-            };
+            
         };
     };
 
@@ -623,6 +694,7 @@ $(function () {
         this.commonTipsDOM = $("#common-tips");
         this.deviceLiDomIdPrefix = "dev-";
         this.player = null;
+        this.isNeedFeedPluginDownloadLink = false;
     }
 
     DeviceListView.prototype.renderBoard = function() {
@@ -771,7 +843,7 @@ $(function () {
         if (this.model.devices.length > 0) {
             var activeDev = this.model.findActiveDeviceArr()[0];
             if (activeDev) {
-                if (activeDev.isSameRegion) {
+                if (activeDev.isSameRegion || activeDev.hasGetCrossRegionInfo) {
                     if (activeDev.needForceUpgrade == 1) {
                         this.commonTipsManageBoard();
                         this.showUpgradeState(activeDev);
@@ -935,7 +1007,9 @@ $(function () {
             var downloadLink = playerType.prototype.downloadPath;
             if (downloadLink) {
                 $(".plugin-download-link").attr("href", downloadLink);
-            };
+            } else {
+                this.isNeedFeedPluginDownloadLink = true;
+            }
         } else {
             console.error("args error in feedPluginDownloadLink");
         }
@@ -1022,16 +1096,6 @@ $(function () {
             };
             $("#resolution-select option:first-child").attr("selected", true);
             $("#resolution-select").Select({slideOptionHeight: 16});
-        };
-    };
-
-    DeviceListView.prototype.feedPluginPlayerCallbacks = function(device) {
-        if (device) {
-            this.recordCallback = args.recordCallback;
-            this.snapshotCallback = args.snapshotCallback;
-            this.timeupCallback = args.snapshotCallback;
-            this.iePluginRecordCallback = args.iePluginRecordCallback;
-            this.iePluginTimeupCallback = args.iePluginTimeupCallback;
         };
     };
 
@@ -1136,11 +1200,15 @@ $(function () {
         }
         if (code == 1){
             this.showReloadTips();
-        }
+        };
 
-        if ($("#video-record-start").length > 0 && !$("#video-record-start").is(":hidden")) {
+        if (this.isShowing($("#video-record-start"))) {
             this.recordStop();
         };
+    };
+
+    DeviceListView.prototype.isRecording = function() {
+        return this.isShowing($("#video-record-stop"));
     };
 
     DeviceListView.prototype.takePicture = function() {
@@ -1164,8 +1232,8 @@ $(function () {
         var val = $("#resolution-select").val();
         var device = this.model.findActiveDeviceArr()[0];
         if (device && device.pluginPlayer) {
-            this.updatePlayerObjView(device);
             device.pluginPlayer.setResolution(val);
+            this.updatePlayerObjView(device);
         };
     };
 
@@ -1182,11 +1250,13 @@ $(function () {
                 } else {
                     if (undefined == dev.pluginPlayer) {
                         var tmpPlayer = null;
-                        if ($.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
-                            tmpPlayer = new $.ipc.IEPluginPlayer();
-                        } else {
-                            tmpPlayer = new $.ipc.NonIEPluginPlayer();
-                        }
+                        var videoCodecPlayerMap = {
+                            "mjpeg": $.ipc.MjpegPluginPlayer,
+                            "h264": $.ipc.H264PluginPlayer
+                        };
+                        var codecName = dev.product.videoCodec.name;
+                        tmpPlayer = new (videoCodecPlayerMap[codecName])(); 
+                        
                         tmpPlayer.playerObj = document.getElementById(id);
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
@@ -1605,8 +1675,15 @@ $(function () {
     $.ipc.inheritPrototype(SoftwareController, $.ipc.BaseController);
     
     SoftwareController.prototype.getUpdateInfos = function() {
-        var currentController = this;
-        this.model.getUpdateInfos();
+        var inputCallbacks = {
+            "errorCodeCallbackMap": {
+                0: function() {
+                    var device = dlc.model.findActiveDeviceArr()[0];
+                    device && dlv.isNeedFeedPluginDownloadLink && dlv.feedPluginDownloadLink(device);
+                }
+            }
+        };
+        this.model.getUpdateInfos(inputCallbacks);
     };
 
     var s = new $.ipc.Software();
