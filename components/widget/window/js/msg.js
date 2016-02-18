@@ -67,7 +67,7 @@
         //render id, title, info, button and size
         msg.attr("id", id);
         $('.window-msg-head-title', msg).text(_options.title);
-        $('.window-msg-body-content span', msg).text(_options.info); 
+        $('.window-msg-body-content span', msg).html(_options.info); 
         
         switch(_options.type)
         {
