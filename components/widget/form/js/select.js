@@ -127,10 +127,15 @@
             var value = selectedOption.attr("xvalue");
             var selectedText = selectedOption.text();
             var oldText = select.find(".selected span").text();
-            select.find(".selected span").text(selectedText);
             originSelect.val(value);
             if (oldText != selectedText) {
-                originSelect.change();
+                (function () {
+                    originSelect.trigger("beforeChange");
+                    return originSelect.data("canChange");
+                }).after(function () {
+                    originSelect.change();
+                    select.find(".selected span").text(selectedText);
+                })();
             };
             e.stopPropagation();
         },
@@ -174,7 +179,6 @@
         $('.slide-item', select).on('click', function(e) {
             tmpSelect.onOptionClick(select, e, originSelect, $(this));
         });
-
 
         tmpSelect.changeFromOrigin(select, originSelect);
         originSelect.hide();
