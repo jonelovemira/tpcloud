@@ -2739,7 +2739,7 @@
         if (undefined == args.appServerUrl || undefined == args.token) {
             console.error("args error in generateAjaxUrl");
         };
-        return args.appServerUrl + "/ipc?token=" + args.token;
+        return args.appServerUrl + "/?token=" + args.token;
     };
     
 

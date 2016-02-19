@@ -299,7 +299,7 @@ $(function () {
             "#video-record-stop": {"click": this.videoRecordStop},
             ".volume-open": {"click": this.volumeMute},
             ".volume-mute": {"click": this.volumeOpen},
-            "#resolution-select": {"change": this.setResolution},
+            "#resolution-select": {"beforeChange": this.beforeChangeRes, "change": this.setResolution},
             "#failed-back-button": {"click": this.upgradeFailedBack},
         };
 
@@ -322,11 +322,21 @@ $(function () {
     };
 
     DeviceListController.prototype.recordBreakConfirm = function() {
+        var res = true;
         if (this.view.isRecording()) {
-            return confirm(tips.actions.record.interrupt.optionTips);
-        } else {
-            return true;
+            var confirmRes = confirm(tips.actions.record.interrupt.optionTips);
+            if (!confirmRes) {
+                res = false;
+            } else {
+                this.view.recordStop();
+            }
         }
+        return res;
+    };
+
+    DeviceListController.prototype.beforeChangeRes = function() {
+        var canChangeFlag = this.recordBreakConfirm();
+        $("#resolution-select").data("canChange", canChangeFlag);
     };
 
     DeviceListController.prototype.onLeavePage = function() {
@@ -356,6 +366,7 @@ $(function () {
     };
 
     DeviceListController.prototype.setResolution = function() {
+
         var val = $("#resolution-select").val();
         var device = this.model.findActiveDeviceArr()[0];
         if (device) {
@@ -368,8 +379,6 @@ $(function () {
         
         this.view.setResolution();
     };
-
-    DeviceListController.prototype.setResolution = (DeviceListController.prototype.setResolution || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
 
     DeviceListController.prototype.volumeMute = function() {
         $.cookie("mute", true);
@@ -676,6 +685,11 @@ $(function () {
         this.intervalUpdateDeviceList();
         this.getDeviceList();
     };
+
+    
+    DeviceListController.prototype.settingShow = (DeviceListController.prototype.settingShow || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
+    DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
+
 
     function DeviceListView() {
         this.model = null;
@@ -1670,7 +1684,7 @@ $(function () {
 
     /******************************* software *******************************/
     function SoftwareController() {
-        $.ipc.BaseController.call(this, arguments);
+        $.ipc.BaseController.call(this, arguments); 
     };
     $.ipc.inheritPrototype(SoftwareController, $.ipc.BaseController);
     
