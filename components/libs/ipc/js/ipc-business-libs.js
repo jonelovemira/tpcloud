@@ -1310,9 +1310,11 @@
         return response;
     };
 
-    DeviceList.prototype.getDeviceList = function(inputCallbacks) {
+    DeviceList.prototype.getDeviceList = function(inputCallbacks, extendArgs) {
         if (undefined == this.owner) {console.error("owner of device list is undefined")};
-        var data = {};
+        var data = {"X-AutoRefresh": false};
+        var extendData = (extendArgs && extendArgs.data) || {};
+        data = $.extend(true, data, extendData);
 
         var changeStateFunc = function(response){
             var oldDevices = this.devices;

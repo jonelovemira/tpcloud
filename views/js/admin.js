@@ -663,7 +663,7 @@ $(function () {
         this.view.clearBoardAndShow();
     };
 
-    DeviceListController.prototype.getDeviceList = function() {
+    DeviceListController.prototype.getDeviceList = function(extendArgs) {
         var currentController = this;
         var inputCallbacks = {
             "errorCodeCallbackMap": {
@@ -672,13 +672,16 @@ $(function () {
                 }
             }
         };
-        currentController.model.getDeviceList(inputCallbacks);
+        currentController.model.getDeviceList(inputCallbacks, extendArgs);
     };
 
     DeviceListController.prototype.intervalUpdateDeviceList = function() {
         clearInterval(this.intervalUpdateDeviceListObj);
         var contextGetDeviceList = $.proxy(this.getDeviceList, this);
-        this.intervalUpdateDeviceListObj = setInterval(contextGetDeviceList, this.intervalUpdateDeviceListTime);
+        this.intervalUpdateDeviceListObj = setInterval(
+            function () {
+                contextGetDeviceList({"data": {"X-AutoRefresh": true}});    
+        }, this.intervalUpdateDeviceListTime);
     }
 
     DeviceListController.prototype.intervalUpdateDeviceListWithInit = function() {
@@ -1082,7 +1085,7 @@ $(function () {
             $("#loading-img-container").css(dev.currentVideoResolution.playerContainerCss.loadingImg);
             $("#loading-tips-text").css(dev.currentVideoResolution.playerContainerCss.loadingTips);
             $(".control-board").css(dev.currentVideoResolution.playerContainerCss.controlBoard);
-
+            $("#disable-control-cover").show();
             this.volumeViewChange();
         };
     };
@@ -1097,6 +1100,7 @@ $(function () {
                 $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
                 $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
             }
+            $("#disable-control-cover").hide();
             var code = dev.currentVideoResolution.pluginStreamResCode;
             $("#resolution-select").val(code);
             this.updateSelectWidget("#resolution-select");
