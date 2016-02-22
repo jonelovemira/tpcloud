@@ -3,7 +3,6 @@ $(function () {
     function User () {
         $.ipc.User.call(this, arguments);
         this.activateDeviceAdminCallback = $.Callbacks("unique stopOnFalse");
-        this.activateUserAdminCallback = $.Callbacks("unique stopOnFalse");
     };
 
     $.ipc.inheritPrototype(User, $.ipc.User);
@@ -20,8 +19,7 @@ $(function () {
             "#userinfo-title-changepwd": {"click": this.gotoChangePassword},
             "#backaccount": {"click": this.backaccountClickCallback},
             "#changepwd": {"click": this.changePassword},
-            "#device": {"click": this.devTabClickCallback},
-            "#account": {"click": this.accountTabClickCallback}
+            "#device": {"click": this.devTabClickCallback}
         };
         var selectorMsgProduceFuncMap = {};
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
@@ -37,7 +35,6 @@ $(function () {
     UserController.prototype.accountTabClickCallback = function() {
         if(!$("#account").hasClass("navselected")) {
             this.view.renderAccountAdmin();
-            this.model.activateUserAdminCallback.fire($.ipc.stopReasonCodeMap.LEAVE_PAGE);
         }
     };
 
@@ -274,6 +271,7 @@ $(function () {
         $.ipc.BaseController.call(this, arguments);
         this.intervalUpdateDeviceListTime = 60000;
         this.intervalUpdateDeviceListObj = null;
+        this.activateUserAdminCallback = $.Callbacks("unique stopOnFalse");
     }
     $.ipc.inheritPrototype(DeviceListController, $.ipc.BaseController);
 
@@ -301,6 +299,7 @@ $(function () {
             ".volume-mute": {"click": this.volumeOpen},
             "#resolution-select": {"beforeChange": this.beforeChangeRes, "change": this.setResolution},
             "#failed-back-button": {"click": this.upgradeFailedBack},
+            "#account": {"click": this.accountTabClickCallback}
         };
 
         var contextBeforeLeave = $.proxy(this.beforeLeave, this);
@@ -319,6 +318,11 @@ $(function () {
         };
 
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
+    };
+
+    DeviceListController.prototype.accountTabClickCallback = function() {
+        this.clearPageRubbish();
+        this.activateUserAdminCallback.fire();
     };
 
     DeviceListController.prototype.recordBreakConfirm = function() {
@@ -692,7 +696,7 @@ $(function () {
     
     DeviceListController.prototype.settingShow = (DeviceListController.prototype.settingShow || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
     DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
-
+    DeviceListController.prototype.accountTabClickCallback = (DeviceListController.prototype.accountTabClickCallback || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
 
     function DeviceListView() {
         this.model = null;
@@ -1687,8 +1691,8 @@ $(function () {
     
     dlc.intervalUpdateDeviceListWithInit();
     
-    var contextClearRubbish = $.proxy(dlc.clearPageRubbish, dlc);
-    u.activateUserAdminCallback.add(contextClearRubbish);
+    var contextRenderUserAdmin = $.proxy(uc.accountTabClickCallback, uc);
+    dlc.activateUserAdminCallback.add(contextRenderUserAdmin);
     var contextIntervalUpdateDeviceList = $.proxy(dlc.intervalUpdateDeviceListWithInit, dlc);
     u.activateDeviceAdminCallback.add(contextIntervalUpdateDeviceList)
 

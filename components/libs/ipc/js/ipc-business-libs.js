@@ -2549,7 +2549,7 @@
         var data = {
             "REQUEST": 'RTMPOPERATE',
             "DATA": {
-                "relayUrl": 'http://' + _self.device.relayUrl,
+                "relayUrl": _self.device.relayUrl,
                 "Xtoken": _self.device.owner.token,
                 "devId": _self.device.id,
                 "data": {
