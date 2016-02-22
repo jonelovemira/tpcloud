@@ -279,7 +279,12 @@
 .admin-nav-li-select{
     color:#2D9AD8;
 }
-
+#disable-control-cover {
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+}
 #video-play-control{
     background:#000;
     height: 39px;
@@ -904,6 +909,20 @@
     top: 200px;
     left: 286px;
     width: 450px;
+}
+
+.cross-region-tip{
+    position: relative;
+    top: 200px;
+    left: 286px;
+    width: 450px;
+}
+
+.cross-region-tip > .body > span{
+    color: #323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    font-size: 1.2em;
+    margin-top:7px;
 }
 
 .upgrading-failed-tip > .body > span{
