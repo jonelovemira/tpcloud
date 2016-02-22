@@ -1097,8 +1097,14 @@ $(function () {
                 $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
                 $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
             }
-            
+            var code = dev.currentVideoResolution.pluginStreamResCode;
+            $("#resolution-select").val(code);
+            this.updateSelectWidget("#resolution-select");
         };
+    };
+
+    DeviceListView.prototype.updateSelectWidget = function(elementId) {
+        $(elementId).Select({slideOptionHeight: 16});
     };
 
     DeviceListView.prototype.updateResolutionSelect = function(dev) {
@@ -1109,7 +1115,7 @@ $(function () {
                 $("#resolution-select").append("<option name=" + resArr[i].name + " value=" + resArr[i].pluginStreamResCode + ">" + resArr[i].str + "</option>");
             };
             $("#resolution-select option:first-child").attr("selected", true);
-            $("#resolution-select").Select({slideOptionHeight: 16});
+            this.updateSelectWidget("#resolution-select");
         };
     };
 

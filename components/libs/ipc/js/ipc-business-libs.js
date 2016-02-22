@@ -1779,7 +1779,12 @@
 
     $.ipc.inheritPrototype(Statistics, $.ipc.Model);
 
-    Statistics.prototype.send = function(ajaxOptions) {
+    function FlashStatistics () {
+        Statistics.call(this, arguments);
+    };
+    $.ipc.inheritPrototype(FlashStatistics, Statistics);
+
+    FlashStatistics.prototype.send = function(ajaxOptions) {
         var _self = this;
         var data = JSON.stringify({
             "version": "0.1",
@@ -1812,6 +1817,38 @@
         }, $.xAjax.defaults.xType)
     };
 
+    function PluginStatistics () {
+        Statistics.call(this, arguments);
+    }
+    $.ipc.inheritPrototype(PluginStatistics, Statistics);
+
+    PluginStatistics.prototype.send = function(ajaxOptions) {
+        var _self = this;
+        var data = JSON.stringify({
+            "version": "0.1",
+            "type": "webSession",
+            "data": {
+                "basic": {
+                    "devID": _self.devID,
+                    "clientType": _self.clientType,
+                    "devModel": _self.devModel,
+                    "firmwareVersion": _self.firmwareVersion
+                }
+            }
+        });
+
+        var extendAjaxOptions = $.extend(true, {headers: {'X-Token': this.token}}, ajaxOptions);
+
+        _self.makeAjaxRequest({
+            url: _self.url,
+            data: data,
+            callbacks: undefined, 
+            changeState: $.noop, 
+            errCodeStrIndex: "errorCode",
+            extendAjaxOptions: extendAjaxOptions
+        }, $.xAjax.defaults.xType);
+    };
+
     var stopReasonCodeMap = {
         LEAVE_PAGE: 0,
         USER_STOPPED_VIDEO: 1,
@@ -1822,7 +1859,8 @@
         UNKNOWN_ERROR: -3
     };
 
-    $.ipc.Statistics = Statistics;
+    $.ipc.FlashStatistics = FlashStatistics;
+    $.ipc.PluginStatistics = PluginStatistics;
     $.ipc.stopReasonCodeMap = stopReasonCodeMap;
 })(jQuery);
 
@@ -2128,7 +2166,7 @@
     };
 
     NonPluginPlayer.prototype.createNewStatisticsObj = function() {
-        this.statistics = new $.ipc.Statistics();
+        this.statistics = new $.ipc.FlashStatistics();
         this.statistics.devID = this.device.id;
         this.statistics.devModel = this.device.model.substring(0, 5);
         this.statistics.firmwareVersion = this.device.fwVer;
@@ -2679,11 +2717,22 @@
         this.setVideoVolume();
     };
 
+    PluginPlayer.prototype.updateDeviceResAtVideoReady = function(resolutionStr) {
+        var device = this.device;
+        var supportVideoResArr = this.device.product.supportVideoResArr;
+        for (var i = 0; i < supportVideoResArr.length; i++) {
+            if(supportVideoResArr[i].name == resolutionStr) {
+                device.currentVideoResolution = supportVideoResArr[i];
+            }
+        };
+    };
+
     PluginPlayer.prototype.detectVideoReady = function() {
         var _self = this;
         var interval = setInterval(function(){
             if (_self.playerObj.resolution) {
                 clearInterval(interval);
+                _self.updateDeviceResAtVideoReady(_self.playerObj.resolution);
                 _self.videoReadyCallback.fire(_self.device);
             };
         }, 2000);
@@ -2732,7 +2781,12 @@
     };
 
     PluginPlayer.prototype.gatherStatics = function() {
-        
+        var statistics = new $.ipc.PluginStatistics();
+        statistics.devID = this.device.id;
+        statistics.devModel = this.device.model.substring(0, 5);
+        statistics.firmwareVersion = this.device.fwVer;
+        statistics.token = this.device.owner.token;
+        statistics.send();
     };
 
     PluginPlayer.prototype.generateAjaxUrl = function(args) {
