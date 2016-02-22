@@ -1312,10 +1312,7 @@
 
     DeviceList.prototype.getDeviceList = function(inputCallbacks, extendArgs) {
         if (undefined == this.owner) {console.error("owner of device list is undefined")};
-        var data = {"X-AutoRefresh": false};
-        var extendData = (extendArgs && extendArgs.data) || {};
-        data = $.extend(true, data, extendData);
-
+        var data = {};
         var changeStateFunc = function(response){
             var oldDevices = this.devices;
             
@@ -1353,8 +1350,23 @@
                 this.changeActiveDevice(undefined, this.devices[0]);
             };
         };
+
+        var extendAjaxOptions = {
+            headers: {"X-AutoRefresh": false}
+        };
         
-        this.makeAjaxRequest({url: "/getDeviceList", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        if (extendArgs && extendArgs.ajax) {
+            extendAjaxOptions = $.extend(true, extendAjaxOptions, extendArgs.ajax);
+        };
+        
+        
+        this.makeAjaxRequest({
+            url: "/getDeviceList", 
+            data: data, 
+            callbacks: inputCallbacks,
+            extendAjaxOptions: extendAjaxOptions, 
+            changeState: changeStateFunc
+        });
     };
 
     DeviceList.prototype.findActiveDeviceArr = function() {
@@ -1920,7 +1932,8 @@
         "-20501": function(){console.log("device is not exist")},
         "-20571": function(){console.log("device is offline")},
         "-20651": function(){console.log("token is out of date")},
-        "-20652": function(){console.log("token is error")}
+        "-20652": function(){console.log("token is error")},
+        "-24002": function(){console.log("Relay connect not ready")}
     };
     NonPluginPlayer.prototype.errorCodeCallbacks = NonPluginPlayer.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
 
@@ -2396,7 +2409,7 @@
         var data = {
             "REQUEST": 'RTMPOPERATE',
             "DATA": {
-                "relayUrl": 'http://' + _self.device.relayUrl,
+                "relayUrl": _self.device.relayUrl,
                 "Xtoken": _self.device.owner.token,
                 "devId": _self.device.id,
                 "data": {

@@ -680,12 +680,15 @@ $(function () {
     };
 
     DeviceListController.prototype.intervalUpdateDeviceList = function() {
-        clearInterval(this.intervalUpdateDeviceListObj);
-        var contextGetDeviceList = $.proxy(this.getDeviceList, this);
-        this.intervalUpdateDeviceListObj = setInterval(
-            function () {
-                contextGetDeviceList({"data": {"X-AutoRefresh": true}});    
-        }, this.intervalUpdateDeviceListTime);
+        var _self = this;
+        clearInterval(_self.intervalUpdateDeviceListObj);
+        _self.intervalUpdateDeviceListObj = setInterval(function () {
+            _self.getDeviceList({
+                "ajax": {
+                    headers: {"X-AutoRefresh": true}
+                }
+            });
+        }, _self.intervalUpdateDeviceListTime);
     }
 
     DeviceListController.prototype.intervalUpdateDeviceListWithInit = function() {
