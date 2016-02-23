@@ -1352,7 +1352,7 @@
         };
 
         var extendAjaxOptions = {
-            headers: {"X-AutoRefresh": false}
+            headers: {"X-AutoRefresh": "false"}
         };
         
         if (extendArgs && extendArgs.ajax) {

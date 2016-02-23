@@ -685,7 +685,7 @@ $(function () {
         _self.intervalUpdateDeviceListObj = setInterval(function () {
             _self.getDeviceList({
                 "ajax": {
-                    headers: {"X-AutoRefresh": true}
+                    headers: {"X-AutoRefresh": "true"}
                 }
             });
         }, _self.intervalUpdateDeviceListTime);
