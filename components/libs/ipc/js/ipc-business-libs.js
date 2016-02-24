@@ -1049,7 +1049,7 @@
         this.product = tmpProduct;
     };
 
-    Device.prototype.get = function(args, inputCallbacks) {
+    Device.prototype.get = function(args, inputCallbacks, extendArgs) {
         if (this.owner == undefined) {console.error("owner is undefined");}
         var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email)) ||
                             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
@@ -1068,7 +1068,21 @@
             this.stateChangeCallbacks.fire(this);
         };
 
-        this.makeAjaxRequest({url: urlPrefix + "/getCamera", data: data, callbacks: inputCallbacks, changeState: changeStateFunc}, $.xAjax.defaults.xType);
+        var extendAjaxOptions = {
+            headers: {"X-AutoRefresh": "false"}
+        };
+        
+        if (extendArgs && extendArgs.ajax) {
+            extendAjaxOptions = $.extend(true, extendAjaxOptions, extendArgs.ajax);
+        };
+
+        this.makeAjaxRequest({
+            url: urlPrefix + "/getCamera", 
+            data: data, 
+            callbacks: inputCallbacks, 
+            changeState: changeStateFunc,
+            extendAjaxOptions: extendAjaxOptions
+        }, $.xAjax.defaults.xType);
     };
     Device.prototype.addNc200UpgradeCookie = function() {
         var device = this;
@@ -1341,7 +1355,7 @@
             for (var i = 0; i < this.devices.length; i++) {
                 var device = this.devices[i];
                 var args = null;
-                !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args);
+                !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args, undefined, extendArgs);
             };
 
             var activeDeviceArr = this.findActiveDeviceArr();
