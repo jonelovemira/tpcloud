@@ -91,7 +91,7 @@
             "0": function(){console.log("OK");},
             "-1": function(){console.log("unknow error");},
         },
-        errorCallback : function(xhr){console.log("xhr error: ", xhr)},
+        errorCallback : function(xhr){console.log("xhr error: ", xhr)}
     };
 
     Model.prototype.extendErrorCodeCallback = function(inputCallbacks) {
@@ -123,8 +123,16 @@
                 }
                 var callbackFunc = tmpCallbacks.errorCodeCallbackMap[response[errCodeStrIndex]] || tmpCallbacks.errorCodeCallbackMap[defaultErrorCode];
                 callbackFunc(response);
+                if (tmpCallbacks.commonCallback) {
+                    tmpCallbacks.commonCallback();
+                };
             },
-            error : function(xhr){tmpCallbacks.errorCallback(xhr)}
+            error : function(xhr){
+                tmpCallbacks.errorCallback(xhr);
+                if (tmpCallbacks.commonCallback) {
+                    tmpCallbacks.commonCallback();
+                };
+            }
         };
 
         $.extend(true, ajaxOptions, inputArgs["extendAjaxOptions"]);

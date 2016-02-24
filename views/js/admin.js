@@ -719,6 +719,7 @@ $(function () {
         this.deviceLiDomIdPrefix = "dev-";
         this.player = null;
         this.isNeedFeedPluginDownloadLink = false;
+        this.hasShownPluginUpdateConfirm = false;
     }
 
     DeviceListView.prototype.renderBoard = function() {
@@ -1099,18 +1100,29 @@ $(function () {
 
     DeviceListView.prototype.updatePlayerObjView = function(dev) {
         if (dev && dev.isActive) {
-            var playerType = dev.product.playerType;
-            var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
-            if (dev.currentVideoResolution.pluginPlayerObjCss) {
-                $("#" + id).css(dev.currentVideoResolution.pluginPlayerObjCss.css);
-            } else {
-                $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
-                $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
-            }
-            $("#disable-control-cover").hide();
-            var code = dev.currentVideoResolution.pluginStreamResCode;
-            $("#resolution-select").val(code);
-            this.updateSelectWidget("#resolution-select");
+            var tmpFunc = $.proxy({
+                var playerType = dev.product.playerType;
+                var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
+                if (dev.currentVideoResolution.pluginPlayerObjCss) {
+                    $("#" + id).css(dev.currentVideoResolution.pluginPlayerObjCss.css);
+                } else {
+                    $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
+                    $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
+                }
+                $("#disable-control-cover").hide();
+                var code = dev.currentVideoResolution.pluginStreamResCode;
+                $("#resolution-select").val(code);
+                this.updateSelectWidget("#resolution-select");
+            }, this);
+            if (dev.product.playerType.prototype.newestVersion) {
+                var pluginPlayerElementId = dev.product.playerType.prototype.mimetypeCssMap[dev.product.mimeType];
+                var playerObj = document.getElementById(pluginPlayerElementId);
+                if (this.pluginHasUpdate(dev, playerObj)) {
+                    this.showPluginUpdateConfrim(dev, tmpFunc);
+                } else {
+                    tmpFunc();
+                }
+            };
         };
     };
 
@@ -1265,6 +1277,36 @@ $(function () {
         if (device && device.pluginPlayer) {
             device.pluginPlayer.setResolution(val);
             this.updatePlayerObjView(device);
+        };
+    };
+
+    DeviceListView.prototype.pluginHasUpdate = function(dev, playerObj) {
+        var result = false;
+        if (dev && playerObj) {
+            var currentVersion;
+            if ($.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
+                currentVersion = playerObj.iepluginversion;
+            } else {
+                currentVersion = playerObj.version;
+            };
+            var newestVersion = dev.product.playerType.prototype.newestVersion;
+            result = $.ipc.compareVersion(currentVersion, newestVersion) < 0;
+        };
+        return result;
+    };
+
+    DeviceListView.prototype.showPluginUpdateConfrim = function(dev, continueFunc) {
+        if (dev && continueFunc) {
+            $.ipc.Msg({
+                type: "confirm",
+                info: tips.types.plugin.update,
+                btnConfirm: "Download",
+                confirm: function () {
+                    window.location.href = dev.product.playerType.prototype.downloadPath;
+                    continueFunc();
+                },
+                cancel: continueFunc
+            })
         };
     };
 
