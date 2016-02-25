@@ -27,6 +27,7 @@
             var context = msg.parent();
             $('body').unbind('keydown', Msg.hotClose);
             msg.remove();
+            msg.option.afterClose();
             return context;
         },
         cancel : function(msg){
@@ -131,8 +132,7 @@
             Msg.confirm(msg);
         }
 
-        msg.ok = function()
-        {
+        msg.ok = function(){
             Msg.ok(msg);
         }
 
@@ -171,5 +171,6 @@
         ok          :       function() {},
         confirm     :       function() {},
         beforeInit  :       function() {},
+        afterClose  :       function() {}
     };
 })(jQuery);
