@@ -1929,8 +1929,8 @@
         this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
         this.maxRlyRdyFailedRtryReqRlySrvCnt = 3;
 
-        this.queryIsRelayReadyIntervalTime = 3000;
-        this.queryIsRelayReadyAjaxLimit = 10;
+        this.queryIsRelayReadyIntervalTime = 1000;
+        this.queryIsRelayReadyAjaxLimit = 6;
 
         this.getResIdIntervalTime = 3000;
         this.getResIdAjaxLimit = 3;
@@ -2172,8 +2172,6 @@
                     expires: 1
                 });
                 _self.changeStateTo(devicePlayingState.RELAY_READY);
-            } else if (response.result.realServerKey.indexOf("continue") >= 0) {
-                _self.changeStateTo(devicePlayingState.NEED_RELAY_READY_FAILED_TRY);
             }
         };
 
@@ -2196,7 +2194,7 @@
             _self.rubbisAjaxArr.push(ajaxObj);
             currentCount += 1;
             if (currentCount >= _self.queryIsRelayReadyAjaxLimit) {
-                _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
+                _self.changeStateTo(devicePlayingState.NEED_RELAY_READY_FAILED_TRY);
             };
         }, _self.queryIsRelayReadyIntervalTime);
         _self.rubbisIntervalObjArr.push(intervalObj);

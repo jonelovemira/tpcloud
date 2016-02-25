@@ -409,17 +409,22 @@ $(function () {
     DeviceListController.prototype.zoomIn = function() {
         var step = $("#zoom-bar").slider("option", "step");
         var val = $("#zoom-bar").slider("option", "value");
-        val -= step;
-        $("#zoom-bar").slider("option", "value", val);
-        this.setZoom();
+        if (val >= step) {
+            val -= step;
+            $("#zoom-bar").slider("option", "value", val);
+            this.setZoom();
+        };
     };
 
     DeviceListController.prototype.zoomOut = function() {
         var step = $("#zoom-bar").slider("option", "step");
         var val = $("#zoom-bar").slider("option", "value");
-        val += step;
-        $("#zoom-bar").slider("option", "value", val);
-        this.setZoom();
+        var max = $("#zoom-bar").slider("option", "max");
+        if ((val + step) <= max) {
+            val += step;
+            $("#zoom-bar").slider("option", "value", val);
+            this.setZoom();
+        };
     };
 
     DeviceListController.prototype.setZoom = function() {
@@ -1100,7 +1105,7 @@ $(function () {
 
     DeviceListView.prototype.updatePlayerObjView = function(dev) {
         if (dev && dev.isActive) {
-            var tmpFunc = $.proxy({
+            var tmpFunc = $.proxy(function(){
                 var playerType = dev.product.playerType;
                 var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
                 if (dev.currentVideoResolution.pluginPlayerObjCss) {
@@ -1114,15 +1119,18 @@ $(function () {
                 $("#resolution-select").val(code);
                 this.updateSelectWidget("#resolution-select");
             }, this);
-            if (dev.product.playerType.prototype.newestVersion) {
+            if (!this.hasShownPluginUpdateConfirm && dev.product.playerType.prototype.newestVersion) {
                 var pluginPlayerElementId = dev.product.playerType.prototype.mimetypeCssMap[dev.product.mimeType];
                 var playerObj = document.getElementById(pluginPlayerElementId);
                 if (this.pluginHasUpdate(dev, playerObj)) {
+                    this.hasShownPluginUpdateConfirm = true;
                     this.showPluginUpdateConfrim(dev, tmpFunc);
                 } else {
                     tmpFunc();
                 }
-            };
+            } else {
+                tmpFunc();
+            }
         };
     };
 
