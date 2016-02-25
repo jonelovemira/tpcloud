@@ -660,11 +660,15 @@ $(function () {
     DeviceListController.prototype.settingShow = function() {
         this.view.highlightTab($("#setting-tab"));
         this.view.clearBoardAndShow();
+    };
 
+    DeviceListController.prototype.clearPlayerRubbish = function() {
         var activeDev = this.model.findActiveDeviceArr()[0];
-        if (activeDev && activeDev.nonPluginPlayer) {
-            activeDev.nonPluginPlayer.back2Idle($.ipc.stopReasonCodeMap.LEAVE_PAGE);
+        if (activeDev) {
+            activeDev.nonPluginPlayer && activeDev.nonPluginPlayer.back2Idle($.ipc.stopReasonCodeMap.LEAVE_PAGE);
+            activeDev.pluginPlayer && activeDev.pluginPlayer.back2Idle();
         };
+        return true;
     };
 
     DeviceListController.prototype.liveView = function() {
@@ -702,9 +706,15 @@ $(function () {
     };
 
     
-    DeviceListController.prototype.settingShow = (DeviceListController.prototype.settingShow || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
-    DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
-    DeviceListController.prototype.accountTabClickCallback = (DeviceListController.prototype.accountTabClickCallback || function(){}).before(DeviceListController.prototype.recordBreakConfirm);
+    DeviceListController.prototype.settingShow = (DeviceListController.prototype.settingShow || function(){})
+        .before(DeviceListController.prototype.clearPlayerRubbish)
+        .before(DeviceListController.prototype.recordBreakConfirm);
+    DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function(){})
+        .before(DeviceListController.prototype.clearPlayerRubbish)
+        .before(DeviceListController.prototype.recordBreakConfirm);
+    DeviceListController.prototype.accountTabClickCallback = (DeviceListController.prototype.accountTabClickCallback || function(){})
+        .before(DeviceListController.prototype.clearPlayerRubbish)
+        .before(DeviceListController.prototype.recordBreakConfirm);
 
     function DeviceListView() {
         this.model = null;

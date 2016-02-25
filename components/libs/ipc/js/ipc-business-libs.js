@@ -1416,12 +1416,6 @@
         if (undefined == destDevice) {
             console.error("args error in setActiveDevice");
         };
-        if (srcDevice != undefined) {
-            if (srcDevice.nonPluginPlayer) {
-                srcDevice.nonPluginPlayer.back2Idle($.ipc.stopReasonCodeMap.USER_STOPPED_VIDEO);
-            };
-            srcDevice.isActive = false;
-        };
         destDevice.isActive = true;
         this.playedDeviceChanged = true;
     };
@@ -2565,6 +2559,7 @@
         $("#" + _self.playerElementId).width(width).height(height);
         $("#" + _self.playerElementId).attr("src", playArgs.resourcePath.videoUrl);
         $("#" + _self.playerElementId).on('load', function(){
+            _self.timer && _self.timer.start();
             _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.success.push(_self.statistics.SUCCESS);
             _self.playerRenderFunc(_self.device);
         }).on('error', function() {
@@ -2677,9 +2672,7 @@
         args = args || {};
         this.recordCallback = args.recordCallback;
         this.snapshotCallback = args.snapshotCallback;
-        this.timeupCallback = args.snapshotCallback;
-        this.iePluginRecordCallback = args.iePluginRecordCallback;
-        this.iePluginTimeupCallback = args.iePluginTimeupCallback;
+        this.timeupCallback = args.timeupCallback;
         this.videoLoadingRenderFunc = args.videoLoadingRenderFunc;
         this.pluginPlayerRender = args.pluginPlayerRender;
         this.updatePlayerObjView = args.updatePlayerObjView;
@@ -2701,6 +2694,10 @@
 
     PluginPlayer.prototype.back2Idle = function() {
         this.state = devicePlayingState.IDLE;
+        if (this.playerObj) {
+            this.playerObj.StopVideo && this.playerObj.StopVideo();
+            this.playerObj.StopAudio && this.playerObj.StopAudio();
+        };
     };
 
     PluginPlayer.prototype.getDeviceLocalInfo = function() {
