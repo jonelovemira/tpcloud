@@ -283,7 +283,7 @@ $(function () {
             "#dev-setting-remove": {"click": this.makeRemoveConfirm},
             "#live-view-tab": {"click": this.liveView},
             "#setting-tab": {"click": this.settingShow},
-            "#reload": {"click": this.updateDeviceInfo},
+            "#reload": {"click": this.refreshCameraInfo},
             ".dev-item": {"click": this.changeActiveDevice},
             "#upgrade-device": {"click": this.upgradeDevice},
             "#volume-bar": {"slidestop": this.volumeChangeCallback},
@@ -616,6 +616,7 @@ $(function () {
         var lastActiveDevice = this.model.findActiveDeviceArr()[0];
         var newActiveDevice = this.model.devices[tmpNewActiveDeviceIndex];
         if (lastActiveDevice != newActiveDevice) {
+            this.clearPlayerRubbish();
             this.model.changeActiveDevice(lastActiveDevice, newActiveDevice);
             this.view.updateActiveDeviceCss();
             this.view.clearBoardAndShow();
@@ -710,7 +711,6 @@ $(function () {
         .before(DeviceListController.prototype.clearPlayerRubbish)
         .before(DeviceListController.prototype.recordBreakConfirm);
     DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function(){})
-        .before(DeviceListController.prototype.clearPlayerRubbish)
         .before(DeviceListController.prototype.recordBreakConfirm);
     DeviceListController.prototype.accountTabClickCallback = (DeviceListController.prototype.accountTabClickCallback || function(){})
         .before(DeviceListController.prototype.clearPlayerRubbish)
@@ -815,9 +815,7 @@ $(function () {
     DeviceListView.prototype.renderLeftListMenu = function() {
         this.menuContainer.empty();
         var activeDeviceIndex = this.model.findFirstActiveDevIndex();
-        if (undefined == activeDeviceIndex) {
-            console.error("args error in renderLeftListMenu");
-        } else {
+        if (activeDeviceIndex != undefined) {
             this.maxPageIndex = this.getDevicePageIndex(this.model.devices.length - 1);
             this.curPageIndex = this.getDevicePageIndex(activeDeviceIndex);
 
@@ -1116,14 +1114,7 @@ $(function () {
     DeviceListView.prototype.updatePlayerObjView = function(dev) {
         if (dev && dev.isActive) {
             var tmpFunc = $.proxy(function(){
-                var playerType = dev.product.playerType;
-                var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
-                if (dev.currentVideoResolution.pluginPlayerObjCss) {
-                    $("#" + id).css(dev.currentVideoResolution.pluginPlayerObjCss.css);
-                } else {
-                    $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
-                    $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
-                }
+                this.normalizePluginPlayerObj();
                 $("#disable-control-cover").hide();
                 var code = dev.currentVideoResolution.pluginStreamResCode;
                 $("#resolution-select").val(code);
@@ -1160,12 +1151,39 @@ $(function () {
         };
     };
 
-    DeviceListView.prototype.renderPluginVideoLoading = function(dev) {
-        if (dev && dev.isActive) {
+    DeviceListView.prototype.minimizePluginPlayerObj = function() {
+        var dev = this.model.findActiveDeviceArr()[0];
+        if (dev) {
             var playerType = dev.product.playerType;
             var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
-            $("#" + id).css("width", 1);
-            $("#" + id).css("height", 1);
+            var ele = $("#" + id);
+            if(this.isShowing(ele)) {
+                ele.css("width", 1);
+                ele.css("height", 1);
+            }
+        };
+    };
+
+    DeviceListView.prototype.normalizePluginPlayerObj = function() {
+        var dev = this.model.findActiveDeviceArr()[0];
+        if (dev) {
+            var playerType = dev.product.playerType;
+            var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
+            var ele = $("#" + id);
+            if (this.isShowing(ele)) {
+                if (dev.currentVideoResolution.pluginPlayerObjCss) {
+                    $("#" + id).css(dev.currentVideoResolution.pluginPlayerObjCss.css);
+                } else {
+                    $("#" + id).css("width", dev.currentVideoResolution.playerContainerCss.player.width);
+                    $("#" + id).css("height", dev.currentVideoResolution.playerContainerCss.player.height);
+                }
+            };
+        };
+    };
+
+    DeviceListView.prototype.renderPluginVideoLoading = function(dev) {
+        if (dev && dev.isActive) {
+            this.minimizePluginPlayerObj();
             $("#plugin-player-set").show();
             $("#loading-img-container").show();
         };
@@ -1211,6 +1229,8 @@ $(function () {
     };
 
     DeviceListView.prototype.recordCallback = function(record) {
+        var contextMinimize = $.proxy(this.minimizePluginPlayerObj, this);
+        var contextNormalize = $.proxy(this.normalizePluginPlayerObj, this);
         if (record == 0) {
             this.showRecordStart();
         } else if (record == 1) {
@@ -1219,28 +1239,40 @@ $(function () {
             this.recordStop();
             $.ipc.Msg({
                 type: "alert",
-                info: tips.actions.record.interrupt.networkError
+                info: tips.actions.record.interrupt.networkError,
+                beforeInit: contextMinimize,
+                afterClose: contextNormalize
             });
         } else if (record == 3) {
+            this.minimizePluginPlayerObj();
             this.recordStop();
             $.ipc.Msg({
                 type: "alert",
-                info: tips.actions.record.interrupt.diskFull
+                info: tips.actions.record.interrupt.diskFull,
+                beforeInit: contextMinimize,
+                afterClose: contextNormalize
             });
         } else if (record == 4) {
+            this.minimizePluginPlayerObj();
             this.recordStop();
             $.ipc.Msg({
                 type: "alert",
-                info: tips.actions.record.interrupt.timeup
+                info: tips.actions.record.interrupt.timeup,
+                beforeInit: contextMinimize,
+                afterClose: contextNormalize
             });
         }
     };
 
     DeviceListView.prototype.snapshotCallback = function(shoot) {
+        var contextMinimize = $.proxy(this.minimizePluginPlayerObj, this);
+        var contextNormalize = $.proxy(this.normalizePluginPlayerObj, this);
         if (shoot == 3) {
             $.ipc.Msg({
                 type: "alert",
-                info: tips.actions.snapshot.diskFull
+                info: tips.actions.snapshot.diskFull,
+                beforeInit: contextMinimize,
+                afterClose: contextNormalize
             });
         };
     };
@@ -1490,7 +1522,7 @@ $(function () {
 
     DeviceListView.prototype.renderImgNetError = function(device) {
         if (device && device.isActive) {
-            this.flashManageBoard();
+            this.imgPlayerManageBoard();
             var width = device.currentVideoResolution.playerContainerCss.player.width;
             var height = device.currentVideoResolution.playerContainerCss.player.height;
             $("#img-player-cover").width(width).height(height);
