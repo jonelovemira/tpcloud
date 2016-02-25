@@ -1929,6 +1929,9 @@
         this.getResIdIntervalTime = 3000;
         this.getResIdAjaxLimit = 3;
 
+        this.currentNetErrRetryCnt = 0;
+        this.maxNetErrRetryCnt = 3;
+
         this.rubbisAjaxArr = [];
         this.rubbisIntervalObjArr = [];
 
@@ -1991,6 +1994,7 @@
         this.clearPlayerElementRubbish();
 
         this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
+        this.currentNetErrRetryCnt = 0;
     };
 
     NonPluginPlayer.prototype.renderNetworkError = function() {
@@ -2000,8 +2004,19 @@
         };
     };
 
+    RtmpPlayer.prototype.networkErrorRetry = function() {
+        this.currentNetErrRetryCnt += 1;
+        console.log("retry full flash flow due to device is not reachable: " + this.currentNetErrRetryCnt);
+        if (this.currentNetErrRetryCnt <= this.maxNetErrRetryCnt) {
+            this.changeStateTo(devicePlayingState.RELAY_URL_READY);
+        } else {
+            this.renderNetworkError();
+        }
+    };
+
     NonPluginPlayer.prototype.relayReadyFailedRetryRelayService = function() {
         this.curRlyRdyFailedRtryReqRlySrvCnt += 1;
+        console.log("relay ready retry: " + this.curRlyRdyFailedRtryReqRlySrvCnt);
         if (this.curRlyRdyFailedRtryReqRlySrvCnt <= this.maxRlyRdyFailedRtryReqRlySrvCnt) {
             this.changeStateTo(devicePlayingState.RELAY_URL_READY);
         } else {
