@@ -460,6 +460,7 @@ $(function () {
             };
             var errorFunc = function() {
                 if(activeDev.isActive){
+                    currentController.view.showWatchHideSon();
                     currentController.view.showDeviceOffline(activeDev);
                     currentController.view.renderMsg(tips.actions.refreshCamera.failed);
                 }

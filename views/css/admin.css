@@ -727,6 +727,7 @@
 }
 #reloadtips {
     display:none;
+    margin-left: 80px;
 }
 #continuetips {
     display:none;
