@@ -2515,6 +2515,7 @@
 
         this.protocol = "http://";
         this.port = 80;
+        this.idleLink = "//:0";
     };
     $.ipc.inheritPrototype(ImgPlayer, NonPluginPlayer);
 
@@ -2581,7 +2582,9 @@
             _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.success.push(_self.statistics.SUCCESS);
             _self.playerRenderFunc(_self.device);
         }).on('error', function() {
-            _self.netErrRenderFunc(_self.device);
+            if ($("#" + _self.playerElementId).attr("src") != _self.idleLink) {
+                _self.netErrRenderFunc(_self.device);
+            };
         });
 
     };
@@ -2639,7 +2642,7 @@
 
     ImgPlayer.prototype.clearPlayerElementRubbish = function() {
         var _self = this;
-        $("#" + _self.playerElementId).attr("src", "//:0");
+        $("#" + _self.playerElementId).attr("src", _self.idleLink);
         _self.killAllRelayClient();
     };
 

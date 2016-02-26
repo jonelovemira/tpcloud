@@ -321,8 +321,10 @@ $(function () {
     };
 
     DeviceListController.prototype.accountTabClickCallback = function() {
-        this.clearPageRubbish();
-        this.activateUserAdminCallback.fire();
+        if (!$("#account").hasClass("navselected")) {
+            this.clearPageRubbish();
+            this.activateUserAdminCallback.fire();
+        };
     };
 
     DeviceListController.prototype.recordBreakConfirm = function() {
@@ -674,8 +676,10 @@ $(function () {
     };
 
     DeviceListController.prototype.liveView = function() {
-        this.view.highlightTab($("#live-view-tab"));
-        this.view.clearBoardAndShow();
+        if (!$("#live-view-tab").hasClass("admin-nav-li-select")) {
+            this.view.highlightTab($("#live-view-tab"));
+            this.view.clearBoardAndShow();
+        };
     };
 
     DeviceListController.prototype.getDeviceList = function(extendArgs) {
