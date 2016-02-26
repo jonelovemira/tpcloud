@@ -1439,7 +1439,13 @@ $(function () {
 
     DeviceListView.prototype.renderFlashNetError = function(device) {
         if (device && device.isActive) {
-            this.showReloadTips();
+            this.flashManageBoard();
+            var width = device.currentVideoResolution.playerContainerCss.player.width;
+            var height = device.currentVideoResolution.playerContainerCss.player.height;
+            $("#flash-player-cover").width(width).height(height);
+            $("#flash-player-cover").show();
+            $("#flash-player-cover").children().hide();
+            $("#flash-player-cover .network-tips").css({"display": "table-cell"});
         };
     };
 
@@ -1516,7 +1522,13 @@ $(function () {
 
     DeviceListView.prototype.renderImgNetError = function(device) {
         if (device && device.isActive) {
-            this.showReloadTips();
+            this.imgPlayerManageBoard();
+            var width = device.currentVideoResolution.playerContainerCss.player.width;
+            var height = device.currentVideoResolution.playerContainerCss.player.height;
+            $("#img-player-cover").width(width).height(height);
+            $("#img-player-cover").show();
+            $("#img-player-cover").children().hide();
+            $("#img-player-cover .network-tips").css({"display": "table-cell"});
         };
     };
 

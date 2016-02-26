@@ -1416,6 +1416,9 @@
         if (undefined == destDevice) {
             console.error("args error in setActiveDevice");
         };
+        if (srcDevice != undefined) {
+            srcDevice.isActive = false;
+        };
         destDevice.isActive = true;
         this.playedDeviceChanged = true;
     };
