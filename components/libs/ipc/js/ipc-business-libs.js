@@ -2393,7 +2393,7 @@
             stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
             stateLogicMap[devicePlayingState.RELAY_READY] = this.queryResid;
             stateLogicMap[devicePlayingState.RESOURCE_READY] = this.play;
-            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.renderNetworkError;
+            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.networkErrorRetry;
             stateLogicMap[devicePlayingState.NEED_RES_FAILED_RETRY] = this.residFailedRetryRelayService;
             stateLogicMap[devicePlayingState.NEED_RELAY_READY_FAILED_TRY] = this.relayReadyFailedRetryRelayService;
 
