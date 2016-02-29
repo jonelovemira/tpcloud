@@ -887,18 +887,20 @@ $(function () {
             var activeDev = this.model.findActiveDeviceArr()[0];
             if (activeDev) {
                 if (activeDev.isSameRegion || activeDev.hasGetCrossRegionInfo) {
-                    if (activeDev.needForceUpgrade == 1) {
-                        this.commonTipsManageBoard();
-                        this.showUpgradeState(activeDev);
-                    } else {
-                        var activeTab = this.findActiveNavTab();
-                        if (activeTab == "Settings") {
-                            this.settingManageBoard();
-                            this.showSetting();
+                    if (activeDev.isSameRegion) {
+                        if (activeDev.needForceUpgrade == 1) {
+                            this.commonTipsManageBoard();
+                            this.showUpgradeState(activeDev);
                         } else {
-                            this.showLiveView();
+                            var activeTab = this.findActiveNavTab();
+                            if (activeTab == "Settings") {
+                                this.settingManageBoard();
+                                this.showSetting();
+                            } else {
+                                this.showLiveView();
+                            }
                         }
-                    }
+                    };
                 } else {
                     this.commonTipsManageBoard();
                     this.showCrossRegionTip(activeDev);
