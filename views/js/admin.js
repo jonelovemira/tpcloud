@@ -1132,7 +1132,7 @@ $(function () {
                 var playerObj = document.getElementById(pluginPlayerElementId);
                 if (this.pluginHasUpdate(dev, playerObj)) {
                     this.hasShownPluginUpdateConfirm = true;
-                    this.showPluginUpdateConfrim(dev, tmpFunc);
+                    this.showPluginUpdateConfirm(dev, tmpFunc);
                 } else {
                     tmpFunc();
                 }
@@ -1352,7 +1352,7 @@ $(function () {
         return result;
     };
 
-    DeviceListView.prototype.showPluginUpdateConfrim = function(dev, continueFunc) {
+    DeviceListView.prototype.showPluginUpdateConfirm = function(dev, continueFunc) {
         if (dev && continueFunc) {
             $.ipc.Msg({
                 type: "confirm",
@@ -1364,6 +1364,14 @@ $(function () {
                 },
                 cancel: continueFunc
             })
+        };
+    };
+
+    DeviceListView.prototype.showOfflineCallback = function() {
+        var dev = this.model.findActiveDeviceArr()[0];
+        if (dev) {
+            this.showWatchHideSon();
+            this.showDeviceOffline(dev);
         };
     };
 
@@ -1394,13 +1402,15 @@ $(function () {
                         var contextPluginVideoLoadingRenderFunc = $.proxy(this.renderPluginVideoLoading, this);
                         var contextPluginPlayerRender = $.proxy(this.renderPluginPlayer, this);
                         var contextUpdatePlayerObjView = $.proxy(this.updatePlayerObjView, this);
+                        var contextShowOffline = $.proxy(this.showOfflineCallback, this);
                         var args = {
                             recordCallback: $.proxy(this.recordCallback, this),
                             snapshotCallback: $.proxy(this.snapshotCallback, this),
                             timeupCallback: $.proxy(this.timeupCallback, this),
                             videoLoadingRenderFunc: contextPluginVideoLoadingRenderFunc,
                             pluginPlayerRender: contextPluginPlayerRender,
-                            updatePlayerObjView: contextUpdatePlayerObjView
+                            updatePlayerObjView: contextUpdatePlayerObjView,
+                            showOffline: contextShowOffline
                         }
 
                         dev.pluginPlayer.initPluginPlayer(args);

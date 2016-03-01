@@ -2007,7 +2007,7 @@
         };
     };
 
-    RtmpPlayer.prototype.networkErrorRetry = function() {
+    NonPluginPlayer.prototype.networkErrorRetry = function() {
         this.currentNetErrRetryCnt += 1;
         console.log("retry full flash flow due to device is not reachable: " + this.currentNetErrRetryCnt);
         if (this.currentNetErrRetryCnt <= this.maxNetErrRetryCnt) {
@@ -2540,7 +2540,7 @@
             stateLogicMap[devicePlayingState.RELAY_URL_READY] = this.requestRelayService;
             stateLogicMap[devicePlayingState.REQUEST_RELAY_SERVICE_SUCCESS] = this.isRelayReady;
             stateLogicMap[devicePlayingState.RELAY_READY] = this.play;
-            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.renderNetworkError;
+            stateLogicMap[devicePlayingState.NETWORK_ERROR] = this.networkErrorRetry;
             stateLogicMap[devicePlayingState.NEED_RELAY_READY_FAILED_TRY] = this.relayReadyFailedRetryRelayService;
             var defaultFunc = function() {
                 console.log("unkonw current state: " + currentState + ", back to idle");
@@ -2583,7 +2583,7 @@
             _self.playerRenderFunc(_self.device);
         }).on('error', function() {
             if ($("#" + _self.playerElementId).attr("src") != _self.idleLink) {
-                _self.netErrRenderFunc(_self.device);
+                _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
             };
         });
 
@@ -2673,6 +2673,7 @@
         this.videoLoadingRenderFunc = null;
         this.pluginPlayerRender = null;
         this.updatePlayerObjView = null;
+        this.showOffline = null;
 
         this.state = null;
         this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
@@ -2697,6 +2698,7 @@
         this.videoLoadingRenderFunc = args.videoLoadingRenderFunc;
         this.pluginPlayerRender = args.pluginPlayerRender;
         this.updatePlayerObjView = args.updatePlayerObjView;
+        this.showOffline = args.showOffline;
 
         var contextFunc = $.proxy(this.pluginPlayerStateChangeHandler, this);
         this.stateChangeCallback.add(contextFunc);
@@ -2782,12 +2784,19 @@
 
     PluginPlayer.prototype.detectVideoReady = function() {
         var _self = this;
+        var maxTryCount = 32;
+        var currentTryIndex = 0;
         var interval = setInterval(function(){
             if (_self.playerObj.resolution) {
                 clearInterval(interval);
                 _self.updateDeviceResAtVideoReady(_self.playerObj.resolution);
                 _self.videoReadyCallback.fire(_self.device);
-            };
+            } else if (currentTryIndex == maxTryCount) {
+                _self.showOffline();
+                _self.back2Idle();
+            }
+
+            currentTryIndex += 1;
         }, 2000);
     };
 
