@@ -2407,26 +2407,33 @@
 
     RtmpPlayer.prototype.luckyTryForResId = function() {
         var _self = this;
+        var device = _self.device;
         var ELBcookie = "AWSELB=" + ($.cookie("AWSELB") || "");
-        var requestArgs = _self.generateQueryResidArgs(ELBcookie);
-        var currentCount = 1;
-        var errorCallback = function(){
-            if (currentCount < 3) {
-                currentCount += 1;
+        if ($.cookie("relayUrl")) {
+            device.relayUrl = $.cookie("relayUrl");
+            if (device.relayUrl && ELBcookie && device.relayUrl.length > 0 
+                && ELBcookie.length > 0) {
+                var requestArgs = _self.generateQueryResidArgs(ELBcookie);
+                var currentCount = 1;
+                var errorCallback = function(){
+                    if (currentCount < 3) {
+                        currentCount += 1;
+                        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                    };
+                };
+
+                var extendRequestArgs = {
+                    callbacks: {
+                        "errorCodeCallbackMap": {
+                            "-1" : errorCallback
+                        },
+                        "errorCallback" : errorCallback
+                    }
+                }
+                requestArgs = $.extend(true, requestArgs, extendRequestArgs);
                 _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
             };
         };
-
-        var extendRequestArgs = {
-            callbacks: {
-                "errorCodeCallbackMap": {
-                    "-1" : errorCallback
-                },
-                "errorCallback" : errorCallback
-            }
-        }
-        requestArgs = $.extend(true, requestArgs, extendRequestArgs);
-        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
     };
 
     RtmpPlayer.prototype.generateQueryResidArgs = function(ELBcookie) {
@@ -2473,20 +2480,25 @@
 
     RtmpPlayer.prototype.queryResid = function() {
         var _self = this;
-        var requestArgs = _self.generateQueryResidArgs(_self.device.ELBcookie);
+        if (_self.device.ELBcookie && _self.device.relayUrl &&
+            _self.device.ELBcookie.length > 0 && _self.device.relayUrl.length > 0) {
+            var requestArgs = _self.generateQueryResidArgs(_self.device.ELBcookie);
 
-        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        var currentCount = 1;
-        this.rubbisAjaxArr.push(ajaxObj);
-        var intervalObj = setInterval(function() {
-            ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-            _self.rubbisAjaxArr.push(ajaxObj);
-            currentCount += 1;
-            if (currentCount >= _self.getResIdAjaxLimit) {
-                _self.changeStateTo(devicePlayingState.NEED_RES_FAILED_RETRY);
-            };
-        }, _self.getResIdIntervalTime);
-        this.rubbisIntervalObjArr.push(intervalObj);
+            var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+            var currentCount = 1;
+            this.rubbisAjaxArr.push(ajaxObj);
+            var intervalObj = setInterval(function() {
+                ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
+                _self.rubbisAjaxArr.push(ajaxObj);
+                currentCount += 1;
+                if (currentCount >= _self.getResIdAjaxLimit) {
+                    _self.changeStateTo(devicePlayingState.NEED_RES_FAILED_RETRY);
+                };
+            }, _self.getResIdIntervalTime);
+            this.rubbisIntervalObjArr.push(intervalObj);
+        } else {
+            _self.changeStateTo(devicePlayingState.NEED_RES_FAILED_RETRY);
+        }
     };
 
     RtmpPlayer.prototype.clearPlayerElementRubbish = function() {
