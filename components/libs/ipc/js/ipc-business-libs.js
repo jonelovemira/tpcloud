@@ -1064,24 +1064,17 @@
         if (validateResult.code == false) {return validateResult;};
 
         var urlPrefix = this.BACK_END_WEB_PROTOCAL + this.webServerUrl;
-        var data = JSON.stringify({
-            "email": args.email,
-            "id": args.id
-        });
+        var dataRes = {"email": args.email,"id": args.id};
+        if (extendArgs) {
+            var dataRes = $.extend(true, dataRes, extendArgs.data);
+        };
+        var data = JSON.stringify(dataRes);
 
         var changeStateFunc = function(response) {
             this.init(response.msg);
             this.isSameRegion = true;
             this.hasGetCrossRegionInfo = true;
             this.stateChangeCallbacks.fire(this);
-        };
-
-        var extendAjaxOptions = {
-            headers: {"X-AutoRefresh": "false"}
-        };
-        
-        if (extendArgs && extendArgs.ajax) {
-            extendAjaxOptions = $.extend(true, extendAjaxOptions, extendArgs.ajax);
         };
 
         this.makeAjaxRequest({

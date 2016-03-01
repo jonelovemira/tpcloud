@@ -701,6 +701,9 @@ $(function () {
             _self.getDeviceList({
                 "ajax": {
                     headers: {"X-AutoRefresh": "true"}
+                },
+                "data": {
+                    "DATA": {"X-AutoRefresh": "true"}
                 }
             });
         }, _self.intervalUpdateDeviceListTime);
