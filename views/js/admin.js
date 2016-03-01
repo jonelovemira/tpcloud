@@ -369,6 +369,9 @@ $(function () {
             };
             activeDevArr[i].isActive = false;
         };
+        $(".admin-nav-li-select").removeClass("admin-nav-li-select");
+        $("#live-view-tab").addClass("admin-nav-li-select");
+        this.view.hideSettingChild();
     };
 
     DeviceListController.prototype.setResolution = function() {
