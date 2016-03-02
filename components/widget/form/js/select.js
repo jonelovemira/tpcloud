@@ -8,6 +8,7 @@
                             '<div class="slide">' +
                                 '<div class="slide-item-holder"></div>' +
                             '</div>' +
+                            '<div class="expand-collapse"></div>' +
                         '</div>',
         optionTemplate: '<div class="slide-item" xvalue=""><span lang="en"></span></div>',
         uniqueAttrKey: 'only-for-plugin-select',
@@ -146,6 +147,8 @@
         }
     };
 
+    var bodyClicking = false;
+
     $.fn.Select = function(options) {
         var originSelect = $(this);
         var _options = tmpSelect.generatePluginConstructOption(options, originSelect);
@@ -172,11 +175,19 @@
 
         select.insertBefore(originSelect);
 
-        select.on('click', function(e) {
+        // select.on('click', function(e) {
+        //     tmpSelect.onClick(select, e, originSelect);
+        // });
+
+        select.on('mouseup', function () {
+            bodyClicking = false;
+        })
+
+        $('.expand-collapse', select).on('click', function(e) {
             tmpSelect.onClick(select, e, originSelect);
         });
 
-        $('.slide-item', select).on('click', function(e) {
+        $('.slide-item', select).on('mousedown', function(e) {
             tmpSelect.onOptionClick(select, e, originSelect, $(this));
         });
 
@@ -194,9 +205,24 @@
         hotKey                      :       false,
         disabled                    :       false 
     };
+
+    
+
+    $(document).on("mousedown", "body", function () {
+        bodyClicking = true;
+    });
+    $(document).on("mouseup", "body", function () {
+        if (bodyClicking) {
+            $('div.select-slide').removeClass("select-slide");
+        };
+    });
+
+    // $("body").click(function(event) {
+    //     console.log(event);
+    //     if (event.offsetX <= 50 && event.offsetY <= 50) {
+    //         $('div.select-slide').removeClass("select-slide");
+    //     };
+    // });
     
 })(jQuery);
 
-$("body").click(function() {
-    $('div.select-slide').removeClass("select-slide");
-});

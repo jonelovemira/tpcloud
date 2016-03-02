@@ -196,9 +196,16 @@
     
 })(jQuery)
 function stopBubble(event) {
-    event.originalEvent.cancelBubble = true;
-    event.originalEvent.returnValue = false;
-    event.originalEvent.preventDefault()
-    event.originalEvent.stopPropagation();
-    return false;
+    if (event.cancelBubble != undefined) {
+        event.cancelBubble = true;
+        event.returnValue = false;
+        event.preventDefault()
+        event.stopPropagation();
+    } else if (event.originalEvent != undefined){
+        event.originalEvent.cancelBubble = true;
+        event.originalEvent.returnValue = false;
+        event.originalEvent.preventDefault()
+        event.originalEvent.stopPropagation();
+        return false;
+    }    
 }
