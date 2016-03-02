@@ -2053,11 +2053,6 @@
         var retryLimit = 3;
         var changeStateFunc = function(response) {
             _self.device.relayUrl = response.result.relayUrl;
-            $.cookie("relayUrl", _self.device.relayUrl, {
-                path: "/",
-                domain: ".tplinkcloud.com",
-                expires: 1
-            });
             _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
         };
 
@@ -2171,11 +2166,6 @@
         var changeStateFunc = function(response) {
             if (response.result.realServerKey.indexOf("AWSELB") >= 0) {
                 _self.device.ELBcookie = response.result.realServerKey;
-                $.cookie(_self.device.ELBcookie.split("=")[0], _self.device.ELBcookie.split("=")[1], {
-                    path: "/",
-                    domain: ".tplinkcloud.com",
-                    expires: 1
-                });
                 _self.changeStateTo(devicePlayingState.RELAY_READY);
             }
         };
@@ -2407,82 +2397,87 @@
 
     RtmpPlayer.prototype.luckyTryForResId = function() {
         var _self = this;
-        var device = _self.device;
-        var ELBcookie = "AWSELB=" + ($.cookie("AWSELB") || "");
-        if ($.cookie("relayUrl")) {
-            device.relayUrl = $.cookie("relayUrl");
-            if (device.relayUrl && ELBcookie && device.relayUrl.length > 0 
-                && ELBcookie.length > 0) {
-                var requestArgs = _self.generateQueryResidArgs(ELBcookie);
-                var currentCount = 1;
-                var errorCallback = function(){
-                    if (currentCount < 3) {
-                        currentCount += 1;
-                        _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                    };
+        if (_self.device.relayUrl && _self.device.ELBcookie) {
+            var requestArgs = _self.generateQueryResidArgs({
+                ELBcookie: _self.device.ELBcookie,
+                relayUrl: _self.device.relayUrl
+            });
+            var currentCount = 1;
+            var errorCallback = function(){
+                if (currentCount < 3) {
+                    currentCount += 1;
+                    _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
                 };
-
-                var extendRequestArgs = {
-                    callbacks: {
-                        "errorCodeCallbackMap": {
-                            "-1" : errorCallback
-                        },
-                        "errorCallback" : errorCallback
-                    }
-                }
-                requestArgs = $.extend(true, requestArgs, extendRequestArgs);
-                _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
             };
+
+            var extendRequestArgs = {
+                callbacks: {
+                    "errorCodeCallbackMap": {
+                        "-1" : errorCallback
+                    },
+                    "errorCallback" : errorCallback
+                }
+            }
+            requestArgs = $.extend(true, requestArgs, extendRequestArgs);
+            _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
         };
     };
 
-    RtmpPlayer.prototype.generateQueryResidArgs = function(ELBcookie) {
-        var _self = this;
-        var data = {
-            "REQUEST": 'RTMPOPERATE',
-            "DATA": {
-                "relayUrl": _self.device.relayUrl,
-                "Xtoken": _self.device.owner.token,
-                "devId": _self.device.id,
-                "data": {
-                    "service": "getrtmp",
-                    "command": {
-                        "resolution": _self.device.currentVideoResolution.name
-                    }
-                },
-                "token": _self.device.owner.token,
-                "AWSELB": ELBcookie
-            }
-        };
+    RtmpPlayer.prototype.generateQueryResidArgs = function(args) {
+        if (args.relayUrl && args.ELBcookie) {
+            var _self = this;
+            var data = {
+                "REQUEST": 'RTMPOPERATE',
+                "DATA": {
+                    "relayUrl": args.relayUrl,
+                    "Xtoken": _self.device.owner.token,
+                    "devId": _self.device.id,
+                    "data": {
+                        "service": "getrtmp",
+                        "command": {
+                            "resolution": _self.device.currentVideoResolution.name
+                        }
+                    },
+                    "token": _self.device.owner.token,
+                    "AWSELB": args.ELBcookie
+                }
+            };
 
-        var changeStateFunc = function (response) {
-            _self.device.resId = response.msg.resourceid;
-            _self.changeStateTo(devicePlayingState.RESOURCE_READY);
-            _self.timer.start();
-        };
+            var changeStateFunc = function (response) {
+                _self.device.resId = response.msg.resourceid;
+                _self.changeStateTo(devicePlayingState.RESOURCE_READY);
+                _self.timer.start();
+            };
 
-        var extendAjaxOptions = {
-            contentType: "application/x-www-form-urlencoded;charset=utf-8"
-        };
+            var extendAjaxOptions = {
+                contentType: "application/x-www-form-urlencoded;charset=utf-8"
+            };
 
-        var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
+            var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
 
-        var requestArgs = {
-            url: urlPrefix + "/init3.php", 
-            data: data, 
-            callbacks: undefined, 
-            changeState: changeStateFunc,
-            extendAjaxOptions: extendAjaxOptions
-        };
+            var requestArgs = {
+                url: urlPrefix + "/init3.php", 
+                data: data, 
+                callbacks: undefined, 
+                changeState: changeStateFunc,
+                extendAjaxOptions: extendAjaxOptions
+            };
 
-        return requestArgs;
+            return requestArgs;
+        } else {
+            console.error("args error");
+        }
+        
     };
 
     RtmpPlayer.prototype.queryResid = function() {
         var _self = this;
         if (_self.device.ELBcookie && _self.device.relayUrl &&
             _self.device.ELBcookie.length > 0 && _self.device.relayUrl.length > 0) {
-            var requestArgs = _self.generateQueryResidArgs(_self.device.ELBcookie);
+            var requestArgs = _self.generateQueryResidArgs({
+                ELBcookie: _self.device.ELBcookie,
+                relayUrl: _self.device.relayUrl
+            });
 
             var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
             var currentCount = 1;
