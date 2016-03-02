@@ -175,10 +175,6 @@
 
         select.insertBefore(originSelect);
 
-        // select.on('click', function(e) {
-        //     tmpSelect.onClick(select, e, originSelect);
-        // });
-
         select.on('mouseup', function () {
             bodyClicking = false;
         })
@@ -216,13 +212,6 @@
             $('div.select-slide').removeClass("select-slide");
         };
     });
-
-    // $("body").click(function(event) {
-    //     console.log(event);
-    //     if (event.offsetX <= 50 && event.offsetY <= 50) {
-    //         $('div.select-slide').removeClass("select-slide");
-    //     };
-    // });
     
 })(jQuery);
 
