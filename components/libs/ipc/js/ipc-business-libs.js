@@ -2001,12 +2001,16 @@
     };
 
     NonPluginPlayer.prototype.networkErrorRetry = function() {
-        this.currentNetErrRetryCnt += 1;
-        console.log("retry full flash flow due to device is not reachable: " + this.currentNetErrRetryCnt);
-        if (this.currentNetErrRetryCnt <= this.maxNetErrRetryCnt) {
-            this.changeStateTo(devicePlayingState.RELAY_URL_READY);
+        var _self = this;
+        _self.currentNetErrRetryCnt += 1;
+
+        console.log("retry full nonPluginPlayer flow due to device is not reachable: " + _self.currentNetErrRetryCnt);
+        if (_self.currentNetErrRetryCnt <= _self.maxNetErrRetryCnt) {
+            setTimeout(function () {
+                _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+            }, 1000);
         } else {
-            this.renderNetworkError();
+            _self.renderNetworkError();
         }
     };
 
