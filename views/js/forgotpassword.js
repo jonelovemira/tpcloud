@@ -8,7 +8,9 @@ $(function() {
 
     UserController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
-            "#findpwd": {"click": this.findMyPassword},
+            "#findpwd": {
+                "click": this.findMyPassword
+            },
         };
 
         var selectorMsgProduceFuncMap = {};
@@ -17,7 +19,9 @@ $(function() {
     };
 
     UserController.prototype.findMyPassword = function() {
-        var args = {"email": $("#forgotpwd-input").val()};
+        var args = {
+            "email": $("#forgotpwd-input").val()
+        };
 
         var currentController = this;
 
@@ -28,7 +32,7 @@ $(function() {
 
         var inputCallbacks = {
             "errorCodeCallbackMap": {
-                "0": function(){
+                "0": function() {
                     currentController.view.renderMsg(errCodeTipsMap[0]);
                 }
             },
@@ -36,7 +40,7 @@ $(function() {
                 currentController.view.renderMsg(errCodeTipsMap[-1]);
             }
         };
-        
+
         var validateResult = currentController.model.forgotPassword(args, inputCallbacks);
         if (validateResult != undefined && !validateResult.code) {
             currentController.view.renderMsg(validateResult.msg);

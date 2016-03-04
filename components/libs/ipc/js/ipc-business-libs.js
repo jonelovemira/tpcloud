@@ -1,29 +1,29 @@
 /*****************************************************************************
-* Copyright© 2004-2015 TP-LINK TECHNOLOGIES CO., LTD.
-* File Name: ipc-business-libs.js
-* Author:    Jone Xu
-* Version:   1.0
-* Description:
-*     This is business libs for interact with backend from front-ends model.
-*
-* Requires:
-*     jquery-1.8.2.min.js           jquery libs 
-*     ipc-info-libs.js              ipc msg tips library   
-*     ipc-secret-libs.js            ipc encrypt, base64 encode/decode library   
-*     jquery.cookie.js              cookie management
-*
-* History:
-*     2015-10-20: Jone Xu           File created.
-*     2015-10-21: Jone Xu           Finish the methods of User
-*     2015-10-23: Jone Xu           Add validate methods to check attrs
-*****************************************************************************/
+ * Copyright© 2004-2015 TP-LINK TECHNOLOGIES CO., LTD.
+ * File Name: ipc-business-libs.js
+ * Author:    Jone Xu
+ * Version:   1.0
+ * Description:
+ *     This is business libs for interact with backend from front-ends model.
+ *
+ * Requires:
+ *     jquery-1.8.2.min.js           jquery libs 
+ *     ipc-info-libs.js              ipc msg tips library   
+ *     ipc-secret-libs.js            ipc encrypt, base64 encode/decode library   
+ *     jquery.cookie.js              cookie management
+ *
+ * History:
+ *     2015-10-20: Jone Xu           File created.
+ *     2015-10-21: Jone Xu           Finish the methods of User
+ *     2015-10-23: Jone Xu           Add validate methods to check attrs
+ *****************************************************************************/
 
-(function($){
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function Error(){
+    function Error() {
         this.code = null;
         this.msg = null;
     }
@@ -34,7 +34,7 @@
 
     $.ipc.Error = Error;
 
-    $.ipc.create = function (p) {
+    $.ipc.create = function(p) {
         if (p == null) {
             console.error("unknown type, cannot create");
         };
@@ -44,7 +44,7 @@
         };
 
         var t = typeof p;
-        if (t !== "object" && t !== "function" ) {
+        if (t !== "object" && t !== "function") {
             console.error("not a object or function");
         };
 
@@ -54,15 +54,15 @@
     };
 })(jQuery);
 
-(function ($) {
+(function($) {
 
     "use strict";
 
     $.ipc = $.ipc || {};
-    
-    $.ipc.inheritPrototype = function (subType, baseType) {
+
+    $.ipc.inheritPrototype = function(subType, baseType) {
         if (undefined == baseType || undefined == subType) {
-            console.error( "args error in inherit");
+            console.error("args error in inherit");
         };
 
         subType.prototype = $.ipc.create(baseType.prototype);
@@ -78,31 +78,36 @@
     };
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function Model () {
-    };
+    function Model() {};
 
     Model.prototype.errorCodeCallbacks = {
-        errorCodeCallbackMap : {
-            "0": function(){console.log("OK");},
-            "-1": function(){console.log("unknow error");},
+        errorCodeCallbackMap: {
+            "0": function() {
+                console.log("OK");
+            },
+            "-1": function() {
+                console.log("unknow error");
+            },
         },
-        errorCallback : function(xhr){console.log("xhr error: ", xhr)}
+        errorCallback: function(xhr) {
+            console.log("xhr error: ", xhr)
+        }
     };
 
     Model.prototype.extendErrorCodeCallback = function(inputCallbacks) {
-        var tmpCallbacks =  $.extend(true, {}, this.errorCodeCallbacks, inputCallbacks);
+        var tmpCallbacks = $.extend(true, {}, this.errorCodeCallbacks, inputCallbacks);
         return tmpCallbacks;
     };
 
     Model.prototype.makeAjaxRequest = function(inputArgs, xDomain) {
 
         if (undefined == inputArgs["url"] || undefined == inputArgs["data"] || undefined == inputArgs["changeState"]) {
-            console.error( "args error in makeAjaxRequest");
+            console.error("args error in makeAjaxRequest");
             return;
         };
 
@@ -110,9 +115,9 @@
         var currentModel = this;
 
         var ajaxOptions = {
-            url : inputArgs["url"],
-            data : inputArgs["data"],
-            success : function(response){
+            url: inputArgs["url"],
+            data: inputArgs["data"],
+            success: function(response) {
                 var errCodeStrIndex = inputArgs["errCodeStrIndex"] || "errorCode";
                 var noErrorCode = inputArgs["noErrorCode"] || 0;
                 var defaultErrorCode = inputArgs["defaultErrorCode"] || -1;
@@ -127,7 +132,7 @@
                     tmpCallbacks.commonCallback();
                 };
             },
-            error : function(xhr){
+            error: function(xhr) {
                 tmpCallbacks.errorCallback(xhr);
                 if (tmpCallbacks.commonCallback) {
                     tmpCallbacks.commonCallback();
@@ -140,12 +145,12 @@
         return $.xAjax(ajaxOptions, xDomain);
     };
 
-    Model.prototype.validateAttr = function (inputArgs) {
-        if(undefined == inputArgs["attr"] || undefined == inputArgs["attrEmptyMsg"] || 
+    Model.prototype.validateAttr = function(inputArgs) {
+        if (undefined == inputArgs["attr"] || undefined == inputArgs["attrEmptyMsg"] ||
             undefined == inputArgs["maxLength"] || undefined == inputArgs["minLength"] ||
             undefined == inputArgs["attrOutOfLimitMsg"] || undefined == inputArgs["pattern"] ||
             undefined == inputArgs["patternTestFailMsg"]) {
-            console.error( "args error in validateAttr");
+            console.error("args error in validateAttr");
             return;
         };
         var e = new $.ipc.Error();
@@ -169,12 +174,12 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
-    $.ipc = $.ipc || {};   
+    $.ipc = $.ipc || {};
 
-    function User(){
+    function User() {
         $.ipc.Model.call(this, arguments);
         this.username = null;
         this.token = null;
@@ -188,34 +193,72 @@
     $.ipc.inheritPrototype(User, $.ipc.Model);
 
     var userErrorCodeInfo = {
-        100: function(){console.log("token is invalid, plz relogin");},
-        1000: function(){console.log("email is needed");},
-        1002: function(){console.log("email format is invalid");},
-        1005: function(){console.log("account is needed");},
-        1006: function(){console.log("account does not exist");},
-        1007: function(){console.log("account has already been activated");},
-        1008: function(){console.log("email have been used");},
-        1009: function(){console.log("account is not activated");},
-        1011: function(){console.log("username is needed");},
-        1012: function(){console.log("username can not contain any illegal char")},
-        1013: function(){console.log("username have been used");},
-        1015: function(){console.log("password format is invalid");},
-        1020: function(){console.log("password is needed");},
-        1022: function(){console.log("password length is invalid");},
-        1023: function(){console.log("decrypt password failed");},
-        1024: function(){console.log("account and password is not match");},
-        1025: function(){console.log("new password is needed");},
-        1029: function(){console.log("account was locked");},
+        100: function() {
+            console.log("token is invalid, plz relogin");
+        },
+        1000: function() {
+            console.log("email is needed");
+        },
+        1002: function() {
+            console.log("email format is invalid");
+        },
+        1005: function() {
+            console.log("account is needed");
+        },
+        1006: function() {
+            console.log("account does not exist");
+        },
+        1007: function() {
+            console.log("account has already been activated");
+        },
+        1008: function() {
+            console.log("email have been used");
+        },
+        1009: function() {
+            console.log("account is not activated");
+        },
+        1011: function() {
+            console.log("username is needed");
+        },
+        1012: function() {
+            console.log("username can not contain any illegal char")
+        },
+        1013: function() {
+            console.log("username have been used");
+        },
+        1015: function() {
+            console.log("password format is invalid");
+        },
+        1020: function() {
+            console.log("password is needed");
+        },
+        1022: function() {
+            console.log("password length is invalid");
+        },
+        1023: function() {
+            console.log("decrypt password failed");
+        },
+        1024: function() {
+            console.log("account and password is not match");
+        },
+        1025: function() {
+            console.log("new password is needed");
+        },
+        1029: function() {
+            console.log("account was locked");
+        },
     };
 
-    User.prototype.errorCodeCallbacks = User.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": userErrorCodeInfo});
+    User.prototype.errorCodeCallbacks = User.prototype.extendErrorCodeCallback({
+        "errorCodeCallbackMap": userErrorCodeInfo
+    });
     User.prototype.readCookieDataCallbacks = $.Callbacks("unique stopOnFalse");
 
     User.prototype.readDataFromCookie = function(callbacks) {
         $.cookie("rmbUser") && (this.rememberMe = true);
         $.cookie("token") && (this.token = $.cookie("token"));
         $.cookie("email") && (this.email = $.cookie("email"));
-        
+
         if ($.cookie("userName")) {
             this.account = $.cookie("userName");
         } else if ($.cookie("account")) {
@@ -230,85 +273,123 @@
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
             (!this.validateUsername(args.username).code && this.validateUsername(args.username)) ||
             (!this.validatePassword(args.password).code && this.validatePassword(args.password));
-        if (!validateResult.code) {return validateResult;};
-        
+        if (!validateResult.code) {
+            return validateResult;
+        };
+
         var data = JSON.stringify({
             "email": args.email,
             "username": args.username,
             "password": args.encryptText(args.password)
         });
 
-        this.makeAjaxRequest({url: "/register", data: data, callbacks: inputCallbacks, changeState: $.noop});
+        this.makeAjaxRequest({
+            url: "/register",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: $.noop
+        });
     };
 
-    User.prototype.login = function(args, inputCallbacks){
-        
+    User.prototype.login = function(args, inputCallbacks) {
+
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
-        (!this.validatePassword(args.password).code 
-            && this.validatePassword(args.password, {"patternTestFailMsg": tips.types.password.invalidShort}));
-        if (validateResult.code == false) {return validateResult;};
-        
+            (!this.validatePassword(args.password).code && this.validatePassword(args.password, {
+                "patternTestFailMsg": tips.types.password.invalidShort
+            }));
+        if (validateResult.code == false) {
+            return validateResult;
+        };
+
         var data = JSON.stringify({
-            "account" : args.account,
-            "password" : this.encryptText(args.password)
+            "account": args.account,
+            "password": this.encryptText(args.password)
         });
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             this.account = args.account;
             this.token = response.msg.token;
             this.email = response.msg.email;
         }
 
-        this.makeAjaxRequest({url: "/login", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({
+            url: "/login",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc
+        });
     };
 
     User.prototype.logout = function(args, inputCallbacks) {
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
-        if (validateResult.code == false) {return validateResult;};
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var data = JSON.stringify({
             "email": args.email
         });
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             this.token = null;
             $.removeCookie("token");
         }
 
-        this.makeAjaxRequest({url: "/logout", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({
+            url: "/logout",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc
+        });
     };
 
     User.prototype.sendActiveEmail = function(args, inputCallbacks) {
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
-        if (validateResult.code == false) {return validateResult;};
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var data = JSON.stringify({
             "email": args.email
         });
 
-        this.makeAjaxRequest({url: "/sendActiveEmail", data: data, callbacks: inputCallbacks, changeState: $.noop});
+        this.makeAjaxRequest({
+            url: "/sendActiveEmail",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: $.noop
+        });
     };
 
     User.prototype.resetPassword = function(args, inputCallbacks) {
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
-        if (validateResult.code == false) {return validateResult;};
-        
+        if (validateResult.code == false) {
+            return validateResult;
+        };
+
         var data = JSON.stringify({
             "email": args.email
         });
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             this.password = null;
         };
 
-        this.makeAjaxRequest({url: "/forgetPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({
+            url: "/forgetPassword",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc
+        });
     };
 
     User.prototype.modifyPassword = function(args, inputCallbacks) {
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
-                            (!this.validatePassword(args.password).code && this.validatePassword(args.password)) ||
-                            (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
-        if (validateResult.code == false) {return validateResult;};
+            (!this.validatePassword(args.password).code && this.validatePassword(args.password)) ||
+            (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
+        if (validateResult.code == false) {
+            return validateResult;
+        };
         if (undefined == this.account) {
             console.error("args error in modifyPassword");
         };
@@ -319,38 +400,57 @@
             "password": this.encryptText(args.newPassword),
         });
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             this.token = null;
             this.password = null;
         };
 
-        this.makeAjaxRequest({url: "/modifyPassword", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({
+            url: "/modifyPassword",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc
+        });
     };
 
     User.prototype.forgotPassword = function(args, inputCallbacks) {
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
-        if (validateResult.code == false) {return validateResult;};
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var data = JSON.stringify({
             "email": args.email
         });
 
-        this.makeAjaxRequest({url: "/forgetPassword", data: data, callbacks: inputCallbacks, changeState: $.noop});
+        this.makeAjaxRequest({
+            url: "/forgetPassword",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: $.noop
+        });
     };
 
-    User.prototype.getUser = function(args, inputCallbacks){
+    User.prototype.getUser = function(args, inputCallbacks) {
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
-        if (validateResult.code == false) {return validateResult;};
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var data = JSON.stringify({
-            "email": args.email  
+            "email": args.email
         });
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             this.username = response.msg.username;
         };
-        
-        this.makeAjaxRequest({url: "/getUser", data: data, callbacks: inputCallbacks, changeState: changeStateFunc});
+
+        this.makeAjaxRequest({
+            url: "/getUser",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc
+        });
     };
 
     User.prototype.validateAccount = function(tmpAccount) {
@@ -366,7 +466,7 @@
             "minLength": 1,
             "attrOutOfLimitMsg": "account out of limit",
             "pattern": /^.*$/,
-            "patternTestFailMsg": tips.types.account.invalid, 
+            "patternTestFailMsg": tips.types.account.invalid,
         };
 
         return this.validateAttr(validateArgs);
@@ -385,7 +485,7 @@
             "minLength": 1,
             "attrOutOfLimitMsg": tips.types.username.outOfLimit,
             "pattern": /^[0-9A-Za-z-_.]{1,32}$/,
-            "patternTestFailMsg": tips.types.username.invalid, 
+            "patternTestFailMsg": tips.types.username.invalid,
         };
 
         return this.validateAttr(validateArgs);
@@ -396,15 +496,17 @@
             console.error("args error in validatePassword");
             return;
         };
-        var defaultMsg = {"attrEmptyMsg": tips.types.password.cantBeEmpty,
-                        "attrOutOfLimitMsg": tips.types.password.outOfLimit,
-                        "patternTestFailMsg": tips.types.password.invalidLong};
+        var defaultMsg = {
+            "attrEmptyMsg": tips.types.password.cantBeEmpty,
+            "attrOutOfLimitMsg": tips.types.password.outOfLimit,
+            "patternTestFailMsg": tips.types.password.invalidLong
+        };
 
         var extendMsg = $.extend(true, defaultMsg, msg);
         var validateArgs = {
             "attr": tmpPassword,
             "maxLength": 32,
-            "minLength": 6, 
+            "minLength": 6,
             "pattern": /^[\x21-\x7e]{6,32}$/
         };
 
@@ -431,7 +533,7 @@
             console.error("args error in validateEmailFormat");
             return;
         };
-        
+
         var validateArgs = {
             "attr": tmpEmail,
             "attrEmptyMsg": tips.types.email.cantBeEmpty,
@@ -439,7 +541,7 @@
             "minLength": 1,
             "attrOutOfLimitMsg": tips.types.email.outOfLimit,
             "pattern": /^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,6})$/,
-            "patternTestFailMsg": tips.types.email.invalid, 
+            "patternTestFailMsg": tips.types.email.invalid,
         };
         return this.validateAttr(validateArgs);
     };
@@ -449,7 +551,7 @@
             console.error("error in encryptText");
             return;
         };
-        
+
         return text;
     };
 
@@ -465,17 +567,17 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function hasNewerVersion (version) {
+    function hasNewerVersion(version) {
         if (undefined == version || undefined == this.newestVersion) {
             console.error("args error in hasNewerVersion");
         };
         var result = $.ipc.compareVersion(version, this.newestVersion);
-        if (result > 0 ) {
+        if (result > 0) {
             console.info("target version is bigger than newestVersion");
         };
         return result < 0;
@@ -490,13 +592,19 @@
         hasNewerVersion: hasNewerVersion
     };
 
-    function PLUGIN_NON_IE_X86(){};
-    function PLUGIN_NON_IE_X64(){};
-    function PLUGIN_IE_X86(){};
-    function PLUGIN_IE_X64(){};
-    function PLUGIN_MAC(){};
-    function FLASH_PLAYER(){};
-    function IMG_PLAYER(){};
+    function PLUGIN_NON_IE_X86() {};
+
+    function PLUGIN_NON_IE_X64() {};
+
+    function PLUGIN_IE_X86() {};
+
+    function PLUGIN_IE_X64() {};
+
+    function PLUGIN_MAC() {};
+
+    function FLASH_PLAYER() {};
+
+    function IMG_PLAYER() {};
 
     PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {
         "application/x-tp-camera": "non-ie-mjpeg",
@@ -524,7 +632,7 @@
     };
 
 
-    (function () {
+    (function() {
         var tmp = [PLUGIN_NON_IE_X86, PLUGIN_NON_IE_X64, PLUGIN_IE_X86, PLUGIN_IE_X64, PLUGIN_MAC];
         for (var i = 0; i < tmp.length; i++) {
             $.ipc.initClassPrototype(pluginInitPrototype, tmp[i].prototype);
@@ -541,11 +649,11 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
     $.ipc = $.ipc || {};
-    
-    function PlayerContainerCss () {
+
+    function PlayerContainerCss() {
         this.player = {};
         this.loadingImg = {};
         this.loadingTips = {};
@@ -628,11 +736,11 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
     $.ipc = $.ipc || {};
 
-    function PluginPlayerObjCss () {
+    function PluginPlayerObjCss() {
         this.css = null;
     };
 
@@ -658,12 +766,12 @@
     $.ipc.vgaPluginPlayerObjCss = vgaPluginPlayerObjCss;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function Resolution(){
+    function Resolution() {
         this.name = null;
         this.width = null;
         this.height = null;
@@ -711,7 +819,7 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -724,59 +832,85 @@
         this.name = null;
     };
     Channel.prototype.generateRelaydCommand = function(device) {
-        if (undefined == device) {console.error("args error in generateRelaydCommand")};
+        if (undefined == device) {
+            console.error("args error in generateRelaydCommand")
+        };
         var localResolutionStr = this.generateLocalParam(device);
         var relayResolutionStr = this.generateRelayParam(device);
         var url = this.url;
         var type = this.name;
         return "relayd -s 'http://127.0.0.1:8080" + url + "?" + localResolutionStr +
-        "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" + 
-        device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
-        device.owner.token + "' -t '" + device.relayVideoTime + "'"; 
+            "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" +
+            device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
+            device.owner.token + "' -t '" + device.relayVideoTime + "'";
     };
 
-    function DevicePostChannelVideo(){
+    function DevicePostChannelVideo() {
         Channel.call(this, arguments);
         this.name = 'video';
     };
     $.ipc.inheritPrototype(DevicePostChannelVideo, Channel);
-    DevicePostChannelVideo.prototype.generateLocalParam = function(dev){
-        if (undefined == dev) {console.error("args error in gen local res str")};
-        return $.param({resolution: dev.currentVideoResolution.name});
+    DevicePostChannelVideo.prototype.generateLocalParam = function(dev) {
+        if (undefined == dev) {
+            console.error("args error in gen local res str")
+        };
+        return $.param({
+            resolution: dev.currentVideoResolution.name
+        });
     };
-    DevicePostChannelVideo.prototype.generateRelayParam = function(dev){
-        if (undefined == dev) {console.error("args error in gen local res str")};
-        return $.param({resolution: dev.currentVideoResolution.name});
+    DevicePostChannelVideo.prototype.generateRelayParam = function(dev) {
+        if (undefined == dev) {
+            console.error("args error in gen local res str")
+        };
+        return $.param({
+            resolution: dev.currentVideoResolution.name
+        });
     };
-    function DevicePostChannelAudio(){
+
+    function DevicePostChannelAudio() {
         Channel.call(this, arguments);
         this.name = 'audio';
     };
     $.ipc.inheritPrototype(DevicePostChannelAudio, Channel);
-    DevicePostChannelAudio.prototype.generateLocalParam = function(dev){
-        if (undefined == dev) {console.error("args error in gen local res str")};
-        return $.param({resolution: dev.product.audioCodec.name});
+    DevicePostChannelAudio.prototype.generateLocalParam = function(dev) {
+        if (undefined == dev) {
+            console.error("args error in gen local res str")
+        };
+        return $.param({
+            resolution: dev.product.audioCodec.name
+        });
     };
-    DevicePostChannelAudio.prototype.generateRelayParam = function(dev){
-        if (undefined == dev) {console.error("args error in gen local res str")};
-        return $.param({resolution: dev.product.audioCodec.name});
+    DevicePostChannelAudio.prototype.generateRelayParam = function(dev) {
+        if (undefined == dev) {
+            console.error("args error in gen local res str")
+        };
+        return $.param({
+            resolution: dev.product.audioCodec.name
+        });
     };
-    function DevicePostChannelMixed(){
+
+    function DevicePostChannelMixed() {
         Channel.call(this, arguments);
         this.name = 'mixed';
     };
     $.ipc.inheritPrototype(DevicePostChannelMixed, Channel);
-    DevicePostChannelMixed.prototype.generateLocalParam = function(dev){
-        if (undefined == dev) {console.error("args error in gen local res str")};
+    DevicePostChannelMixed.prototype.generateLocalParam = function(dev) {
+        if (undefined == dev) {
+            console.error("args error in gen local res str")
+        };
         return $.param({
             resolution: dev.currentVideoResolution.name,
             audio: dev.product.audioCodec.name,
             video: dev.product.videoCodec.name
         });
     };
-    DevicePostChannelMixed.prototype.generateRelayParam = function(dev){
-        if (undefined == dev) {console.error("args error in gen local res str")};
-        return $.param({resolution: dev.currentVideoResolution.name});
+    DevicePostChannelMixed.prototype.generateRelayParam = function(dev) {
+        if (undefined == dev) {
+            console.error("args error in gen local res str")
+        };
+        return $.param({
+            resolution: dev.currentVideoResolution.name
+        });
     };
 
     $.ipc.DevicePostChannelVideo = DevicePostChannelVideo;
@@ -785,7 +919,7 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -794,13 +928,13 @@
         this.name = null;
     };
 
-    function AudioCodec () {
+    function AudioCodec() {
         Codec.call(this, arguments);
         this.pluginAudioTypeCode = null;
     };
     $.ipc.inheritPrototype(AudioCodec, Codec);
 
-    function VideoCodec () {
+    function VideoCodec() {
         Codec.call(this, arguments);
         this.pluginStreamTypeCode = null;
     };
@@ -810,12 +944,12 @@
     $.ipc.VideoCodec = VideoCodec;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function IpcProduct () {
+    function IpcProduct() {
         this.name = null;
         this.supportVideoResArr = [];
         this.mimeType = null;
@@ -832,7 +966,9 @@
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
-        if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
+        if (mt in mimeTypesArr) {
+            console.error("mime types error in getPlayerType")
+        };
         var result = undefined;
         if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
@@ -872,7 +1008,7 @@
         // return $.ipc.IMG_PLAYER;
     };
 
-    function findPostChannelForNC200 () {
+    function findPostChannelForNC200() {
         var result = null;
         if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             result = [videoChannel];
@@ -912,7 +1048,7 @@
     NC200.postDataChannel = findPostChannelForNC200();
     NC200.audioCodec = pcmAudioCodec;
     NC200.videoCodec = mjpegVideoCodec;
-    
+
     var NC210 = new IpcProduct();
     NC210.name = "NC210";
     NC210.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
@@ -945,7 +1081,7 @@
     NC230.postDataChannel = [videoChannel, audioChannel];
     NC230.audioCodec = aacAudioCodec;
     NC230.videoCodec = h264VideoCodec;
-    
+
     var NC250 = new IpcProduct();
     NC250.name = "NC250";
     NC250.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
@@ -991,7 +1127,7 @@
 
 })(jQuery);
 
-(function ($){
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -1035,22 +1171,40 @@
     $.ipc.inheritPrototype(Device, $.ipc.Model);
 
     var deviceErrorCodeInfo = {
-        "-20501": function(){console.log("device id does not exists");},
-        "-20506": function(){console.log("device was binded to another account");},
-        "-20507": function(){console.log("device is not binded to any account");},
-        "-20571": function(){console.log("device is offline now");},
-        "-20572": function(){console.log("alias format is incorrect");},
-        "-20651": function(){console.log("token is invalid, plz relogin");},
-        "-20675": function(){console.log("account is login at another place");},
+        "-20501": function() {
+            console.log("device id does not exists");
+        },
+        "-20506": function() {
+            console.log("device was binded to another account");
+        },
+        "-20507": function() {
+            console.log("device is not binded to any account");
+        },
+        "-20571": function() {
+            console.log("device is offline now");
+        },
+        "-20572": function() {
+            console.log("alias format is incorrect");
+        },
+        "-20651": function() {
+            console.log("token is invalid, plz relogin");
+        },
+        "-20675": function() {
+            console.log("account is login at another place");
+        },
     };
 
-    Device.prototype.errorCodeCallbacks = Device.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceErrorCodeInfo});
+    Device.prototype.errorCodeCallbacks = Device.prototype.extendErrorCodeCallback({
+        "errorCodeCallbackMap": deviceErrorCodeInfo
+    });
     Device.prototype.stateChangeCallbacks = $.Callbacks("unique stopOnFalse");
 
     Device.prototype.init = function(d) {
-        if (undefined == d) {console.error("args error in init");};
+        if (undefined == d) {
+            console.error("args error in init");
+        };
         $.extend(true, this, d);
-        var p = this.model.substring(0,5).toUpperCase();
+        var p = this.model.substring(0, 5).toUpperCase();
         var tmpProduct = new $.ipc.IpcProduct();
         $.extend(true, tmpProduct, $.ipc[p]);
         this.currentVideoResolution = tmpProduct.supportVideoResArr[0];
@@ -1058,13 +1212,20 @@
     };
 
     Device.prototype.get = function(args, inputCallbacks, extendArgs) {
-        if (this.owner == undefined) {console.error("owner is undefined");}
+        if (this.owner == undefined) {
+            console.error("owner is undefined");
+        }
         var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email)) ||
-                            (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
-        if (validateResult.code == false) {return validateResult;};
+            (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var urlPrefix = this.BACK_END_WEB_PROTOCAL + this.webServerUrl;
-        var dataRes = {"email": args.email,"id": args.id};
+        var dataRes = {
+            "email": args.email,
+            "id": args.id
+        };
         if (extendArgs) {
             var dataRes = $.extend(true, dataRes, extendArgs.data);
         };
@@ -1078,9 +1239,9 @@
         };
 
         this.makeAjaxRequest({
-            url: urlPrefix + "/getCamera", 
-            data: data, 
-            callbacks: inputCallbacks, 
+            url: urlPrefix + "/getCamera",
+            data: data,
+            callbacks: inputCallbacks,
             changeState: changeStateFunc,
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
@@ -1090,17 +1251,19 @@
         var deviceModel = device.model;
         var fwVer = device.firmware;
         var deviceHwVer = device.hardware;
-        if (deviceModel == "NC200(UN)" && fwVer == "2.1.3 Build 151125 Rel.24992" && deviceHwVer == "1.0" ) {
+        if (deviceModel == "NC200(UN)" && fwVer == "2.1.3 Build 151125 Rel.24992" && deviceHwVer == "1.0") {
             var date = new Date();
             var minutes = 10;
             date.setTime(date.getTime() + (minutes * 60 * 1000));
-            $.cookie(device.id, "upgrading", { expires: date });
+            $.cookie(device.id, "upgrading", {
+                expires: date
+            });
         };
     };
 
     Device.prototype.upgrade = function(args, inputCallbacks) {
-        if (undefined ==  this.owner || undefined == this.owner.token ||
-            undefined == this.owner.email || undefined == args.fwUrl || 
+        if (undefined == this.owner || undefined == this.owner.token ||
+            undefined == this.owner.email || undefined == args.fwUrl ||
             undefined == args.mac || undefined == args.azIP ||
             undefined == args.azDNS || undefined == this.webServerUrl) {
             console.error("args error in upgrade");
@@ -1132,20 +1295,24 @@
         };
 
         this.makeAjaxRequest({
-            url: urlPrefix + "/init.php", 
-            data: data, 
-            callbacks: inputCallbacks, 
-            changeState: changeStateFunc, 
+            url: urlPrefix + "/init.php",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc,
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
     };
 
     Device.prototype.changeName = function(args, inputCallbacks) {
-        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {console.error("args error in changeName")};
+        if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {
+            console.error("args error in changeName")
+        };
         var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id)) ||
-                            (!this.validateNameFormat(args.name).code && this.validateNameFormat(args.name));
-        if (validateResult.code == false) {return validateResult;};
-        
+            (!this.validateNameFormat(args.name).code && this.validateNameFormat(args.name));
+        if (validateResult.code == false) {
+            return validateResult;
+        };
+
         var data = JSON.stringify({
             "method": "setAlias",
             "params": {
@@ -1174,8 +1341,10 @@
             console.error("args error in unbind");
         }
         var validateResult = (!this.owner.validateAccount(args.account).code && this.owner.validateAccount(args.account)) ||
-                            (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
-        if (validateResult.code == false) {return validateResult;};
+            (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var data = JSON.stringify({
             "method": "unbindDevice",
@@ -1195,9 +1364,13 @@
     };
 
     Device.prototype.getLocalInfo = function(args, inputCallbacks) {
-        if (undefined == args.token || undefined == args.appServerUrl) {console.error("args error in getLocalInfo");}
+        if (undefined == args.token || undefined == args.appServerUrl) {
+            console.error("args error in getLocalInfo");
+        }
         var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
-        if (validateResult.code == false) {return validateResult;};
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         var data = JSON.stringify({
             "method": "passthrough",
@@ -1209,7 +1382,7 @@
                 "deviceId": args.id
             }
         });
-        var changeStateFunc = function (response) {
+        var changeStateFunc = function(response) {
             var passthroughResult = response.result.responseData;
             if (0 == passthroughResult.errCode) {
                 $.extend(true, this, passthroughResult.msg);
@@ -1252,7 +1425,7 @@
             console.error("args error in validateNameFormat");
             return;
         };
-        
+
         var validateArgs = {
             "attr": tmpName,
             "attrEmptyMsg": tips.types.deviceName.cantBeEmpty,
@@ -1260,11 +1433,11 @@
             "minLength": 1,
             "attrOutOfLimitMsg": tips.types.deviceName.outOfLimit,
             "pattern": /^[^\x00-\x1F\x7F{}<>'"=:&\x2f\x5c]{1,31}$/,
-            "patternTestFailMsg": tips.types.deviceName.invalid, 
+            "patternTestFailMsg": tips.types.deviceName.invalid,
         };
         return this.validateAttr(validateArgs);
     };
-    
+
     Device.prototype.clearRubbish = function() {
         if (this.nonPluginPlayer) {
             this.nonPluginPlayer.clearRubbish();
@@ -1275,13 +1448,13 @@
 
 })(jQuery);
 
-(function ($){
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function DeviceList () {
-        
+    function DeviceList() {
+
         $.ipc.Model.call(this, arguments);
 
         this.owner = null;
@@ -1295,19 +1468,31 @@
     $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
 
     var deviceListErrorCodeInfo = {
-        100: function(){console.log("Session timeout or invaild");},
-        1000: function(){console.log("email is needed");},
-        1002: function(){console.log("email format is invalid");},
-        1006: function(){console.log("account does not exist");},
-        1007: function(){console.log("account has already been activated");},
+        100: function() {
+            console.log("Session timeout or invaild");
+        },
+        1000: function() {
+            console.log("email is needed");
+        },
+        1002: function() {
+            console.log("email format is invalid");
+        },
+        1006: function() {
+            console.log("account does not exist");
+        },
+        1007: function() {
+            console.log("account has already been activated");
+        },
     };
 
-    DeviceList.prototype.errorCodeCallbacks = DeviceList.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": deviceListErrorCodeInfo});
+    DeviceList.prototype.errorCodeCallbacks = DeviceList.prototype.extendErrorCodeCallback({
+        "errorCodeCallbackMap": deviceListErrorCodeInfo
+    });
 
     DeviceList.prototype.clearNc200UpgradeCookie = function(response) {
         if (response && response.msg) {
             for (var i = 0; i < response.msg.length; i++) {
-                if(undefined == response.msg[i].needForceUpgrade || 0 == response.msg[i].needForceUpgrade) {
+                if (undefined == response.msg[i].needForceUpgrade || 0 == response.msg[i].needForceUpgrade) {
                     $.removeCookie(response.msg[i].id);
                 }
             };
@@ -1326,13 +1511,15 @@
     };
 
     DeviceList.prototype.getDeviceList = function(inputCallbacks, extendArgs) {
-        if (undefined == this.owner) {console.error("owner of device list is undefined")};
+        if (undefined == this.owner) {
+            console.error("owner of device list is undefined")
+        };
         var data = {};
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             var oldDevices = this.devices;
-            
+
             this.devices = [];
-            
+
             this.clearNc200UpgradeCookie(response);
             response = this.updateFromNc200UpgradeCookie(response);
 
@@ -1356,7 +1543,11 @@
             for (var i = 0; i < this.devices.length; i++) {
                 var device = this.devices[i];
                 var args = null;
-                !device.isSameRegion && (args = {email: this.owner.email, id: device.id, urlPrefix: "https://jp-alpha.tplinkcloud.com"}) && device.get(args, undefined, extendArgs);
+                !device.isSameRegion && (args = {
+                    email: this.owner.email,
+                    id: device.id,
+                    urlPrefix: "https://jp-alpha.tplinkcloud.com"
+                }) && device.get(args, undefined, extendArgs);
             };
 
             var activeDeviceArr = this.findActiveDeviceArr();
@@ -1367,19 +1558,21 @@
         };
 
         var extendAjaxOptions = {
-            headers: {"X-AutoRefresh": "false"}
+            headers: {
+                "X-AutoRefresh": "false"
+            }
         };
-        
+
         if (extendArgs && extendArgs.ajax) {
             extendAjaxOptions = $.extend(true, extendAjaxOptions, extendArgs.ajax);
         };
-        
-        
+
+
         this.makeAjaxRequest({
-            url: "/getDeviceList", 
-            data: data, 
+            url: "/getDeviceList",
+            data: data,
             callbacks: inputCallbacks,
-            extendAjaxOptions: extendAjaxOptions, 
+            extendAjaxOptions: extendAjaxOptions,
             changeState: changeStateFunc
         });
     };
@@ -1387,7 +1580,7 @@
     DeviceList.prototype.findActiveDeviceArr = function() {
         var result = [];
         for (var i = 0; i < this.devices.length; i++) {
-            if(this.devices[i].isActive == true) {
+            if (this.devices[i].isActive == true) {
                 result.push(this.devices[i]);
             }
         };
@@ -1428,7 +1621,7 @@
 
     DeviceList.prototype.findIndexForId = function(devId) {
         for (var i = 0; i < this.devices.length; i++) {
-            if(this.devices[i].id == devId) {
+            if (this.devices[i].id == devId) {
                 return i;
             }
         };
@@ -1449,7 +1642,7 @@
             }
         };
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             this.url = response.msg.url;
             this.upgradeList = response.msg.list;
         };
@@ -1458,7 +1651,13 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({url: "/init.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions});
+        this.makeAjaxRequest({
+            url: "/init.php",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc,
+            extendAjaxOptions: extendAjaxOptions
+        });
 
     };
 
@@ -1467,7 +1666,7 @@
             console.error("args error in upgradeAll");
             return;
         };
-    
+
         var data = {
             "REQUEST": "EXEUPGRADELIST",
             "DATA": {
@@ -1481,28 +1680,36 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({url: "/init.php", data: data, callbacks: inputCallbacks, changeState: $.noop, extendAjaxOptions: extendAjaxOptions});
+        this.makeAjaxRequest({
+            url: "/init.php",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: $.noop,
+            extendAjaxOptions: extendAjaxOptions
+        });
     };
-    
+
     $.ipc.DeviceList = DeviceList;
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function BaseController () {
+    function BaseController() {
         this.model = null;
         this.view = null;
         this.selectorHandlerMap = {};
         this.domClickCallbacks = $.Callbacks("unique stopOnFalse");
         var currentController = this;
-        this.domClickCallbacks.add(function(selector, eventName, data, argumentsArr){
-            var func = function(data){console.log("this element did not bind any handler: ", selector);};
-            if (currentController.selectorHandlerMap && 
-                currentController.selectorHandlerMap[selector] && 
+        this.domClickCallbacks.add(function(selector, eventName, data, argumentsArr) {
+            var func = function(data) {
+                console.log("this element did not bind any handler: ", selector);
+            };
+            if (currentController.selectorHandlerMap &&
+                currentController.selectorHandlerMap[selector] &&
                 currentController.selectorHandlerMap[selector][eventName]) {
                 func = currentController.selectorHandlerMap[selector][eventName];
             };
@@ -1517,8 +1724,8 @@
         var getMsgInformed = inputArgs["getMsgInformed"];
         var selector = inputArgs["selector"];
         var eventName = inputArgs["eventName"];
-    
-        $(document).on(eventName, selector, function(){
+
+        $(document).on(eventName, selector, function() {
             var data = null;
             if (getMsgInformed) {
                 data = $.proxy(getMsgInformed, this)();
@@ -1528,8 +1735,8 @@
         });
     };
 
-    BaseController.prototype.batchInitHandler = function(appendedSelectorHandlerMap, selectorMsgProduceFuncMap){
-        if (undefined == appendedSelectorHandlerMap || 
+    BaseController.prototype.batchInitHandler = function(appendedSelectorHandlerMap, selectorMsgProduceFuncMap) {
+        if (undefined == appendedSelectorHandlerMap ||
             undefined == selectorMsgProduceFuncMap) {
             console.error("args error in batchInitHandler");
         };
@@ -1551,22 +1758,22 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function Software () {
+    function Software() {
         $.ipc.Model.call(this, arguments);
         this.products = [];
         this.plugins = [];
     }
 
     $.ipc.inheritPrototype(Software, $.ipc.Model);
-    
+
     Software.prototype.getUpdateInfos = function(inputCallbacks) {
-        
-        var changeStateFunc = function(response){
+
+        var changeStateFunc = function(response) {
             var productNameObjMap = {};
 
             for (var i = 0; i < response.msg.product.length; i++) {
@@ -1577,7 +1784,7 @@
                 this.products.push(product);
                 productNameObjMap[product.name] = product;
             };
-    
+
             var tagPluginMap = {
                 "ff_x86": $.ipc.PLUGIN_NON_IE_X86,
                 "ff_x64": $.ipc.PLUGIN_NON_IE_X64,
@@ -1594,7 +1801,7 @@
                         if (undefined == productNameObjMap[supportedModelsArr[j]]) {
                             console.error("unknown model: " + supportedModelsArr[j]);
                         } else {
-                            plugin.prototype.supportedModels.push(productNameObjMap[supportedModelsArr[j]]); 
+                            plugin.prototype.supportedModels.push(productNameObjMap[supportedModelsArr[j]]);
                         }
                     };
                     plugin.prototype.name = response.msg.software[i].name;
@@ -1609,18 +1816,23 @@
             };
         };
 
-        this.makeAjaxRequest({url: "/updateInfos", data: {}, callbacks: inputCallbacks, changeState: changeStateFunc});
+        this.makeAjaxRequest({
+            url: "/updateInfos",
+            data: {},
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc
+        });
     };
 
     $.ipc.Software = Software;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function Feedback () {
+    function Feedback() {
         $.ipc.Model.call(this, arguments);
         this.account = null;
         this.productName = null;
@@ -1632,23 +1844,33 @@
     $.ipc.inheritPrototype(Feedback, $.ipc.Model);
 
     var feedbackErrorCodeInfo = {
-        1000: function(){console.log("email address cannot be empty")},
-        1006: function(){console.log("account is not exist")},
-        1011: function(){console.log("username cannot be empty")},
+        1000: function() {
+            console.log("email address cannot be empty")
+        },
+        1006: function() {
+            console.log("account is not exist")
+        },
+        1011: function() {
+            console.log("username cannot be empty")
+        },
     };
 
-    Feedback.prototype.errorCodeCallbacks = Feedback.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": feedbackErrorCodeInfo});
+    Feedback.prototype.errorCodeCallbacks = Feedback.prototype.extendErrorCodeCallback({
+        "errorCodeCallbackMap": feedbackErrorCodeInfo
+    });
 
     Feedback.prototype.send = function(args, inputCallbacks) {
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
             (!this.validateProductName(args.productName).code && this.validateProductName(args.productName)) ||
             (!this.validateDescription(args.description).code && this.validateDescription(args.description));
-        if (validateResult.code == false) {return validateResult;}; 
+        if (validateResult.code == false) {
+            return validateResult;
+        };
 
         if (undefined == args.problemType) {
             console.error("args error in send");
             return;
-        };       
+        };
 
         var data = {
             'REQUEST': 'EMAILSERVICE',
@@ -1656,15 +1878,15 @@
                 "email": args.account,
                 "subject": "User Feedback",
                 "content": "From:" + args.account + "<br/>" +
-                            "Model: " + args.productName +  "<br/>" +
-                            "Country: " + args.country + "<br/>" +
-                            "Problem: " + args.problemType + "<br/>" +
-                            "Description: " + args.description,
+                    "Model: " + args.productName + "<br/>" +
+                    "Country: " + args.country + "<br/>" +
+                    "Problem: " + args.problemType + "<br/>" +
+                    "Description: " + args.description,
                 "service": "Feedback"
             }
         };
 
-        var changeStateFunc = function(response){
+        var changeStateFunc = function(response) {
             $.extend(true, this, args);
         };
 
@@ -1672,7 +1894,13 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({url: "/init3.php", data: data, callbacks: inputCallbacks, changeState: changeStateFunc, extendAjaxOptions: extendAjaxOptions});
+        this.makeAjaxRequest({
+            url: "/init3.php",
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc,
+            extendAjaxOptions: extendAjaxOptions
+        });
     };
 
     Feedback.prototype.validateAccount = function(tmpAccount) {
@@ -1688,7 +1916,7 @@
             "minLength": 1,
             "attrOutOfLimitMsg": "account out of limit",
             "pattern": /^.*$/,
-            "patternTestFailMsg": tips.types.account.invalid, 
+            "patternTestFailMsg": tips.types.account.invalid,
         };
 
         return this.validateAttr(validateArgs);
@@ -1706,7 +1934,7 @@
             "minLength": 1,
             "attrOutOfLimitMsg": tips.types.contact.description.outOfLimit,
             "pattern": /.*/,
-            "patternTestFailMsg": tips.types.contact.description.invalid, 
+            "patternTestFailMsg": tips.types.contact.description.invalid,
         };
 
         return this.validateAttr(validateArgs);
@@ -1724,7 +1952,7 @@
             "minLength": 1,
             "attrOutOfLimitMsg": "product name is out of limit",
             "pattern": /.*/,
-            "patternTestFailMsg": "product name is invalid", 
+            "patternTestFailMsg": "product name is invalid",
         };
 
         return this.validateAttr(validateArgs);
@@ -1733,11 +1961,11 @@
     $.ipc.Feedback = Feedback;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
     $.ipc = $.ipc || {};
 
-    function Timer () {
+    function Timer() {
         this.timeout = null;
         this.updateIntervalObj = null;
         this.currentTime = 0;
@@ -1766,11 +1994,11 @@
     $.ipc.Timer = Timer;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
     $.ipc = $.ipc || {};
 
-    function getUrl () {
+    function getUrl() {
         var analyticUrlServerTypeMap = {
             "alpha": "https://analytics-alpha.tplinkcloud.com/stat",
             "beta": "https://analytics-beta.tplinkcloud.com/stat"
@@ -1784,9 +2012,9 @@
         return url;
     }
 
-    function Statistics () {
+    function Statistics() {
         $.ipc.Model.call(this, arguments);
-        
+
         this.url = getUrl();
         this.token = null;
 
@@ -1805,7 +2033,7 @@
 
     $.ipc.inheritPrototype(Statistics, $.ipc.Model);
 
-    function FlashStatistics () {
+    function FlashStatistics() {
         Statistics.call(this, arguments);
     };
     $.ipc.inheritPrototype(FlashStatistics, Statistics);
@@ -1831,19 +2059,23 @@
             }
         });
 
-        var extendAjaxOptions = $.extend(true, {headers: {'X-Token': this.token}}, ajaxOptions);
+        var extendAjaxOptions = $.extend(true, {
+            headers: {
+                'X-Token': this.token
+            }
+        }, ajaxOptions);
 
         _self.makeAjaxRequest({
             url: _self.url,
             data: data,
-            callbacks: undefined, 
-            changeState: $.noop, 
+            callbacks: undefined,
+            changeState: $.noop,
             errCodeStrIndex: "errorCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType)
     };
 
-    function PluginStatistics () {
+    function PluginStatistics() {
         Statistics.call(this, arguments);
     }
     $.ipc.inheritPrototype(PluginStatistics, Statistics);
@@ -1863,13 +2095,17 @@
             }
         });
 
-        var extendAjaxOptions = $.extend(true, {headers: {'X-Token': this.token}}, ajaxOptions);
+        var extendAjaxOptions = $.extend(true, {
+            headers: {
+                'X-Token': this.token
+            }
+        }, ajaxOptions);
 
         _self.makeAjaxRequest({
             url: _self.url,
             data: data,
-            callbacks: undefined, 
-            changeState: $.noop, 
+            callbacks: undefined,
+            changeState: $.noop,
             errCodeStrIndex: "errorCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
@@ -1890,14 +2126,14 @@
     $.ipc.stopReasonCodeMap = stopReasonCodeMap;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
     $.ipc = $.ipc || {};
 
     var devicePlayingState = {
-        IDLE : 0,
-        BEGIN_PLAY : 1,
-        RELAY_URL_READY : 2,
+        IDLE: 0,
+        BEGIN_PLAY: 1,
+        RELAY_URL_READY: 2,
         REQUEST_RELAY_SERVICE_SUCCESS: 3,
         RELAY_READY: 4,
         RESOURCE_READY: 5,
@@ -1907,7 +2143,7 @@
         NEED_RELAY_READY_FAILED_TRY: 9
     };
 
-    function NonPluginPlayer(){
+    function NonPluginPlayer() {
         $.ipc.Model.call(this, arguments);
         this.timer = null;
         this.statistics = null;
@@ -1943,14 +2179,28 @@
     };
     $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.Model);
     var playerErrorCodeInfo = {
-        "-20107": function(){console.log("args is invalid")},
-        "-20501": function(){console.log("device is not exist")},
-        "-20571": function(){console.log("device is offline")},
-        "-20651": function(){console.log("token is out of date")},
-        "-20652": function(){console.log("token is error")},
-        "-24002": function(){console.log("Relay connect not ready")}
+        "-20107": function() {
+            console.log("args is invalid")
+        },
+        "-20501": function() {
+            console.log("device is not exist")
+        },
+        "-20571": function() {
+            console.log("device is offline")
+        },
+        "-20651": function() {
+            console.log("token is out of date")
+        },
+        "-20652": function() {
+            console.log("token is error")
+        },
+        "-24002": function() {
+            console.log("Relay connect not ready")
+        }
     };
-    NonPluginPlayer.prototype.errorCodeCallbacks = NonPluginPlayer.prototype.extendErrorCodeCallback({"errorCodeCallbackMap": playerErrorCodeInfo});
+    NonPluginPlayer.prototype.errorCodeCallbacks = NonPluginPlayer.prototype.extendErrorCodeCallback({
+        "errorCodeCallbackMap": playerErrorCodeInfo
+    });
 
     NonPluginPlayer.prototype.clearRubbish = function() {
         this.stateChangeCallback.empty();
@@ -1959,17 +2209,17 @@
     };
 
     NonPluginPlayer.prototype.clearLastStepRubbish = function() {
-       for (var i = 0; i < this.rubbisAjaxArr.length; i++) {
-           this.rubbisAjaxArr[i].abort();
-       };
-       delete this.rubbisAjaxArr;
-       this.rubbisAjaxArr = [];
+        for (var i = 0; i < this.rubbisAjaxArr.length; i++) {
+            this.rubbisAjaxArr[i].abort();
+        };
+        delete this.rubbisAjaxArr;
+        this.rubbisAjaxArr = [];
 
-       for (var i = 0; i < this.rubbisIntervalObjArr.length; i++) {
-           clearInterval(this.rubbisIntervalObjArr[i]); 
-       };
-       delete this.rubbisIntervalObjArr;
-       this.rubbisIntervalObjArr = [];
+        for (var i = 0; i < this.rubbisIntervalObjArr.length; i++) {
+            clearInterval(this.rubbisIntervalObjArr[i]);
+        };
+        delete this.rubbisIntervalObjArr;
+        this.rubbisIntervalObjArr = [];
     };
 
     NonPluginPlayer.prototype.back2Idle = function(stopReasonCode) {
@@ -2006,7 +2256,7 @@
 
         console.log("retry full nonPluginPlayer flow due to device is not reachable: " + _self.currentNetErrRetryCnt);
         if (_self.currentNetErrRetryCnt <= _self.maxNetErrRetryCnt) {
-            setTimeout(function () {
+            setTimeout(function() {
                 _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
             }, 1000);
         } else {
@@ -2041,7 +2291,7 @@
 
     NonPluginPlayer.prototype.getRelayUrl = function(args, inputCallbacks) {
         var _self = this;
-        
+
         if (_self.device.relayUrl) {
             _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
             return;
@@ -2078,17 +2328,17 @@
             url: _self.generateAjaxUrl({
                 appServerUrl: _self.device.appServerUrl,
                 token: _self.device.owner.token,
-            }), 
-            data: data, 
-            callbacks: inputCallbacks, 
-            changeState: changeStateFunc, 
+            }),
+            data: data,
+            callbacks: inputCallbacks,
+            changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
             extendAjaxOptions: extendAjaxOptions
         };
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
         _self.rubbisAjaxArr.push(ajaxObj);
-    };    
+    };
 
     NonPluginPlayer.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
         var _self = this;
@@ -2135,10 +2385,10 @@
             url: _self.generateAjaxUrl({
                 appServerUrl: _self.device.appServerUrl,
                 token: _self.device.owner.token,
-            }), 
-            data: data, 
-            callbacks: undefined, 
-            changeState: changeStateFunc, 
+            }),
+            data: data,
+            callbacks: undefined,
+            changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
             extendAjaxOptions: extendAjaxOptions
         };
@@ -2178,18 +2428,18 @@
             url: _self.generateAjaxUrl({
                 appServerUrl: _self.device.appServerUrl,
                 token: _self.device.owner.token,
-            }), 
-            data: data, 
-            callbacks: undefined, 
-            changeState: changeStateFunc, 
+            }),
+            data: data,
+            callbacks: undefined,
+            changeState: changeStateFunc,
             errCodeStrIndex: "error_code"
         };
         var currentCount = 1;
-        
+
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
         _self.rubbisAjaxArr.push(ajaxObj);
         var intervalObj = setInterval(function() {
-            ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType); 
+            ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
             _self.rubbisAjaxArr.push(ajaxObj);
             currentCount += 1;
             if (currentCount >= _self.queryIsRelayReadyAjaxLimit) {
@@ -2220,7 +2470,7 @@
         var playArgs = {
             resourcePath: _self.getResourcePath()
         }
-        
+
         this.setupPlayer(playArgs);
     };
 
@@ -2260,16 +2510,16 @@
         var _self = this;
         var resourceArgs = _self.getAuthArgs();
         var str = "";
-        str += _self.protocol + _self.device.relayUrl + ":" + 
-                _self.port + "/" + _self.resourceAppName + "/?" +
-                resourceArgs + "flv:" + _self.device.resId;
+        str += _self.protocol + _self.device.relayUrl + ":" +
+            _self.port + "/" + _self.resourceAppName + "/?" +
+            resourceArgs + "flv:" + _self.device.resId;
         return str;
     };
 
     RtmpPlayer.prototype.setupPlayer = function(args) {
         var _self = this;
         _self.playerRenderFunc(_self.device);
-        
+
         if (_self.playerObj) {
             _self.playerObj.remove();
         };
@@ -2278,14 +2528,16 @@
         var height = _self.device.currentVideoResolution.playerContainerCss.player.height;
 
         var options = {
-            width : width,
-            height : height,
+            width: width,
+            height: height,
             playlist: [{
                 sources: [{
                     file: args.resourcePath
                 }]
             }],
-            rtmp: { bufferlength: 0.1},
+            rtmp: {
+                bufferlength: 0.1
+            },
             displaytitle: false,
             mute: false,
             ph: 1,
@@ -2308,7 +2560,7 @@
             console.log("player ready");
         });
 
-        newPlayer.on('setupError', function(e){
+        newPlayer.on('setupError', function(e) {
             _self.playerObjErrorCallbacks.fire(e);
         });
 
@@ -2317,34 +2569,34 @@
             _self.hideCoverFunc();
         })
 
-        newPlayer.on('playlist', function(){
+        newPlayer.on('playlist', function() {
             newPlayer.play();
         });
 
-        newPlayer.on('idle', function () {
+        newPlayer.on('idle', function() {
             _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.stopReason.push($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
         });
 
-        newPlayer.on('pause', function () {
+        newPlayer.on('pause', function() {
             _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.stopReason.push($.ipc.stopReasonCodeMap.USER_STOPPED_VIDEO);
         });
 
-        newPlayer.on('buffer', function () {
+        newPlayer.on('buffer', function() {
             console.log("buffer");
         });
 
-        newPlayer.on('bufferChange', function () {
+        newPlayer.on('bufferChange', function() {
             console.log("bufferChange");
         });
 
-        newPlayer.on('complete', function () {
+        newPlayer.on('complete', function() {
             if (_self.timer.currentTime >= _self.timer.timeout - _self.timer.networkFactorDelta) {
                 _self.timer.currentTime == _self.timer.timeout;
             } else {
                 _self.playerObjErrorCallbacks.fire();
             }
         });
-        newPlayer.on('error', function () {
+        newPlayer.on('error', function() {
             _self.playerObjErrorCallbacks.fire();
         });
 
@@ -2407,7 +2659,7 @@
                 relayUrl: _self.device.relayUrl
             });
             var currentCount = 1;
-            var errorCallback = function(){
+            var errorCallback = function() {
                 if (currentCount < 3) {
                     currentCount += 1;
                     _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
@@ -2417,9 +2669,9 @@
             var extendRequestArgs = {
                 callbacks: {
                     "errorCodeCallbackMap": {
-                        "-1" : errorCallback
+                        "-1": errorCallback
                     },
-                    "errorCallback" : errorCallback
+                    "errorCallback": errorCallback
                 }
             }
             requestArgs = $.extend(true, requestArgs, extendRequestArgs);
@@ -2447,7 +2699,7 @@
                 }
             };
 
-            var changeStateFunc = function (response) {
+            var changeStateFunc = function(response) {
                 _self.device.resId = response.msg.resourceid;
                 _self.changeStateTo(devicePlayingState.RESOURCE_READY);
                 _self.timer.start();
@@ -2460,9 +2712,9 @@
             var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
 
             var requestArgs = {
-                url: urlPrefix + "/init3.php", 
-                data: data, 
-                callbacks: undefined, 
+                url: urlPrefix + "/init3.php",
+                data: data,
+                callbacks: undefined,
                 changeState: changeStateFunc,
                 extendAjaxOptions: extendAjaxOptions
             };
@@ -2471,7 +2723,7 @@
         } else {
             console.error("args error");
         }
-        
+
     };
 
     RtmpPlayer.prototype.queryResid = function() {
@@ -2508,7 +2760,7 @@
         };
         this.curResFailedRtryReqRlySrvCnt = 0;
     };
-    
+
     $.ipc.RtmpPlayer = RtmpPlayer;
 
 
@@ -2558,19 +2810,22 @@
 
     ImgPlayer.prototype.getResourcePath = function(first_argument) {
         var _self = this;
-        var videoUrl = _self.protocol + _self.device.relayUrl + ":" 
-            + _self.port + "/relayservice?" + $.param({
-                deviceid: _self.device.id,
-                type: "video",
-                resolution: _self.device.currentVideoResolution.name,
-                "X-token": _self.device.owner.token});
-        var audioUrl = _self.protocol + _self.device.relayUrl + ":" 
-            + _self.port + "/relayservice?" + $.param({
-                deviceid: _self.device.id,
-                type: "audio",
-                resolution: _self.device.product.audioCodec.name,
-                "X-token": _self.device.owner.token});
-        return {videoUrl: videoUrl, audioUrl: audioUrl};
+        var videoUrl = _self.protocol + _self.device.relayUrl + ":" + _self.port + "/relayservice?" + $.param({
+            deviceid: _self.device.id,
+            type: "video",
+            resolution: _self.device.currentVideoResolution.name,
+            "X-token": _self.device.owner.token
+        });
+        var audioUrl = _self.protocol + _self.device.relayUrl + ":" + _self.port + "/relayservice?" + $.param({
+            deviceid: _self.device.id,
+            type: "audio",
+            resolution: _self.device.product.audioCodec.name,
+            "X-token": _self.device.owner.token
+        });
+        return {
+            videoUrl: videoUrl,
+            audioUrl: audioUrl
+        };
     };
 
     ImgPlayer.prototype.setupPlayer = function(playArgs) {
@@ -2581,7 +2836,7 @@
         var height = _self.device.currentVideoResolution.playerContainerCss.player.height;
         $("#" + _self.playerElementId).width(width).height(height);
         $("#" + _self.playerElementId).attr("src", playArgs.resourcePath.videoUrl);
-        $("#" + _self.playerElementId).on('load', function(){
+        $("#" + _self.playerElementId).on('load', function() {
             _self.timer && _self.timer.start();
             _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.success.push(_self.statistics.SUCCESS);
             _self.playerRenderFunc(_self.device);
@@ -2623,9 +2878,9 @@
         var urlPrefix = _self.device.BACK_END_WEB_PROTOCAL + _self.device.webServerUrl;
 
         var requestArgs = {
-            url: urlPrefix + "/init3.php", 
-            data: data, 
-            callbacks: undefined, 
+            url: urlPrefix + "/init3.php",
+            data: data,
+            callbacks: undefined,
             changeState: $.noop,
             extendAjaxOptions: extendAjaxOptions
         };
@@ -2637,7 +2892,10 @@
         var _self = this;
         for (var key in $.cookie()) {
             if (key.indexOf("X-Client-Id") >= 0) {
-                var args = {relaySessionId: $.cookie(key), ELBcookie: _self.device.ELBcookie}
+                var args = {
+                    relaySessionId: $.cookie(key),
+                    ELBcookie: _self.device.ELBcookie
+                }
                 _self.killGetImgClient(args);
                 $.removeCookie(key);
             };
@@ -2653,18 +2911,18 @@
     $.ipc.ImgPlayer = ImgPlayer;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
     var devicePlayingState = {
-        IDLE : 0,
-        BEGIN_PLAY : 1,
+        IDLE: 0,
+        BEGIN_PLAY: 1,
         DEVICE_LOCAL_INFO_READY: 2
     };
 
-    function PluginPlayer () {
+    function PluginPlayer() {
         $.ipc.Model.call(this, arguments);
         this.device = null;
         this.playerObj = null;
@@ -2780,7 +3038,7 @@
         var device = this.device;
         var supportVideoResArr = this.device.product.supportVideoResArr;
         for (var i = 0; i < supportVideoResArr.length; i++) {
-            if(supportVideoResArr[i].name == resolutionStr) {
+            if (supportVideoResArr[i].name == resolutionStr) {
                 device.currentVideoResolution = supportVideoResArr[i];
             }
         };
@@ -2790,7 +3048,7 @@
         var _self = this;
         var maxTryCount = 32;
         var currentTryIndex = 0;
-        var interval = setInterval(function(){
+        var interval = setInterval(function() {
             if (_self.playerObj.resolution) {
                 clearInterval(interval);
                 _self.updateDeviceResAtVideoReady(_self.playerObj.resolution);
@@ -2861,13 +3119,13 @@
         };
         return args.appServerUrl + "/?token=" + args.token;
     };
-    
 
-    function MjpegPluginPlayer () {
+
+    function MjpegPluginPlayer() {
         PluginPlayer.call(this, arguments);
     };
     $.ipc.inheritPrototype(MjpegPluginPlayer, PluginPlayer);
-   
+
 
     MjpegPluginPlayer.prototype.feedMyArgs = function() {};
 
@@ -2896,15 +3154,15 @@
             }
         });
 
-        var changeStateFunc = function (response) {
+        var changeStateFunc = function(response) {
             this.playerObj.PlayVideo();
             this.playerObj.PlayAudio();
         };
         var callbacks = {
             "errorCodeCallbackMap": {
-                "-1" : $.proxy(changeStateFunc, _self)
+                "-1": $.proxy(changeStateFunc, _self)
             },
-            "errorCallback" : $.proxy(changeStateFunc, _self)
+            "errorCallback": $.proxy(changeStateFunc, _self)
         };
 
         var args = {
@@ -2913,18 +3171,18 @@
                 token: _self.device.owner.token,
             }),
             data: data,
-            callbacks: callbacks, 
+            callbacks: callbacks,
             changeState: changeStateFunc
         };
         _self.makeAjaxRequest(args, $.xAjax.defaults.xType);
     };
 
 
-    function H264PluginPlayer () {
+    function H264PluginPlayer() {
         PluginPlayer.call(this, arguments);
     };
     $.ipc.inheritPrototype(H264PluginPlayer, PluginPlayer);
-    
+
     H264PluginPlayer.prototype.feedMyArgs = function() {
         var _self = this;
         _self.playerObj.streamtype = _self.device.product.videoCodec.pluginStreamTypeCode;
@@ -2942,4 +3200,3 @@
     $.ipc.H264PluginPlayer = H264PluginPlayer;
     $.ipc.MjpegPluginPlayer = MjpegPluginPlayer;
 })(jQuery);
- 

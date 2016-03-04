@@ -1,17 +1,17 @@
-(function () {
-    Function.prototype.before = function (func) {
+(function() {
+    Function.prototype.before = function(func) {
         var _self = this;
-        return function () {
-            if (func.apply( this, arguments) === false) {
+        return function() {
+            if (func.apply(this, arguments) === false) {
                 return false;
             };
             return _self.apply(this, arguments);
         }
     };
 
-    Function.prototype.after = function (func) {
+    Function.prototype.after = function(func) {
         var _self = this;
-        return function () {
+        return function() {
             var ret = _self.apply(this, arguments);
             if (ret === false) {
                 return false;
@@ -21,47 +21,48 @@
         }
     };
 })();
-(function ($) {
+(function($) {
 
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function findBrowserOS () {
-        if (navigator.appVersion.indexOf("Win")!=-1) return "Windows";
-        if (navigator.appVersion.indexOf("Mac")!=-1) return "MacOS";
-        if (navigator.appVersion.indexOf("X11")!=-1) return "Unix";
-        if (navigator.appVersion.indexOf("Linux")!=-1) return "Linux";
+    function findBrowserOS() {
+        if (navigator.appVersion.indexOf("Win") != -1) return "Windows";
+        if (navigator.appVersion.indexOf("Mac") != -1) return "MacOS";
+        if (navigator.appVersion.indexOf("X11") != -1) return "Unix";
+        if (navigator.appVersion.indexOf("Linux") != -1) return "Linux";
         return "unkown OS";
     }
 
-    function findBrowserTypeVersion(){
-        var ua= navigator.userAgent, tem, 
-        M= ua.match(/(opera|chrome|safari|firefox|msie|edge|trident(?=\/))\/?\s*(\d+)/i) || [];
+    function findBrowserTypeVersion() {
+        var ua = navigator.userAgent,
+            tem,
+            M = ua.match(/(opera|chrome|safari|firefox|msie|edge|trident(?=\/))\/?\s*(\d+)/i) || [];
         for (var ieVer = 0; ieVer < 12; ieVer++) {
             var b = document.createElement('b')
             b.innerHTML = '<!--[if IE ' + ieVer + ']><i></i><![endif]-->';
-            if( b.getElementsByTagName('i').length === 1 ) {
+            if (b.getElementsByTagName('i').length === 1) {
                 return "MSIE " + ieVer;
             };
         };
-        if(/trident/i.test(M[1])){
-            tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
-            return 'MSIE '+(tem[1] || '');
+        if (/trident/i.test(M[1])) {
+            tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+            return 'MSIE ' + (tem[1] || '');
         }
-        if(M[1]=== 'Chrome'){
-            tem= ua.match(/\bOPR\/(\d+)/);
-            if(tem!= null) return 'Opera '+tem[1];
+        if (M[1] === 'Chrome') {
+            tem = ua.match(/\bOPR\/(\d+)/);
+            if (tem != null) return 'Opera ' + tem[1];
             tem = ua.match(/Edge\/(\d+)/);
-            if(tem!= null) return 'Edge '+tem[1];
+            if (tem != null) return 'Edge ' + tem[1];
         }
-        M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-        if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+        M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+        if ((tem = ua.match(/version\/(\d+)/i)) != null) M.splice(1, 1, tem[1]);
         return M.join(' ');
     };
 
     var browserTypeVersion = findBrowserTypeVersion();
-    
+
     function Browser() {};
     Browser.prototype.os = findBrowserOS();
     Browser.prototype.platform = navigator.platform;
@@ -73,12 +74,12 @@
 })(jQuery);
 
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
 
-    function ieXDomainAjax(options){    
+    function ieXDomainAjax(options) {
         if (window.XDomainRequest == undefined) {
             console.error("no XDomainRequest in current browser");
             return;
@@ -96,24 +97,24 @@
             return;
         };
 
-        xdr.onerror = function(){
-            (options.error || function(xdr){})(xdr);
+        xdr.onerror = function() {
+            (options.error || function(xdr) {})(xdr);
         }
 
-        xdr.ontimeout = function(){
-            (options.error || function(xdr){})(xdr);
+        xdr.ontimeout = function() {
+            (options.error || function(xdr) {})(xdr);
         }
 
-        xdr.onload = function(){
+        xdr.onload = function() {
             var response = $.parseJSON(xdr.responseText);
-            (options.success || function(resp){})(response);
+            (options.success || function(resp) {})(response);
         }
 
-        xdr.onprogress = function(){
-            (options.onprogress || function(xdr){})(xdr);
+        xdr.onprogress = function() {
+            (options.onprogress || function(xdr) {})(xdr);
         }
 
-        if (newOptions.contentType.indexOf("x-www-form-urlencoded")>=0) {
+        if (newOptions.contentType.indexOf("x-www-form-urlencoded") >= 0) {
             newOptions.data = $.param(newOptions.data);
         };
 
@@ -122,27 +123,27 @@
         xdr.send(newOptions.data);
     };
 
-    function normalAjax (options) {
+    function normalAjax(options) {
         var newOptions = $.extend(true, {}, $.xAjax.normalAjaxDefaults, options);
-    
+
         if (newOptions.url == undefined) {
             console.error("options.url in undefined in normalAjax");
             return;
         }
 
-        newOptions.beforeSend = function(){
-            (options.beforeSend || function(){})();
+        newOptions.beforeSend = function() {
+            (options.beforeSend || function() {})();
         }
-        newOptions.complete = function(xhr){
+        newOptions.complete = function(xhr) {
             var ajaxContext = this;
-            $.proxy((options.complete || function(xhr){}), ajaxContext)(xhr);
+            $.proxy((options.complete || function(xhr) {}), ajaxContext)(xhr);
         }
-        newOptions.error = function(xhr){
-            (options.error || function(xhr){})(xhr);
+        newOptions.error = function(xhr) {
+            (options.error || function(xhr) {})(xhr);
         }
-        newOptions.success = function(response){
+        newOptions.success = function(response) {
             var ajaxContext = this;
-            $.proxy((options.success || function(resp){}), ajaxContext)(response);
+            $.proxy((options.success || function(resp) {}), ajaxContext)(response);
         }
 
         var ajaxObj = $.ajax(newOptions);
@@ -155,7 +156,7 @@
         "MSIE 10": ieXDomainAjax
     };
 
-    $.xAjax = function(options, xDomain){
+    $.xAjax = function(options, xDomain) {
         var ajaxFunction = xDomainAjaxMap[xDomain] || normalAjax;
         var ajaxObj = ajaxFunction(options);
         return ajaxObj;
@@ -164,23 +165,25 @@
     $.xAjax.normalAjaxDefaults = {
         type: "post",
         data: {},
-        dataType: "json",              
+        dataType: "json",
         cache: false,
         contentType: "application/json;charset=utf-8",
-        headers: {Accept: "application/json, */*; version=1.0; charset=utf-8;"},
+        headers: {
+            Accept: "application/json, */*; version=1.0; charset=utf-8;"
+        },
         timeout: 60000,
         async: true,
         global: false
     };
 
     $.xAjax.ieXDomainAjaxDefaults = {
-        timeout : 60000,
-        type : "post",
-        data : {}
+        timeout: 60000,
+        type: "post",
+        data: {}
     };
 
     $.xAjax.defaults = {
-        xType : "xDomain"
+        xType: "xDomain"
     };
 
     var xDomainStr = $.xAjax.defaults.xType;
@@ -189,7 +192,7 @@
 
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -230,11 +233,9 @@
 
             if (v1parts[i] == v2parts[i]) {
                 continue;
-            }
-            else if (v1parts[i] > v2parts[i]) {
+            } else if (v1parts[i] > v2parts[i]) {
                 return 1;
-            }
-            else {
+            } else {
                 return -1;
             }
         }

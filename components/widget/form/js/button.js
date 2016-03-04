@@ -1,10 +1,10 @@
-(function($){
-    $.fn.Button = function(){
+(function($) {
+    $.fn.Button = function() {
         var currentButton = $(this);
         currentButton.addClass("widget-button");
     }
-    $(function(){
-        $('.button').each(function(){
+    $(function() {
+        $('.button').each(function() {
             $(this).Button();
         });
     })

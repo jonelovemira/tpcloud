@@ -1,8 +1,8 @@
-$(function (){
+$(function() {
     function User() {
         $.ipc.User.call(this, arguments);
     };
-    
+
     $.ipc.inheritPrototype(User, $.ipc.User);
     User.prototype.successLoginCallbacks = $.Callbacks("unique stopOnFalse");
 
@@ -13,14 +13,26 @@ $(function (){
     $.ipc.inheritPrototype(UserController, $.ipc.BaseController);
 
 
-    UserController.prototype.initHandler = function(){
+    UserController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
-            "#submit_btn": {"click": this.loginUser},
-            "#Password": {"keydown": this.passwordInputKeyDown},
-            ".product_information_btn_download": {"click": this.locationToDownload},
-            ".product_information_btn_learnmore": {"click": this.locationToLearnMore},
-            "input.checkbox[name=remember]": {"keydown": this.rememberCheckboxKeyDown},
-            ".closetips": {"click": this.hideErrorTips}
+            "#submit_btn": {
+                "click": this.loginUser
+            },
+            "#Password": {
+                "keydown": this.passwordInputKeyDown
+            },
+            ".product_information_btn_download": {
+                "click": this.locationToDownload
+            },
+            ".product_information_btn_learnmore": {
+                "click": this.locationToLearnMore
+            },
+            "input.checkbox[name=remember]": {
+                "keydown": this.rememberCheckboxKeyDown
+            },
+            ".closetips": {
+                "click": this.hideErrorTips
+            }
         };
 
         var selectorMsgProduceFuncMap = {};
@@ -29,11 +41,14 @@ $(function (){
     };
 
     UserController.prototype.loginUser = function() {
-        
+
         this.rememberUserLogic();
         var account = $("#Account").val();
-        
-        var args = {account: $("#Account").val(), password: $("#Password").val()};
+
+        var args = {
+            account: $("#Account").val(),
+            password: $("#Password").val()
+        };
 
         var currentController = this;
 
@@ -56,7 +71,7 @@ $(function (){
                     $.cookie("email", result.email);
                     $.cookie("token", result.token);
                     $.cookie("account", account);
-                    
+
                     currentController.model.successLoginCallbacks.fire();
                 },
                 1006: function() {
@@ -74,11 +89,11 @@ $(function (){
                 1029: function() {
                     currentController.view.renderLoginError(errCodeTipsMap[1029]);
                 },
-                "-1" : function() {
+                "-1": function() {
                     currentController.view.renderLoginError(errCodeTipsMap["-1"]);
                 }
             },
-            "errorCallback" : function() {
+            "errorCallback": function() {
                 currentController.view.renderLoginError(errCodeTipsMap["-1"]);
             }
         };
@@ -102,9 +117,17 @@ $(function (){
         this.model.setRememberMe($("input.checkbox[name=remember]").is(":checked"));
         if (this.model.rememberMe) {
             var userName = $("#Account").val();
-            userName && $.cookie("rmbUser", "true", {expires: 7}) && $.cookie("userName", userName, {expires: 7});
+            userName && $.cookie("rmbUser", "true", {
+                expires: 7
+            }) && $.cookie("userName", userName, {
+                expires: 7
+            });
         } else {
-            $.cookie("rmbUser", "", {expires: -1}) && $.cookie("userName", '', {expires: -1});
+            $.cookie("rmbUser", "", {
+                expires: -1
+            }) && $.cookie("userName", '', {
+                expires: -1
+            });
         };
     };
 
@@ -135,7 +158,7 @@ $(function (){
     };
 
     UserController.prototype.locationToLearnMore = function() {
-        window.open("http://www.tp-link.com/en/products/details/?categoryid=&model=NC200","_blank");
+        window.open("http://www.tp-link.com/en/products/details/?categoryid=&model=NC200", "_blank");
     };
 
     function UserView() {
@@ -190,7 +213,7 @@ $(function (){
     };
 
     UserView.prototype.renderInitRememberMe = function() {
-        if(this.model.rememberMe && this.model.account) {
+        if (this.model.rememberMe && this.model.account) {
             var rememberMe = this.model.rememberMe == true ? true : false;
             rememberMe && !$("input.checkbox[name=remember]").is(":checked") && $("#remember").click();
             $("#Account").val(this.model.account);
@@ -207,14 +230,14 @@ $(function (){
 
     $.ipc.inheritPrototype(DeviceList, $.ipc.DeviceList);
 
-    function DeviceListController () {
+    function DeviceListController() {
         $.ipc.BaseController.call(this, arguments);
     };
 
     $.ipc.inheritPrototype(DeviceListController, $.ipc.BaseController);
 
     DeviceListController.prototype.getUpgradeList = function() {
-        
+
         var currentController = this;
 
         var inputCallbacks = {
@@ -224,7 +247,7 @@ $(function (){
                         currentController.model.upgradeList.length > 0) {
                         var contextUpgradeAll = $.proxy(currentController.upgradeSomeDevice, currentController);
                         var options = {
-                            "confirm" : contextUpgradeAll,
+                            "confirm": contextUpgradeAll,
                             "cancel": currentController.gotoAdmin
                         };
                         currentController.view.showUpgradeOptions(options);
@@ -260,12 +283,12 @@ $(function (){
         currentController.model.upgradeAll(inputCallbacks);
     };
 
-    function DeviceListView () {
+    function DeviceListView() {
         this.model = null;
     };
 
     DeviceListView.prototype.showUpgradeOptions = function(options) {
-        
+
         if (options && options["confirm"] && options["cancel"]) {
             var tipInfo = tips.types.firmware.needUpgrade;
             var displayOptions = {
@@ -281,8 +304,8 @@ $(function (){
             console.error("args error in showUpgradeOptions");
         };
     };
-    
-    
+
+
     var u = new User();
     var uc = new UserController();
     var uv = new UserView();
@@ -298,8 +321,8 @@ $(function (){
     dlc.model = dl;
     dlc.view = dlv;
     dlv.model = dl;
-    
-    
+
+
     uc.initHandler();
 
     var contextRememberUserFunc = $.proxy(uv.renderInitRememberMe, uv);

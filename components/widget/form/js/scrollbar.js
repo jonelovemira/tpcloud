@@ -24,15 +24,15 @@
                 var rawAmmount = event.originalEvent.deltaY ? event.originalEvent.deltaY : event.originalEvent.detail;
                 normalized = -(rawAmmount % 3 ? rawAmmount * 10 : rawAmmount / 3);
             }
-            return normalized*120;
+            return normalized * 120;
         }
     };
 
-    $.fn.Scrollbar = function(options)  {
+    $.fn.Scrollbar = function(options) {
         var $target = options.target,
             // $holder = options.holder,
             $holder = $(this);
-            revert = options.revert == false ? false : true,
+        revert = options.revert == false ? false : true,
             overflowFlag = options.overflowFlag || false;
 
         function handleMouseWheel(event) {
@@ -92,7 +92,9 @@
                     //  height: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
                 });
 
-                var ration = {}, dd = {}, $scrollVerticalBlock = $holder.find(".scrollBar-vertical .scroll-area .scroll-block");
+                var ration = {},
+                    dd = {},
+                    $scrollVerticalBlock = $holder.find(".scrollBar-vertical .scroll-area .scroll-block");
                 EventUtil.addHandler($target.first(), handleMouseWheel);
             } else { //有滚动条，block位置重置
 
@@ -174,13 +176,13 @@
             containment: 'parent',
             drag: function(event, ui) {
                 var ration = {
-                    top: ui.position.top / (ui.helper.parent().height() - ui.helper.height()),
-                    left: ui.position.left / (ui.helper.parent().width() - ui.helper.width())
-                },
-                dd = {
-                    top: ($target.height() - $holder.height()) * ration.top,
-                    left: ($target.width() - $holder.width()) * ration.left
-                };
+                        top: ui.position.top / (ui.helper.parent().height() - ui.helper.height()),
+                        left: ui.position.left / (ui.helper.parent().width() - ui.helper.width())
+                    },
+                    dd = {
+                        top: ($target.height() - $holder.height()) * ration.top,
+                        left: ($target.width() - $holder.width()) * ration.left
+                    };
                 /*block隐藏掉会影响jquery position对象*/
 
                 $target.css({
@@ -193,19 +195,20 @@
             }
         });
     }
-    
+
 })(jQuery)
+
 function stopBubble(event) {
     if (event.cancelBubble != undefined) {
         event.cancelBubble = true;
         event.returnValue = false;
         event.preventDefault()
         event.stopPropagation();
-    } else if (event.originalEvent != undefined){
+    } else if (event.originalEvent != undefined) {
         event.originalEvent.cancelBubble = true;
         event.originalEvent.returnValue = false;
         event.originalEvent.preventDefault()
         event.originalEvent.stopPropagation();
         return false;
-    }    
+    }
 }

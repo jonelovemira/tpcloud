@@ -1,13 +1,13 @@
-$(function () {
+$(function() {
 
-    function User () {
+    function User() {
         $.ipc.User.call(this, arguments);
         this.activateDeviceAdminCallback = $.Callbacks("unique stopOnFalse");
     };
 
     $.ipc.inheritPrototype(User, $.ipc.User);
 
-    function UserController () {
+    function UserController() {
         $.ipc.BaseController.call(this, arguments);
     }
 
@@ -15,25 +15,35 @@ $(function () {
 
     UserController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
-            "#logout": {"click": this.logoutUser},
-            "#userinfo-title-changepwd": {"click": this.gotoChangePassword},
-            "#backaccount": {"click": this.backaccountClickCallback},
-            "#changepwd": {"click": this.changePassword},
-            "#device": {"click": this.devTabClickCallback}
+            "#logout": {
+                "click": this.logoutUser
+            },
+            "#userinfo-title-changepwd": {
+                "click": this.gotoChangePassword
+            },
+            "#backaccount": {
+                "click": this.backaccountClickCallback
+            },
+            "#changepwd": {
+                "click": this.changePassword
+            },
+            "#device": {
+                "click": this.devTabClickCallback
+            }
         };
         var selectorMsgProduceFuncMap = {};
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
     };
 
     UserController.prototype.devTabClickCallback = function() {
-        if(!$("#device").hasClass("navselected")) {
+        if (!$("#device").hasClass("navselected")) {
             this.view.renderDeviceAdmin();
             this.model.activateDeviceAdminCallback.fire();
         }
     };
 
     UserController.prototype.accountTabClickCallback = function() {
-        if(!$("#account").hasClass("navselected")) {
+        if (!$("#account").hasClass("navselected")) {
             this.view.renderAccountAdmin();
         }
     };
@@ -45,7 +55,9 @@ $(function () {
     UserController.prototype.logoutUser = function() {
         var currentController = this;
 
-        var args = {email: currentController.model.email};
+        var args = {
+            email: currentController.model.email
+        };
 
         var errCodeTipsMap = {
             "-1": tips.actions.logout.failed
@@ -56,11 +68,11 @@ $(function () {
                 0: function() {
                     currentController.gotoPage("/");
                 },
-                "-1" : function() {
+                "-1": function() {
                     currentController.view.renderError(errCodeTipsMap["-1"]);
                 }
             },
-            "errorCallback" : function() {
+            "errorCallback": function() {
                 currentController.view.renderError(errCodeTipsMap["-1"]);
             }
         };
@@ -78,9 +90,9 @@ $(function () {
         var newPassword = $('#newpwd').val();
         var newPasswordSecond = $("#cfpwd").val();
         var args = {
-            account: currentController.model.account, 
-            password: password, 
-            newPassword: newPassword, 
+            account: currentController.model.account,
+            password: password,
+            newPassword: newPassword,
             newPasswordSecond: newPasswordSecond
         };
 
@@ -95,7 +107,7 @@ $(function () {
                 0: function() {
                     currentController.changePasswordSuccess();
                 },
-                "-1" : function() {
+                "-1": function() {
                     currentController.view.renderError(errCodeTipsMap["-1"]);
                 },
                 "1023": function() {
@@ -105,7 +117,7 @@ $(function () {
                     currentController.view.renderError(errCodeTipsMap["1024"]);
                 }
             },
-            "errorCallback" : function() {
+            "errorCallback": function() {
                 currentController.view.renderError(errCodeTipsMap["-1"]);
             }
         };
@@ -113,17 +125,17 @@ $(function () {
         if (validateResult != undefined && !validateResult.code) {
             currentController.view.renderError(validateResult.msg);
         };
-    
+
     };
 
     UserController.prototype.changePasswordSuccess = function() {
         var currentController = this;
         var alertOptions = {
             "info": tips.actions.changePassword.success,
-            ok : function(){
+            ok: function() {
                 currentController.gotoPage("/");
             },
-            cancel : function(){
+            cancel: function() {
                 currentController.gotoPage("/");
             }
         };
@@ -142,12 +154,12 @@ $(function () {
     };
 
 
-    function UserView () {
+    function UserView() {
         this.model = null;
     }
 
     UserView.prototype.renderUserInfo = function() {
-        if(undefined == this.model.email) {
+        if (undefined == this.model.email) {
             console.error("args error in showWelcomeInfo");
             return;
         };
@@ -161,7 +173,9 @@ $(function () {
             console.error("args error in renderError");
         };
 
-        this.renderAlert({"info": errorMsg});
+        this.renderAlert({
+            "info": errorMsg
+        });
     };
 
     UserView.prototype.renderAlert = function(options) {
@@ -230,9 +244,9 @@ $(function () {
     };
 
     UserView.prototype.activateNav = function(elementSelector) {
-        elementSelector != undefined && 
-        $(".navstitle-title").removeClass("navselected") &&
-        $(elementSelector).addClass("navselected");
+        elementSelector != undefined &&
+            $(".navstitle-title").removeClass("navselected") &&
+            $(elementSelector).addClass("navselected");
     };
 
     UserView.prototype.renderAccountAdmin = function() {
@@ -277,29 +291,76 @@ $(function () {
 
     DeviceListController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
-            "#dev-right-arrow": {"click": this.showNextDevicePage},
-            "#dev-left-arrow": {"click": this.showPreDevicePage},
-            "#dev-setting-save": {"click": this.changeDeviceName},
-            "#dev-setting-remove": {"click": this.makeRemoveConfirm},
-            "#live-view-tab": {"click": this.liveView},
-            "#setting-tab": {"click": this.settingShow},
-            "#reload": {"click": this.refreshCameraInfo},
-            ".dev-item": {"click": this.changeActiveDevice},
-            "#upgrade-device": {"click": this.upgradeDevice},
-            "#volume-bar": {"slidestop": this.volumeChangeCallback},
-            "#zoom-bar": {"slidestop": this.setZoom},
-            "#continue": {"click": this.continuePlay},
-            "#refresh": {"click": this.refreshCameraInfo},
-            "#zoom-in": {"click": this.zoomIn},
-            "#zoom-out": {"click": this.zoomOut},
-            "#take-picture": {"click": this.takePicture},
-            "#video-record-start": {"click": this.videoRecordStart},
-            "#video-record-stop": {"click": this.videoRecordStop},
-            ".volume-open": {"click": this.volumeMute},
-            ".volume-mute": {"click": this.volumeOpen},
-            "#resolution-select": {"beforeChange": this.beforeChangeRes, "change": this.setResolution},
-            "#failed-back-button": {"click": this.upgradeFailedBack},
-            "#account": {"click": this.accountTabClickCallback}
+            "#dev-right-arrow": {
+                "click": this.showNextDevicePage
+            },
+            "#dev-left-arrow": {
+                "click": this.showPreDevicePage
+            },
+            "#dev-setting-save": {
+                "click": this.changeDeviceName
+            },
+            "#dev-setting-remove": {
+                "click": this.makeRemoveConfirm
+            },
+            "#live-view-tab": {
+                "click": this.liveView
+            },
+            "#setting-tab": {
+                "click": this.settingShow
+            },
+            "#reload": {
+                "click": this.refreshCameraInfo
+            },
+            ".dev-item": {
+                "click": this.changeActiveDevice
+            },
+            "#upgrade-device": {
+                "click": this.upgradeDevice
+            },
+            "#volume-bar": {
+                "slidestop": this.volumeChangeCallback
+            },
+            "#zoom-bar": {
+                "slidestop": this.setZoom
+            },
+            "#continue": {
+                "click": this.continuePlay
+            },
+            "#refresh": {
+                "click": this.refreshCameraInfo
+            },
+            "#zoom-in": {
+                "click": this.zoomIn
+            },
+            "#zoom-out": {
+                "click": this.zoomOut
+            },
+            "#take-picture": {
+                "click": this.takePicture
+            },
+            "#video-record-start": {
+                "click": this.videoRecordStart
+            },
+            "#video-record-stop": {
+                "click": this.videoRecordStop
+            },
+            ".volume-open": {
+                "click": this.volumeMute
+            },
+            ".volume-mute": {
+                "click": this.volumeOpen
+            },
+            "#resolution-select": {
+                "beforeChange": this.beforeChangeRes,
+                "change": this.setResolution
+            },
+            "#failed-back-button": {
+                "click": this.upgradeFailedBack
+            },
+            "#account": {
+                "click": this.accountTabClickCallback
+            }
         };
 
         var contextBeforeLeave = $.proxy(this.beforeLeave, this);
@@ -385,7 +446,7 @@ $(function () {
                 };
             };
         };
-        
+
         this.view.setResolution();
     };
 
@@ -398,9 +459,9 @@ $(function () {
         $.removeCookie("mute");
         this.view.volumeOpen();
     };
-    
+
     DeviceListController.prototype.videoRecordStart = function() {
-        this.view.recordStart();        
+        this.view.recordStart();
     };
 
     DeviceListController.prototype.takePicture = function() {
@@ -435,12 +496,12 @@ $(function () {
     DeviceListController.prototype.setZoom = function() {
         var step = $("#zoom-bar").slider("option", "step");
         var val = $("#zoom-bar").slider("option", "value");
-        var times = val/step + 1;
+        var times = val / step + 1;
         $("#zoom-bar .ui-slider-handle").attr("title", "X" + times);
         this.view.setZoom();
     };
 
-    
+
 
     DeviceListController.prototype.volumeChangeCallback = function() {
         $.removeCookie("mute");
@@ -448,7 +509,7 @@ $(function () {
         $.cookie("volume", volume);
         this.view.volumeChangeCallback();
     };
-    
+
     DeviceListController.prototype.upgradeFailedBack = function() {
         var activeDev = this.model.findActiveDeviceArr()[0];
         activeDev.hasUpgradOnce = false;
@@ -464,7 +525,7 @@ $(function () {
                 id: activeDev.id
             };
             var errorFunc = function() {
-                if(activeDev.isActive){
+                if (activeDev.isActive) {
                     currentController.view.showWatchHideSon();
                     currentController.view.showDeviceOffline(activeDev);
                     currentController.view.renderMsg(tips.actions.refreshCamera.failed);
@@ -473,7 +534,7 @@ $(function () {
             var inputCallbacks = {
                 "errorCodeCallbackMap": {
                     0: function() {
-                        if(activeDev.isActive){
+                        if (activeDev.isActive) {
                             currentController.view.showPlaying();
                         }
                     },
@@ -493,7 +554,7 @@ $(function () {
         if (activeDev) {
             this.view.showPlaying();
         };
-    }; 
+    };
 
     DeviceListController.prototype.changeDeviceName = function(newName) {
         var currentController = this;
@@ -506,24 +567,24 @@ $(function () {
                         name: newName
                     };
                     var errorFunc = function() {
-                        if(activeDev.isActive){
+                        if (activeDev.isActive) {
                             currentController.view.renderMsg(tips.actions.changeIpcName.failed);
                         }
                     };
                     var notLoginErrFunc = function() {
-                        if(activeDev.isActive){
+                        if (activeDev.isActive) {
                             currentController.view.renderMsg(tips.actions.deviceOperate.notLogin);
                         }
                     };
                     var offlineErrFunc = function() {
-                        if(activeDev.isActive){
+                        if (activeDev.isActive) {
                             currentController.view.renderMsg(tips.types.camera.offline);
                         }
                     };
                     var inputCallbacks = {
                         "errorCodeCallbackMap": {
                             0: function() {
-                                if(activeDev.isActive){
+                                if (activeDev.isActive) {
                                     currentController.view.renderMsg(tips.actions.changeIpcName.success);
                                 }
                             },
@@ -557,10 +618,10 @@ $(function () {
                 info: $("#unbind-msg-body-sample").html(),
                 height: 310,
                 btnConfirm: "Remove",
-                confirm: $.proxy(currentController.removeDevice, currentController) 
+                confirm: $.proxy(currentController.removeDevice, currentController)
             });
         };
-        
+
     };
 
     DeviceListController.prototype.removeDevice = function() {
@@ -573,17 +634,17 @@ $(function () {
                     account: activeDev.owner.account
                 };
                 var errorFunc = function() {
-                    if(activeDev.isActive){
+                    if (activeDev.isActive) {
                         currentController.view.renderMsg(tips.actions.deviceOperate.failed);
                     }
                 };
                 var notLoginErrFunc = function() {
-                    if(activeDev.isActive){
+                    if (activeDev.isActive) {
                         currentController.view.renderMsg(tips.actions.deviceOperate.notLogin);
                     }
                 };
                 var offlineErrFunc = function() {
-                    if(activeDev.isActive){
+                    if (activeDev.isActive) {
                         currentController.view.renderMsg(tips.types.camera.offline);
                     }
                 };
@@ -605,7 +666,7 @@ $(function () {
             } else {
                 currentController.view.renderMsg(tips.types.camera.offline);
             };
-            
+
         };
     };
 
@@ -647,7 +708,7 @@ $(function () {
                             currentController.intervalUpdateDeviceList();
                         },
                         "-1": function() {
-                            if(activeDev.isActive){
+                            if (activeDev.isActive) {
                                 currentController.view.renderMsg(tips.actions.deviceOperate.failed);
                             }
                         }
@@ -700,13 +761,17 @@ $(function () {
     DeviceListController.prototype.intervalUpdateDeviceList = function() {
         var _self = this;
         clearInterval(_self.intervalUpdateDeviceListObj);
-        _self.intervalUpdateDeviceListObj = setInterval(function () {
+        _self.intervalUpdateDeviceListObj = setInterval(function() {
             _self.getDeviceList({
                 "ajax": {
-                    headers: {"X-AutoRefresh": "true"}
+                    headers: {
+                        "X-AutoRefresh": "true"
+                    }
                 },
                 "data": {
-                    "DATA": {"X-AutoRefresh": "true"}
+                    "DATA": {
+                        "X-AutoRefresh": "true"
+                    }
                 }
             });
         }, _self.intervalUpdateDeviceListTime);
@@ -717,13 +782,13 @@ $(function () {
         this.getDeviceList();
     };
 
-    
-    DeviceListController.prototype.settingShow = (DeviceListController.prototype.settingShow || function(){})
+
+    DeviceListController.prototype.settingShow = (DeviceListController.prototype.settingShow || function() {})
         .before(DeviceListController.prototype.clearPlayerRubbish)
         .before(DeviceListController.prototype.recordBreakConfirm);
-    DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function(){})
+    DeviceListController.prototype.changeActiveDevice = (DeviceListController.prototype.changeActiveDevice || function() {})
         .before(DeviceListController.prototype.recordBreakConfirm);
-    DeviceListController.prototype.accountTabClickCallback = (DeviceListController.prototype.accountTabClickCallback || function(){})
+    DeviceListController.prototype.accountTabClickCallback = (DeviceListController.prototype.accountTabClickCallback || function() {})
         .before(DeviceListController.prototype.clearPlayerRubbish)
         .before(DeviceListController.prototype.recordBreakConfirm);
 
@@ -754,7 +819,9 @@ $(function () {
     };
 
     DeviceListView.prototype.getDeviceDisplayName = function(device) {
-        if (undefined == device.name) {console.error("args error in getDeviceDisplayName")};
+        if (undefined == device.name) {
+            console.error("args error in getDeviceDisplayName")
+        };
         var dot = device.name.length > this.maxDisplayNameLength ? "..." : "";
         return device.name.substring(0, this.maxDisplayNameLength - 2) + dot;
     };
@@ -790,24 +857,21 @@ $(function () {
     };
 
     DeviceListView.prototype.getDevicePageCssClass = function(pageIndex) {
-        if (undefined == pageIndex || pageIndex < 0 
-            || pageIndex > this.maxPageIndex) {
+        if (undefined == pageIndex || pageIndex < 0 || pageIndex > this.maxPageIndex) {
             console.error("args error in getDevicePageCssClass");
         };
         return "dev-page-" + pageIndex;
     };
 
     DeviceListView.prototype.getDeviceLiDOMId = function(devIndex) {
-        if (undefined == devIndex || devIndex < 0 
-            || devIndex > this.model.devices.length - 1) {
+        if (undefined == devIndex || devIndex < 0 || devIndex > this.model.devices.length - 1) {
             console.error("args error in getDevicePageIndex");
         };
         return this.deviceLiDomIdPrefix + devIndex;
     };
 
     DeviceListView.prototype.getDevicePageIndex = function(devIndex) {
-        if (undefined == devIndex || devIndex < 0 
-            || devIndex > this.model.devices.length - 1) {
+        if (undefined == devIndex || devIndex < 0 || devIndex > this.model.devices.length - 1) {
             console.error("args error in getDevicePageIndex");
         };
         return Math.floor(devIndex / this.pageCapacity);
@@ -831,7 +895,7 @@ $(function () {
             this.curPageIndex = this.getDevicePageIndex(activeDeviceIndex);
 
             for (var i = 0; i < this.model.devices.length; i++) {
-                this.appendDeviceLi(this.model.devices[i], i); 
+                this.appendDeviceLi(this.model.devices[i], i);
             };
 
             this.updateActiveDeviceCss();
@@ -965,7 +1029,10 @@ $(function () {
 
     DeviceListView.prototype.showPlayer = function(playerType) {
         var currentView = this;
-        var tmp = {container: null, subjectPlayer: null}
+        var tmp = {
+            container: null,
+            subjectPlayer: null
+        }
         var playerTypeContainerSelectorMap = {
             "flash-player": "#flash-player-container",
             "ie-mjpeg": "#plugin-player-container",
@@ -991,7 +1058,9 @@ $(function () {
     };
 
     DeviceListView.prototype.getPluginPlayerElement = function(dev) {
-        if (undefined == dev) {console.error("args error in getPluginPlayerElement")};
+        if (undefined == dev) {
+            console.error("args error in getPluginPlayerElement")
+        };
         var player = null;
         if (dev.product.playerType) {
             var mimeType = dev.product.mimeType;
@@ -1004,7 +1073,9 @@ $(function () {
     };
 
     DeviceListView.prototype.isEnvSupportPluginPlay = function(dev) {
-        if (undefined == dev) {console.error("args error in isEnvSupportPluginPlay")};
+        if (undefined == dev) {
+            console.error("args error in isEnvSupportPluginPlay")
+        };
         var result = false;
         var browserType = $.ipc.Browser.prototype.type;
         var mt = dev.product.mimeType;
@@ -1030,7 +1101,9 @@ $(function () {
     };
 
     DeviceListView.prototype.isPluginNeedUpgrade = function(dev) {
-        if (undefined == dev) {console.error("args error in isPluginNeedUpgrade")};
+        if (undefined == dev) {
+            console.error("args error in isPluginNeedUpgrade")
+        };
         var result = false;
         var player = this.getPluginPlayerElement(dev);
         if (player) {
@@ -1126,7 +1199,7 @@ $(function () {
 
     DeviceListView.prototype.updatePlayerObjView = function(dev) {
         if (dev && dev.isActive) {
-            var tmpFunc = $.proxy(function(){
+            var tmpFunc = $.proxy(function() {
                 this.normalizePluginPlayerObj();
                 $("#disable-control-cover").hide();
                 var code = dev.currentVideoResolution.pluginStreamResCode;
@@ -1149,7 +1222,9 @@ $(function () {
     };
 
     DeviceListView.prototype.updateSelectWidget = function(elementId) {
-        $(elementId).Select({slideOptionHeight: 16});
+        $(elementId).Select({
+            slideOptionHeight: 16
+        });
     };
 
     DeviceListView.prototype.updateResolutionSelect = function(dev) {
@@ -1170,7 +1245,7 @@ $(function () {
             var playerType = dev.product.playerType;
             var id = playerType.prototype.mimetypeCssMap[dev.product.mimeType];
             var ele = $("#" + id);
-            if(this.isShowing(ele)) {
+            if (this.isShowing(ele)) {
                 ele.css("width", 1);
                 ele.css("height", 1);
             }
@@ -1301,10 +1376,10 @@ $(function () {
     };
 
     DeviceListView.prototype.timeupCallback = function(code) {
-        if (code == 0){
+        if (code == 0) {
             this.showTimeout();
         }
-        if (code == 1){
+        if (code == 1) {
             this.showReloadTips();
         };
 
@@ -1329,7 +1404,7 @@ $(function () {
         if (device) {
             var step = $("#zoom-bar").slider("option", "step");
             var val = $("#zoom-bar").slider("option", "value");
-            var times = val/step + 1;
+            var times = val / step + 1;
             device.pluginPlayer.playerObj.SetVideoZoom(parseInt(times));
         };
     };
@@ -1364,7 +1439,7 @@ $(function () {
                 type: "confirm",
                 info: tips.types.plugin.update,
                 btnConfirm: "Download",
-                confirm: function () {
+                confirm: function() {
                     window.location.href = dev.product.playerType.prototype.downloadPath;
                     continueFunc();
                 },
@@ -1399,8 +1474,8 @@ $(function () {
                             "h264": $.ipc.H264PluginPlayer
                         };
                         var codecName = dev.product.videoCodec.name;
-                        tmpPlayer = new (videoCodecPlayerMap[codecName])(); 
-                        
+                        tmpPlayer = new(videoCodecPlayerMap[codecName])();
+
                         tmpPlayer.playerObj = document.getElementById(id);
                         tmpPlayer.device = dev;
                         dev.pluginPlayer = tmpPlayer;
@@ -1446,7 +1521,9 @@ $(function () {
             $("#flash-player-cover").width(width).height(height);
             $("#flash-player-cover").show();
             $("#flash-player-cover").children().hide();
-            $("#flash-player-cover .loading-tips").css({"display": "table-cell"});
+            $("#flash-player-cover .loading-tips").css({
+                "display": "table-cell"
+            });
         };
     };
 
@@ -1468,7 +1545,9 @@ $(function () {
             $("#flash-player-cover").width(width).height(height);
             $("#flash-player-cover").show();
             $("#flash-player-cover").children().hide();
-            $("#flash-player-cover .network-tips").css({"display": "table-cell"});
+            $("#flash-player-cover .network-tips").css({
+                "display": "table-cell"
+            });
         };
     };
 
@@ -1521,7 +1600,7 @@ $(function () {
                 maxVideoTime = (currentDeviceTimeUpLength / 3600).toFixed(0) + " hour(s)";
             } else {
                 maxVideoTime = (currentDeviceTimeUpLength / 86400).toFixed(0) + " day(s)";
-            } 
+            }
             $("#max-relay-video-time").text(maxVideoTime);
         };
     };
@@ -1539,7 +1618,9 @@ $(function () {
             $("#img-player-cover").width(width).height(height);
             $("#img-player-cover").show();
             $("#img-player-cover").children().hide();
-            $("#img-player-cover .loading-tips").css({"display": "table-cell"});
+            $("#img-player-cover .loading-tips").css({
+                "display": "table-cell"
+            });
         };
     };
 
@@ -1551,7 +1632,9 @@ $(function () {
             $("#img-player-cover").width(width).height(height);
             $("#img-player-cover").show();
             $("#img-player-cover").children().hide();
-            $("#img-player-cover .network-tips").css({"display": "table-cell"});
+            $("#img-player-cover .network-tips").css({
+                "display": "table-cell"
+            });
         };
     };
 
@@ -1598,7 +1681,9 @@ $(function () {
     };
 
     DeviceListView.prototype.isPluginPlayer = function(playerType) {
-        if (undefined == playerType) {console.error("args error in isPluginPlayer")};
+        if (undefined == playerType) {
+            console.error("args error in isPluginPlayer")
+        };
         var pluginPlayers = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.PLUGIN_NON_IE_X64, $.ipc.PLUGIN_IE_X86, $.ipc.PLUGIN_IE_X64, $.ipc.PLUGIN_MAC];
         return $.inArray(playerType, pluginPlayers) >= 0;
     };
@@ -1620,14 +1705,16 @@ $(function () {
     };
 
     DeviceListView.prototype.playVideo = function(dev) {
-        if (undefined == dev) {console.error("args error in playVideo")};
+        if (undefined == dev) {
+            console.error("args error in playVideo")
+        };
         var playerType = dev.product.playerType;
         if (dev.isOnline == 1) {
             if (this.isPluginPlayer(playerType)) {
                 this.pluginPlayVideo(dev);
             } else if (playerType == $.ipc.FLASH_PLAYER) {
                 this.flashPlayVideo(dev);
-            } else if (playerType == $.ipc.IMG_PLAYER){
+            } else if (playerType == $.ipc.IMG_PLAYER) {
                 this.imgPlayVideo(dev);
             } else {
                 console.info("can not play without player object");
@@ -1672,7 +1759,7 @@ $(function () {
                 "img-tag-player-container": false,
                 "refreshtips": false,
                 "reloadtips": false,
-                "continuetips": false 
+                "continuetips": false
             };
             var res = this.findWatchShowingElement();
             if (res.length > 1 || res.length <= 0) {
@@ -1749,7 +1836,7 @@ $(function () {
         this.settingDOM.show();
         this.hideSettingChild();
     };
-    
+
     DeviceListView.prototype.showDeviceSetting = function(device) {
         if (undefined == device) {
             console.error("args error in showDeviceSetting");
@@ -1772,7 +1859,11 @@ $(function () {
             this.showDeviceSetting(activeDev);
 
             if (activeDev.iip == undefined) {
-                var args = {id: activeDev.id, token: activeDev.owner.token, appServerUrl: activeDev.appServerUrl};
+                var args = {
+                    id: activeDev.id,
+                    token: activeDev.owner.token,
+                    appServerUrl: activeDev.appServerUrl
+                };
                 activeDev.getLocalInfo(args);
             };
         } else {
@@ -1806,9 +1897,9 @@ $(function () {
 
     var contextRenderDeviceInfo = $.proxy(dlv.updateDeviceInfo, dlv);
     $.ipc.Device.prototype.stateChangeCallbacks.add(contextRenderDeviceInfo);
-    
+
     dlc.intervalUpdateDeviceListWithInit();
-    
+
     var contextRenderUserAdmin = $.proxy(uc.accountTabClickCallback, uc);
     dlc.activateUserAdminCallback.add(contextRenderUserAdmin);
     var contextIntervalUpdateDeviceList = $.proxy(dlc.intervalUpdateDeviceListWithInit, dlc);
@@ -1816,10 +1907,10 @@ $(function () {
 
     /******************************* software *******************************/
     function SoftwareController() {
-        $.ipc.BaseController.call(this, arguments); 
+        $.ipc.BaseController.call(this, arguments);
     };
     $.ipc.inheritPrototype(SoftwareController, $.ipc.BaseController);
-    
+
     SoftwareController.prototype.getUpdateInfos = function() {
         var inputCallbacks = {
             "errorCodeCallbackMap": {

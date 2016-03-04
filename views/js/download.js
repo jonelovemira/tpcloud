@@ -1,5 +1,5 @@
-$(function (){
-    function SoftwareController () {
+$(function() {
+    function SoftwareController() {
         $.ipc.BaseController.call(this, arguments);
     }
 
@@ -13,8 +13,7 @@ $(function (){
                     currentController.view.initProductMenu();
                 }
             },
-            "errorCallback": function() {
-            }
+            "errorCallback": function() {}
         };
 
         this.model.getUpdateInfos(inputCallbacks);
@@ -22,9 +21,15 @@ $(function (){
 
     SoftwareController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
-            "#ipc-arrow-left": {"click": this.turnMenuLeft},
-            "#ipc-arrow-right": {"click": this.turnMenuRight},
-            ".download-menu-cell": {"click": this.gotoFaq}
+            "#ipc-arrow-left": {
+                "click": this.turnMenuLeft
+            },
+            "#ipc-arrow-right": {
+                "click": this.turnMenuRight
+            },
+            ".download-menu-cell": {
+                "click": this.gotoFaq
+            }
         };
 
         var selectorMsgProduceFuncMap = {
@@ -51,7 +56,7 @@ $(function (){
         this.view.turnMenuRight();
     };
 
-    function SoftwareView () {
+    function SoftwareView() {
         this.model = null;
         this.maxDisplayProductNum = 3;
         this.currentMenuPageIndex = 0;
@@ -111,11 +116,11 @@ $(function (){
             return;
         };
         this.clearProductDisplayContainer();
-        var firstDisplayProductIndex = this.currentMenuPageIndex*this.maxDisplayProductNum;
-        this.currentDisplayProductArr = this.model.products.slice(firstDisplayProductIndex, 
-                    firstDisplayProductIndex + this.maxDisplayProductNum);
+        var firstDisplayProductIndex = this.currentMenuPageIndex * this.maxDisplayProductNum;
+        this.currentDisplayProductArr = this.model.products.slice(firstDisplayProductIndex,
+            firstDisplayProductIndex + this.maxDisplayProductNum);
         this.feedProductDisplayContainer();
-        this.udpateArrow(); 
+        this.udpateArrow();
     };
 
     SoftwareView.prototype.udpateArrow = function() {
@@ -138,7 +143,7 @@ $(function (){
     };
 
     SoftwareView.prototype.turnMenuRight = function() {
-        if (this.currentMenuPageIndex >= this.totalMenuPageCount-1) {
+        if (this.currentMenuPageIndex >= this.totalMenuPageCount - 1) {
             console.error("no right menu");
             return;
         };

@@ -1,6 +1,6 @@
-(function($){
+(function($) {
 
-    $.fn.Checkbox = function(){
+    $.fn.Checkbox = function() {
         var $check = $(this);
         $check.show();
         var id = $(this).attr("id") || "",
@@ -44,7 +44,7 @@
                     return;
                 }
                 // this.previousSibling.click(); //运用jquery中对象获取(例如$("this"))，进行click()事件时会出现checked属性相反
-                $check.click();            //具体验证可以获取checkbox本身checked属性进行，鼠标点击和用jquery对象的click()事件触发时，checked的值显而易见的不同。
+                $check.click(); //具体验证可以获取checkbox本身checked属性进行，鼠标点击和用jquery对象的click()事件触发时，checked的值显而易见的不同。
                 //此处应使用原生JS对象进行click()事件调用。
             },
             keydown: function(e) {
@@ -58,7 +58,7 @@
                 e.originalEvent.cancelBubble = true;
                 e.originalEvent.returnValue = false;
                 e.originalEvent.preventDefault()
-                e.originalEvent.stopPropagation(); 
+                e.originalEvent.stopPropagation();
             }
         });
 
@@ -89,8 +89,8 @@
         });
     }
 
-    $(function(){
-        $(".checkbox").each(function(){
+    $(function() {
+        $(".checkbox").each(function() {
             $(this).Checkbox();
         });
     });

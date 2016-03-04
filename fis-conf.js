@@ -52,19 +52,19 @@ fis.media('build').match('jwplayer.js', {
 });
 
 
-fis.media('alpha').match('*.{js,css,png,ico}',{
+fis.media('alpha').match('*.{js,css,png,ico}', {
     domain: ALPHA_CDN_PATH
 });
 
-fis.media('beta').match('*.{js,css,png,ico}',{
+fis.media('beta').match('*.{js,css,png,ico}', {
     domain: BETA_CDN_PATH
 });
 
-fis.media('product').match('*.{js,css,png,ico}',{
+fis.media('product').match('*.{js,css,png,ico}', {
     domain: PRODUCT_CDN_PATH
 });
 
-fis.match('fis-conf.js',{
+fis.match('fis-conf.js', {
     useHash: false,
     optimizer: false
 });
@@ -74,7 +74,7 @@ fis.match('fis-conf.js',{
  * @param  {[file object]} childFile [file object reference for read file]
  * @return {string}           [path defined in child template file.]
  */
-var getBaseFileName = function (childFile){
+var getBaseFileName = function(childFile) {
     var tagArrs = getTagArrKeyValue(childFile);
     return tagArrs["extends"];
 }
@@ -85,7 +85,7 @@ var getBaseFileName = function (childFile){
  * @param  {file object refrence} baseFile  
  * @return {[string]} baseContent          [whole template after inherit from base template]
  */
-var templateInherit = function (childFile, baseFile) {
+var templateInherit = function(childFile, baseFile) {
     // body...
     var childTagArr = getTagArrKeyValue(childFile);
     var baseTagArr = getTagArrKeyValue(baseFile);
@@ -107,9 +107,7 @@ var templateInherit = function (childFile, baseFile) {
         if (childTagArr['block'][block] != undefined) {
             addedContent = childContent.substring(childTagArr['block'][block][1] + 1, childTagArr['block'][block][2]);
             delete childTagArr['block'][block];
-        }
-        else
-        {
+        } else {
             addedContent = "";
         }
 
@@ -118,8 +116,7 @@ var templateInherit = function (childFile, baseFile) {
         baseContent = preContent + addedContent + lastContent;
     };
 
-    for (var block in childTagArr['block'])
-    {
+    for (var block in childTagArr['block']) {
         throw "child has some block which base doesn't have: " + block + ";";
     }
 
@@ -138,7 +135,7 @@ var templateInherit = function (childFile, baseFile) {
  * when inherit child template from base template, we can use child's 1th~2th replace base's 0th~3th.
  * ]
  */
-var getTagArrKeyValue = function (fileObj) {
+var getTagArrKeyValue = function(fileObj) {
 
     var content = fileObj.getContent();
     var tagArr = content.match(/\{%[^\}]*%\}/g);
@@ -152,7 +149,7 @@ var getTagArrKeyValue = function (fileObj) {
 
     if (tagArr != undefined) {
         for (var i = 0; i < tagArr.length; i++) {
-            
+
             var extendsIndex = tagArr[i].indexOf(extendsTag);
             var blockIndex = tagArr[i].indexOf(blockTag);
 
@@ -167,7 +164,7 @@ var getTagArrKeyValue = function (fileObj) {
                 var value = tagArr[i].substring(blockIndex + blockTag.length, tagArr[i].length - 2);
                 value = value.trim();
                 if (value.length > 0) {
-                    if (tagArrKeyValue[blockTag][value] == undefined){
+                    if (tagArrKeyValue[blockTag][value] == undefined) {
                         tagArrKeyValue[blockTag][value] = [];
                     }
 
@@ -178,7 +175,7 @@ var getTagArrKeyValue = function (fileObj) {
                     // don't forget to find endblock tag
                     i += 1;
                     var tagStopBeginIndex = content.indexOf(tagArr[i]);
-                    var tagStopEndIndex = tagStopBeginIndex + tagArr[i].length  - 1;
+                    var tagStopEndIndex = tagStopBeginIndex + tagArr[i].length - 1;
 
                     content = content.substring(tagStopEndIndex + 1);
                     tagArrKeyValue[blockTag][value].push(tagStartBeginIndex + lastBlockIndex);
@@ -188,12 +185,12 @@ var getTagArrKeyValue = function (fileObj) {
 
                     // change relative position to absolute position.
                     lastBlockIndex = lastBlockIndex + tagStopEndIndex + 1;
-                    
+
                 };
             };
-        }; 
+        };
     };
-    
+
     return tagArrKeyValue;
 }
 
@@ -204,17 +201,17 @@ var getTagArrKeyValue = function (fileObj) {
  * @param  {[type]} settings [description]
  * @param  {[type]} opt      [description]
  */
-var templateInheritance = function (ret, conf, settings, opt) {
+var templateInheritance = function(ret, conf, settings, opt) {
     // body...
     var releaseFileMap = {};
 
     // inherit template if we flag it as a child template
-    fis.util.map(ret.src, function(subpath, file){
+    fis.util.map(ret.src, function(subpath, file) {
         if (file.isHtmlLike) {
             var baseFileName = getBaseFileName(file);
-            if(baseFileName) {
+            if (baseFileName) {
                 var baseFile = fis.uri(baseFileName, file.dirname);
-                if(baseFile.file) {
+                if (baseFile.file) {
                     var content = templateInherit(file, ret.src[baseFile.file.release]);
                     file.setContent(content);
                 }
@@ -231,32 +228,32 @@ var replaceResourceLocation = function(fileSrc, file) {
         var aHrefPattern = /(<a.*?)href=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig;
         var afterReplaceAHrefContent = content.replace(aHrefPattern, function(all, prefix, quote, value, query, queryInner, postfix) {
             var f = fis.uri(value, fileDir);
-            if(f.file) {
+            if (f.file) {
                 var releasePath = fileSrc["/" + f.file.id].getHashRelease();
                 all = prefix + 'href=' + quote + releasePath + query + quote + postfix;
             }
-            return  all;
+            return all;
         });
 
         var dateUrlPattern = /(<img.*?)data-url=(['"]?)([^'"\s?]+)((\?[^'"\s]*)?)\2([^>]*>)/ig;
         var dataUrlLocateContent = afterReplaceAHrefContent.replace(dateUrlPattern, function(all, prefix, quote, value, query, queryInner, postfix) {
             var f = fis.uri(value, fileDir);
-            if(f.file) {
+            if (f.file) {
                 var releasePath = fileSrc["/" + f.file.id].getHashRelease();
                 all = prefix + 'data-url=' + quote + releasePath + query + quote + postfix;
             }
-            return  all;
+            return all;
         });
 
         return dataUrlLocateContent;
     };
-    
+
 }
 
-var myResourceLocate = function (ret, conf, settings, opt) {
-    fis.util.map(ret.src, function(subpath, file){
+var myResourceLocate = function(ret, conf, settings, opt) {
+    fis.util.map(ret.src, function(subpath, file) {
         if (file.isHtmlLike) {
-            file.setContent(replaceResourceLocation(ret.src, file)); 
+            file.setContent(replaceResourceLocation(ret.src, file));
         };
     });
 }

@@ -1,15 +1,15 @@
-(function ($) {
+(function($) {
     "use strict";
 
     var tmpSelect = {
-        mainTemplate:   '<div class="plugin-select">' +
-                            '<div class="selected"><span lang="en"></span></div>' +
-                            '<div class="triangle"></div>' + 
-                            '<div class="slide">' +
-                                '<div class="slide-item-holder"></div>' +
-                            '</div>' +
-                            '<div class="expand-collapse"></div>' +
-                        '</div>',
+        mainTemplate: '<div class="plugin-select">' +
+            '<div class="selected"><span lang="en"></span></div>' +
+            '<div class="triangle"></div>' +
+            '<div class="slide">' +
+            '<div class="slide-item-holder"></div>' +
+            '</div>' +
+            '<div class="expand-collapse"></div>' +
+            '</div>',
         optionTemplate: '<div class="slide-item" xvalue=""><span lang="en"></span></div>',
         uniqueAttrKey: 'only-for-plugin-select',
         uniqueAttrValuePrefix: 'i-am-unique-',
@@ -42,7 +42,7 @@
             var tmpSelectOptionHeight = _options.slideOptionHeight;
             var totalOptionHeightWithoutScroll = (tmpSelectOptionHeight + 8) * select.find(".slide-item").length;
             var maxDisplayContainerHeight = Math.min(_options.slideMaxHeight, totalOptionHeightWithoutScroll);
-            
+
             if (undefined == pluginSelectWidth || pluginSelectWidth <= 30 ||
                 undefined == maxDisplayContainerWidth ||
                 undefined == tmpSelectOptionHeight || undefined == totalOptionHeightWithoutScroll ||
@@ -56,7 +56,7 @@
             select.find(".slide-item-holder").width(maxDisplayContainerWidth).height(totalOptionHeightWithoutScroll);
             select.css("position", originSelect.css("position"));
             select.css("left", originSelect.css("left"));
-            select.css("top",originSelect.css("top"));
+            select.css("top", originSelect.css("top"));
         },
         generateAddedOptionElements: function(addedOptions) {
             if (undefined == addedOptions) {
@@ -130,10 +130,10 @@
             var oldText = select.find(".selected span").text();
             originSelect.val(value);
             if (oldText != selectedText) {
-                (function () {
+                (function() {
                     originSelect.trigger("beforeChange");
                     return originSelect.data("canChange");
-                }).after(function () {
+                }).after(function() {
                     originSelect.change();
                     select.find(".selected span").text(selectedText);
                 })();
@@ -152,17 +152,17 @@
     $.fn.Select = function(options) {
         var originSelect = $(this);
         var _options = tmpSelect.generatePluginConstructOption(options, originSelect);
-        
+
         var id = originSelect.attr(tmpSelect.uniqueAttrKey) || tmpSelect.generateSelectId();
         if ($("#" + id).length > 0) {
             $("#" + id).remove();
         };
-        
+
         var select = $(tmpSelect.mainTemplate);
 
         select.attr("id", id);
         originSelect.attr(tmpSelect.uniqueAttrKey, id);
-        
+
         var addedOptionElements = tmpSelect.generateAddedOptionElements(_options.addedOptions);
         tmpSelect.addSelectOptionForOrigin(originSelect, addedOptionElements);
 
@@ -175,7 +175,7 @@
 
         select.insertBefore(originSelect);
 
-        select.on('mouseup', function () {
+        select.on('mouseup', function() {
             bodyClicking = false;
         })
 
@@ -194,24 +194,23 @@
     };
 
     $.fn.Select.defaults = {
-        pluginSelectWidth           :       200,
-        optionWidth                 :       null,
-        slideMaxHeight              :       288,
-        slideOptionHeight           :       16,
-        hotKey                      :       false,
-        disabled                    :       false 
+        pluginSelectWidth: 200,
+        optionWidth: null,
+        slideMaxHeight: 288,
+        slideOptionHeight: 16,
+        hotKey: false,
+        disabled: false
     };
 
-    
 
-    $(document).on("mousedown", "body", function () {
+
+    $(document).on("mousedown", "body", function() {
         bodyClicking = true;
     });
-    $(document).on("mouseup", "body", function () {
+    $(document).on("mouseup", "body", function() {
         if (bodyClicking) {
             $('div.select-slide').removeClass("select-slide");
         };
     });
-    
-})(jQuery);
 
+})(jQuery);
