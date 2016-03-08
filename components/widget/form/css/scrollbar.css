@@ -1,6 +1,6 @@
 /* scroll */
-.scrollBar{
-	z-index:1;
+.scrollbar{
+	z-index:3;
 	position:absolute;
 	border-radius:5px;
 	overflow:hidden;
@@ -12,30 +12,30 @@
 	position:absolute;
 }
 
-.scrollBar-vertical{
+.scrollbar-vertical{
 	width:6px;
 	height:100%;
 	right:0px;
 }
-.scrollBar-vertical .scroll-area{
+.scrollbar-vertical .scroll-area{
 	width:100%;
 	height:100%;
 }
-.scrollBar-vertical .scroll-block{
+.scrollbar-vertical .scroll-block{
 	width:100%;
 	height:30px;
 }
 
-.scrollBar-horizontal{
+.scrollbar-horizontal{
 	bottom:0px;
 	height:6px;
 	width:100%;
 }
-.scrollBar-horizontal .scroll-area{
+.scrollbar-horizontal .scroll-area{
 	height:100%;
 	width:100%;
 }
-.scrollBar-horizontal .scroll-block{
+.scrollbar-horizontal .scroll-block{
 	height:100%;
 	width:100%;
 }

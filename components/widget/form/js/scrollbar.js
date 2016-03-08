@@ -1,19 +1,79 @@
 (function($) {
+    "use strict";
 
-    var EventUtil = {
-        getEvent: function(event) {
-            return event ? event : window.event;
-        },
-        addHandler: function(element, handler) {
-            element.bind('mousewheel DOMMouseScroll wheel', handler);
-        },
-        removeHandler: function(element, type, handler) {
-            if (element.removeEventListener) { //检测DOM2级方法  
-                element.removeEventListener(type, handler, false);
-            } else if (element.detachEvent) { //检测IE方法  
-                element.detachEvent("on" + type, handler);
+    var tmpScrollbar = {
+        verticalScrollbarTemplate: "<div class=\"scrollbar scrollbar-vertical\">" +
+            "<div class=\"scroll-area\">" +
+            "<div class=\"scroll-block\">" +
+            "</div></div></div>",
+        horizontalScrollbarTemplate: "<div class=\"scrollbar scrollbar-horizontal\">" +
+            "<div class=\"scroll-area\">" +
+            "<div class=\"scroll-block\">" + 
+            "</div></div></div>",
+        addVerticalScroll: function(completeContent, displayContent) {
+            if (completeContent && displayContent) {
+                var completeContentHeight = completeContent.attr("height") ||
+                    completeContent.outerHeight();
+                completeContent.css({
+                    top: 0
+                });
+                if (completeContentHeight > displayContent.outerHeight()) {
+                    displayContent.prepend(tmpScrollbar.verticalScrollbarTemplate);
+                }
             } else {
-                element["on" + type] = null; //使用DOM0方法  
+                console.error("args error");
+            }
+        },
+        addHorizontalScroll: function(completeContent, displayContent) {
+            if (completeContent && displayContent) {
+                completeContent.css({
+                    left: 0
+                });
+                if (completeContent.width() > displayContent.width()) {
+                    completeContent.prepend(tmpScrollbar.horizontalScrollbarTemplate);
+                    var scrollbarPercent = Math.floor((completeContent.width() - displayContent.width()) / 1000) * 100;
+                    displayContent.find(".scrollbar-horizontal .scroll-block").css({
+                        width: Math.min(85, Math.max(5, 100 - scrollbarPercent)) + "%"
+                    })
+                };
+            } else {
+                console.error("args error");                
+            }
+        },
+        addDraggable: function(completeContent, displayContent) {
+            if (displayContent) {
+                var scrollBlock = displayContent.find(".scroll-block");
+                scrollBlock.draggable({
+                    containment: 'parent',
+                    drag: function (event, ui) {
+                        var positionInPercent = {
+                            top: ui.position.top / (ui.helper.parent().height() - ui.helper.height()),
+                            left: ui.position.left / (ui.helper.parent().width() - ui.helper.width())
+                        };
+                        var contentPositionReverse = {
+                            top: (completeContent.height() - displayContent.height()) * positionInPercent.top,
+                            left: (completeContent.width() - displayContent.width()) * positionInPercent.left
+                        };
+
+                        var completeContentTop = Math.min(-contentPositionReverse.top, 0);
+                        completeContentTop = Math.max(-contentPositionReverse.top, displayContent.height()-completeContent.height());
+                        var completeContentLeft = isNaN(-contentPositionReverse.left) ? 0:-contentPositionReverse.left;
+
+                        completeContent.css({
+                            top: completeContentTop,
+                            left: completeContentLeft
+                        });
+                    }
+                })
+            } else {
+                console.error("args error");
+            }
+        },
+        clearExistedScroll: function(displayContent) {
+            if (displayContent) {
+                displayContent.find(".scrollbar-vertical").remove();
+            } else {
+                console.error("args error");
             }
         },
         getWheelDelta: function(event) {
@@ -25,190 +85,77 @@
                 normalized = -(rawAmmount % 3 ? rawAmmount * 10 : rawAmmount / 3);
             }
             return normalized * 120;
+        },
+        stopEventBubble: function(event) {
+            if (event.cancelBubble != undefined) {
+                event.cancelBubble = true;
+                event.returnValue = false;
+                event.preventDefault()
+                event.stopPropagation();
+            } else if (event.originalEvent != undefined) {
+                event.originalEvent.cancelBubble = true;
+                event.originalEvent.returnValue = false;
+                event.originalEvent.preventDefault()
+                event.originalEvent.stopPropagation();
+                return false;
+            }
         }
     };
 
     $.fn.Scrollbar = function(options) {
-        var $target = options.target,
-            // $holder = options.holder,
-            $holder = $(this);
-        revert = options.revert == false ? false : true,
-            overflowFlag = options.overflowFlag || false;
+        var _options = $.extend(true, $.fn.Scrollbar.defaults, options);
+        var displayContent = this;
+        var completeContent = _options.target;
+        if (completeContent) {
+            tmpScrollbar.addVerticalScroll(completeContent,
+                displayContent);
 
-        function handleMouseWheel(event) {
+            tmpScrollbar.addHorizontalScroll(completeContent,
+                displayContent);
 
-            if ($target.outerHeight() <= $holder.outerHeight()) return;
+            tmpScrollbar.addDraggable(completeContent, displayContent);
 
-            if (overflowFlag) {
-                $target.css({
-                    overflow: "hidden"
-                });
-            }
-
-            var $top = $target.position().top;
-            var delta = EventUtil.getWheelDelta(event);
-
-            if (delta > 0) {
-                $target.css("top", Math.min($top + 15, 0));
-            } else {
-
-                $target.css("top", Math.max($top - 15, $holder.height() - $target.height()));
-            }
-
-            ration.top = $target.position().top / ($holder.height() - $target.height());
-
-            dd.top = ($scrollVerticalBlock.height() - ($scrollVerticalBlock.parent().height())) * ration.top;
-
-            $scrollVerticalBlock.css({
-                top: -dd.top
-            });
-
-            if (overflowFlag) {
-                $target.css({
-                    overflow: "visible"
-                });
-            }
-            stopBubble(event);
-        }
-        var $targetHeight = $target.attr("height") || $target.outerHeight();
-        if ($targetHeight > $holder.outerHeight()) {
-            if (revert) {
-                $target.css({
-                    top: 0
-                });
-            }
-            if ($holder.find(".scrollBar-vertical").length == 0) { //没有滚动条
-
-                var a = "<div class='scrollBar scrollBar-vertical' onmousedown='stopBubble(event)'>";
-                a += "  <div class='scroll-area'>";
-                a += "  <div class='scroll-block'></div>";
-                a += "  </div>";
-                a += "</div>";
-                $holder.prepend(a);
-
-                var scrollBlockPercent = Math.floor(($targetHeight - $holder.height()) / 1000) * 100
-
-                $holder.find(".scrollBar-vertical .scroll-block").css({
-                    //  height: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
-                });
-
-                var ration = {},
-                    dd = {},
-                    $scrollVerticalBlock = $holder.find(".scrollBar-vertical .scroll-area .scroll-block");
-                EventUtil.addHandler($target.first(), handleMouseWheel);
-            } else { //有滚动条，block位置重置
-
-                if (!revert) {
+            completeContent.on('mousewheel DOMMouseScroll wheel', function (event) {
+                if (completeContent.outerHeight() <= displayContent.outerHeight()) {
                     return;
                 }
+                if (_options.overflowFlag) {
+                    completeContent.css({
+                        overflow: "hidden"
+                    });
+                };
+                var top = completeContent.position().top;
+                var wheelDelta = tmpScrollbar.getWheelDelta(event);
+                if (wheelDelta > 0) {
+                    completeContent.css("top", Math.min(top + 15, 0));
+                } else {
+                    completeContent.css("top", Math.max(top - 15, displayContent.height() - completeContent.height()));
+                };
 
-                var $scrollVerticalBlock = $holder.find(".scrollBar-vertical .scroll-area .scroll-block");
+                var topInPercent = completeContent.position().top / (displayContent.height() - completeContent.height());
+                var block = displayContent.find(".scrollbar-vertical .scroll-area .scroll-block");
+                var blockTopPosition =  (block.height() - (block.parent().height())) * topInPercent;
 
-                $scrollVerticalBlock.css({
-                    top: 0
+                block.css({
+                    top: -blockTopPosition
                 });
 
-                var scrollBlockPercent = Math.floor(($targetHeight - $holder.height()) / 1000) * 100
-
-                $holder.find(".scrollBar-vertical .scroll-block").css({
-                    // height: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
-                });
-            }
-            if (overflowFlag) {
-                $target.css({
+                _options.overflowFlag && completeContent.css({
                     overflow: "visible"
                 });
-            }
-        } else {
-            $target.css({
-                top: 0
+
+                tmpScrollbar.stopEventBubble(event);
             });
-            if (overflowFlag) {
-                $target.css({
-                    overflow: "visible"
-                });
-            }
 
-
-            $holder.find(".scrollBar-vertical").remove();
-        }
-
-        if ($target.width() > $holder.width()) {
-            if ($holder.find(".scrollBar-horizontal").length == 0) { //没有滚动条
-
-                var a = "<div class='scrollBar scrollBar-horizontal' onmousedown='stopBubble(event)'>";
-                a += "  <div class='scroll-area'>";
-                a += "      <div class='scroll-block'></div>";
-                a += "  </div>";
-                a += "</div>";
-                $holder.prepend(a);
-
-                var scrollBlockPercent = Math.floor(($target.width() - $holder.width()) / 1000) * 100
-                $holder.find(".scrollBar-horizontal .scroll-block").css({
-                    width: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
-                });
-            } else { //有滚动条，block位置重置
-                $holder.find(".scrollBar-horizontal").remove();
-                var a = "<div class='scrollBar scrollBar-horizontal' onmousedown='stopBubble(event)'>";
-                a += "  <div class='scroll-area'>";
-                a += "      <div class='scroll-block'></div>";
-                a += "  </div>";
-                a += "</div>";
-                $holder.prepend(a);
-
-                var scrollBlockPercent = Math.floor(($target.width() - $holder.width()) / 1000) * 100
-                $holder.find(".scrollBar-horizontal .scroll-block").css({
-                    width: Math.min(85, Math.max(5, 100 - scrollBlockPercent)) + "%"
-                });
-            }
+            displayContent.find(".scrollbar").mousedown(tmpScrollbar.stopEventBubble);
         } else {
-            $target.css({
-                left: 0
-            });
-            $holder.find(".scrollBar-horizontal").remove();
+            console.error("some options is required");
         }
+    };
 
-        var $scrollBlock = $holder.find(".scroll-block");
-
-
-        // jquery-ui interface draggable makes elements become draggable
-        $scrollBlock.draggable({
-            containment: 'parent',
-            drag: function(event, ui) {
-                var ration = {
-                        top: ui.position.top / (ui.helper.parent().height() - ui.helper.height()),
-                        left: ui.position.left / (ui.helper.parent().width() - ui.helper.width())
-                    },
-                    dd = {
-                        top: ($target.height() - $holder.height()) * ration.top,
-                        left: ($target.width() - $holder.width()) * ration.left
-                    };
-                /*block隐藏掉会影响jquery position对象*/
-
-                $target.css({
-                    top: -dd.top,
-                    left: -dd.left
-                });
-            },
-            stop: function(event, ui) {
-
-            }
-        });
+    $.fn.Scrollbar.defaults = {
+        "target": null,
+        "overflowFlag": false
     }
 
-})(jQuery)
-
-function stopBubble(event) {
-    if (event.cancelBubble != undefined) {
-        event.cancelBubble = true;
-        event.returnValue = false;
-        event.preventDefault()
-        event.stopPropagation();
-    } else if (event.originalEvent != undefined) {
-        event.originalEvent.cancelBubble = true;
-        event.originalEvent.returnValue = false;
-        event.originalEvent.preventDefault()
-        event.originalEvent.stopPropagation();
-        return false;
-    }
-}
+})(jQuery);
