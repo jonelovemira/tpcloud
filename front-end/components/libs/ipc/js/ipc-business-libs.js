@@ -966,7 +966,7 @@
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
-        if (mt in mimeTypesArr) {
+        if ($.inArray(mt, mimeTypesArr) < 0) {
             console.error("mime types error in getPlayerType")
         };
         var result = undefined;
