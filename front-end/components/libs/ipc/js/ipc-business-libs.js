@@ -1166,6 +1166,8 @@
         this.isActive = false;
 
         this.BACK_END_WEB_PROTOCAL = "";
+        this.hasGetLINKIE = false;
+        this.hasGetLINKIESuccess = false;
     };
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
@@ -1204,11 +1206,6 @@
             console.error("args error in init");
         };
         $.extend(true, this, d);
-        var p = this.model.substring(0, 5).toUpperCase();
-        var tmpProduct = new $.ipc.IpcProduct();
-        $.extend(true, tmpProduct, $.ipc[p]);
-        this.currentVideoResolution = tmpProduct.supportVideoResArr[0];
-        this.product = tmpProduct;
     };
 
     Device.prototype.get = function(args, inputCallbacks, extendArgs) {
@@ -1339,7 +1336,7 @@
         if (undefined == this.owner || undefined == this.owner.token ||
             undefined == this.appServerUrl) {
             console.error("args error in unbind");
-        }
+        };
         var validateResult = (!this.owner.validateAccount(args.account).code && this.owner.validateAccount(args.account)) ||
             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {
@@ -1361,6 +1358,92 @@
             errCodeStrIndex: "error_code",
             callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
+    };
+
+    var NC200 = new IpcProduct();
+    NC200.name = "NC200";
+    NC200.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
+    NC200.mimeType = mimeTypesArr[0];
+    NC200.smallImgCssClass = "NC200-small-img";
+    NC200.middleImgCssClass = "NC200-middle-img";
+    NC200.playerType = NC200.getPlayerType(NC200.mimeType);
+    NC200.postDataChannel = findPostChannelForNC200();
+    NC200.audioCodec = pcmAudioCodec;
+    NC200.videoCodec = mjpegVideoCodec;
+
+    Device.prototype.getLINKIE = function(args, inputCallbacks) {
+        if (undefined == args.token || undefined == args.appServerUrl) {
+            console.error("args error in getLocalInfo");
+        }
+        var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {
+            return validateResult;
+        };
+        var _self = this;
+        var data = JSON.stringify({
+            "method": "passthrough",
+            "params": {
+                "requestData": {
+                    "command": "LINKIE",
+                    "content": {
+                        "smartlife.cam.ipcamera.liveStream": {
+                            "get_modules": {}
+                        },
+                        "smartlife.cam.ipcamera.cloud": {
+                            "get_modules": {}
+                        }
+                    }
+                },
+                "deviceId": args.id
+            }
+        });
+
+        var changeStateFunc = function(response) {
+            this.hasGetLINKIE = true;
+            var passthroughResult = response.result.responseData;
+            if (passthroughResult) {
+                this.hasGetLINKIESuccess = true;
+            }
+        };
+        inputCallbacks = inputCallbacks || {};
+        inputCallbacks.errorCodeCallbackMap = inputCallbacks.errorCodeCallbackMap || {};
+        var tmpFunc = inputCallbacks.errorCodeCallbackMap["-51207"];
+        inputCallbacks.errorCodeCallbackMap["-51207"] = function () {
+            _self.hasGetLINKIE = true;
+            tmpFunc && tmpFunc();
+        }
+
+        this.makeAjaxRequest({
+            url: args.appServerUrl + "?token=" + args.token,
+            data: data,
+            changeState: changeStateFunc,
+            errCodeStrIndex: "error_code",
+            callbacks: inputCallbacks
+        }, $.xAjax.defaults.xType);
+    };
+
+    Device.prototype.productFromLINKIE = function(data) {
+        if (data) {
+            if (!this.product) {
+                var tmpProduct = new $.ipc.IpcProduct();
+                this.product = tmpProduct;
+            };
+            if (data["smartlife.cam.ipcamera.cloud"] && 
+                data["smartlife.cam.ipcamera.cloud"]["get_modules"] &&
+                data["smartlife.cam.ipcamera.cloud"]["get_modules"]["submods"]) {
+                var modules = data["smartlife.cam.ipcamera.cloud"]["get_modules"]["submods"];
+                for (var i = modules.length - 1; i >= 0; i--) {
+                    if (modules[i].name == "relay") {
+                        
+                    }
+                }
+            };
+            if (data["smartlife.cam.ipcamera.liveStream"]) {
+                if (data["smartlife.cam.ipcamera.cloud"]["get_modules"]) {
+
+                }
+            }
+        }
     };
 
     Device.prototype.getLocalInfo = function(args, inputCallbacks) {
@@ -1548,6 +1631,11 @@
                     id: device.id,
                     urlPrefix: "https://jp-alpha.tplinkcloud.com"
                 }) && device.get(args, undefined, extendArgs);
+                device.isOnline && !device.hasGetLINKIE && (args = {
+                    id: device.id,
+                    appServerUrl: device.appServerUrl,
+                    token: device.owner.token
+                }) && device.getLINKIE(args);
             };
 
             var activeDeviceArr = this.findActiveDeviceArr();
