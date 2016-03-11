@@ -966,7 +966,7 @@
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
-        if (mt in mimeTypesArr) {
+        if ($.inArray(mt,mimeTypesArr) < 0) {
             console.error("mime types error in getPlayerType")
         };
         var result = undefined;
@@ -1434,7 +1434,7 @@
                 var modules = data["smartlife.cam.ipcamera.cloud"]["get_modules"]["submods"];
                 for (var i = modules.length - 1; i >= 0; i--) {
                     if (modules[i].name == "relay") {
-                        
+                        if (modules[i]) {}
                     }
                 }
             };
