@@ -6,12 +6,6 @@
 	height:13px;
 	background: url("../../../../common/img/common.png") no-repeat scroll 0 0 transparent;
 }
-.checkbox-disabled{
-	/*background:url(../images/checkbox-disable.png);*/
-}
 .checkbox-checked{
 	background: url("../../../../common/img/common.png") no-repeat scroll 0 -64px transparent;
-}
-.checkbox-checked-disabled{
-	/*background:url(../images/checkbox-disable.png);*/
 }
