@@ -830,6 +830,7 @@
         this.videoCodec = null;
         this.audioCodec = null;
         this.name = null;
+        this.port = null;
     };
     Channel.prototype.generateRelaydCommand = function(device) {
         if (undefined == device) {
@@ -839,7 +840,7 @@
         var relayResolutionStr = this.generateRelayParam(device);
         var url = this.url;
         var type = this.name;
-        return "relayd -s 'http://127.0.0.1:8080" + url + "?" + localResolutionStr +
+        return "relayd -s 'http://127.0.0.1:" + this.port + url + "?" + localResolutionStr +
             "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" +
             device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
             device.owner.token + "' -t '" + device.relayVideoTime + "'";
@@ -928,20 +929,34 @@
         this.name = null;
     };
 
-    function AudioCodec() {
+    function PCMAudioCodec() {
         Codec.call(this, arguments);
-        this.pluginAudioTypeCode = null;
+        this.name = "PCM";
     };
-    $.ipc.inheritPrototype(AudioCodec, Codec);
-
-    function VideoCodec() {
+    $.ipc.inheritPrototype(PCMAudioCodec, Codec);
+    function AACAudioCodec() {
         Codec.call(this, arguments);
-        this.pluginStreamTypeCode = null;
+        this.name = "AAC";
+        this.pluginAudioTypeCode = 2;
     };
-    $.ipc.inheritPrototype(VideoCodec, Codec);
+    $.ipc.inheritPrototype(AACAudioCodec, Codec);
 
-    $.ipc.AudioCodec = AudioCodec;
-    $.ipc.VideoCodec = VideoCodec;
+    function MJPEGVideoCodec() {
+        Codec.call(this, arguments);
+        this.name = "mjpeg";
+    };
+    $.ipc.inheritPrototype(MJPEGVideoCodec, Codec);
+    function H264VideoCodec() {
+        Codec.call(this, arguments);
+        this.name = "h264";
+        this.pluginStreamTypeCode = 2;
+    };
+    $.ipc.inheritPrototype(H264VideoCodec, Codec);
+
+    $.ipc.PCMAudioCodec = PCMAudioCodec;
+    $.ipc.AACAudioCodec = AACAudioCodec;
+    $.ipc.MJPEGVideoCodec = MJPEGVideoCodec;
+    $.ipc.H264VideoCodec = H264VideoCodec;
 })(jQuery);
 
 (function($) {
@@ -966,7 +981,7 @@
     };
 
     IpcProduct.prototype.getPlayerType = function(mt) {
-        if ($.inArray(mt,mimeTypesArr) < 0) {
+        if ($.inArray(mt, mimeTypesArr) < 0) {
             console.error("mime types error in getPlayerType")
         };
         var result = undefined;
@@ -1166,9 +1181,9 @@
         this.isActive = false;
 
         this.BACK_END_WEB_PROTOCAL = "";
-        this.hasGetLINKIE = false;
-        this.hasGetLINKIESuccess = false;
     };
+
+    var linkieDataList = {};
 
     $.ipc.inheritPrototype(Device, $.ipc.Model);
 
@@ -1206,6 +1221,11 @@
             console.error("args error in init");
         };
         $.extend(true, this, d);
+        var p = this.model.substring(0, 5).toUpperCase();
+        var tmpProduct = new $.ipc.IpcProduct();
+        $.extend(true, tmpProduct, $.ipc[p]);
+        this.currentVideoResolution = tmpProduct.supportVideoResArr[0];
+        this.product = tmpProduct;
     };
 
     Device.prototype.get = function(args, inputCallbacks, extendArgs) {
@@ -1360,18 +1380,26 @@
         }, $.xAjax.defaults.xType);
     };
 
-    var NC200 = new IpcProduct();
-    NC200.name = "NC200";
-    NC200.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
-    NC200.mimeType = mimeTypesArr[0];
-    NC200.smallImgCssClass = "NC200-small-img";
-    NC200.middleImgCssClass = "NC200-middle-img";
-    NC200.playerType = NC200.getPlayerType(NC200.mimeType);
-    NC200.postDataChannel = findPostChannelForNC200();
-    NC200.audioCodec = pcmAudioCodec;
-    NC200.videoCodec = mjpegVideoCodec;
+    Device.prototype.getLocalLinkieDataList = function() {
+        return linkieDataList;
+    };
 
-    Device.prototype.getLINKIE = function(args, inputCallbacks) {
+    Device.prototype.setLocalLinkieDataList = function(data) {
+        if (undefined == linkieDataList[this.model]) {
+            linkieDataList[this.model] = {};
+        }
+        linkieDataList[this.model][this.fwVer] = data;
+    };
+
+    Device.prototype.isNeedGetLinkie = function() {
+        var result = true;
+        if (linkieDataList[this.model] && linkieDataList[this.model][this.fwVer]) {
+            result = false;
+        }
+        return result;
+    };
+
+    Device.prototype.getLinkie = function(args, inputCallbacks) {
         if (undefined == args.token || undefined == args.appServerUrl) {
             console.error("args error in getLocalInfo");
         }
@@ -1379,7 +1407,25 @@
         if (validateResult.code == false) {
             return validateResult;
         };
+        if (!this.isNeedGetLinkie()) {
+            console.log("linkie data is already in cache when getLinkie. " +
+                "passthrough to get linkie data anyway.");
+        }
+
+        var changeStateFunc = function(response) {
+            if (response && response.result && response.result.responseData) {
+                this.setLocalLinkieDataList(response.result.responseData);
+            };
+        };
         var _self = this;
+        inputCallbacks = inputCallbacks || {};
+        inputCallbacks.errorCodeCallbackMap = inputCallbacks.errorCodeCallbackMap || {};
+        var tmpFunc = inputCallbacks.errorCodeCallbackMap["-51207"];
+        inputCallbacks.errorCodeCallbackMap["-51207"] = function() {
+            _self.setLocalLinkieDataList("-51207");
+            tmpFunc && tmpFunc();
+        };
+
         var data = JSON.stringify({
             "method": "passthrough",
             "params": {
@@ -1398,21 +1444,6 @@
             }
         });
 
-        var changeStateFunc = function(response) {
-            this.hasGetLINKIE = true;
-            var passthroughResult = response.result.responseData;
-            if (passthroughResult) {
-                this.hasGetLINKIESuccess = true;
-            }
-        };
-        inputCallbacks = inputCallbacks || {};
-        inputCallbacks.errorCodeCallbackMap = inputCallbacks.errorCodeCallbackMap || {};
-        var tmpFunc = inputCallbacks.errorCodeCallbackMap["-51207"];
-        inputCallbacks.errorCodeCallbackMap["-51207"] = function () {
-            _self.hasGetLINKIE = true;
-            tmpFunc && tmpFunc();
-        }
-
         this.makeAjaxRequest({
             url: args.appServerUrl + "?token=" + args.token,
             data: data,
@@ -1420,28 +1451,233 @@
             errCodeStrIndex: "error_code",
             callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
+
     };
 
-    Device.prototype.productFromLINKIE = function(data) {
-        if (data) {
-            if (!this.product) {
-                var tmpProduct = new $.ipc.IpcProduct();
-                this.product = tmpProduct;
+    Device.prototype.getSupportResArr = function(resDescriptionArr) {
+        if (resDescriptionArr) {
+            var ipcResObjMap = {
+                "640*480": $.ipc.RESOLUTION_VIDEO_VGA,
+                "320*240": $.ipc.RESOLUTION_VIDEO_QVGA,
+                "1280*720": $.ipc.RESOLUTION_VIDEO_HD,
+                "1920*1080": $.ipc.RESOLUTION_VIDEO_FULLHD
             };
-            if (data["smartlife.cam.ipcamera.cloud"] && 
-                data["smartlife.cam.ipcamera.cloud"]["get_modules"] &&
-                data["smartlife.cam.ipcamera.cloud"]["get_modules"]["submods"]) {
-                var modules = data["smartlife.cam.ipcamera.cloud"]["get_modules"]["submods"];
-                for (var i = modules.length - 1; i >= 0; i--) {
-                    if (modules[i].name == "relay") {
-                        if (modules[i]) {}
+            var result = [];
+            for (var i = resDescriptionArr.length - 1; i >= 0; i--) {
+                if (ipcResObjMap[resDescriptionArr[i]]) {
+                    result.push(ipcResObjMap[resDescriptionArr[i]]);
+                } else {
+                    console.warn("unknown resolution: " + resDescriptionArr[i]);
+                }
+            };
+            return result;
+        } else {
+            throw "undefined args in getSupportResArr";
+        }
+    };
+
+    Device.prototype.getMixedPostDataChannel = function(supporttedMixed) {
+        if (supporttedMixed) {
+            var map = {};
+            for (var i = supporttedMixed.length - 1; i >= 0; i--) {
+                var tmp = supporttedMixed[i];
+                map[tmp["video_codec"] + "_" + tmp["audio_codec"]] = tmp;
+            };
+            var result = {};
+            var mixedChannel = new $.ipc.DevicePostChannelMixed();
+            var videoCodec;
+            var audioCodec;
+            if (map["H.264_AAC"]) {
+                videoCodec = new $.ipc.H264VideoCodec();
+                audioCodec = new $.ipc.AACAudioCodec();
+                mixedChannel.url = map["H.264_AAC"]["url"];
+            } else if (map["MJPEG_PCM"]) {
+                videoCodec = new $.ipc.MJPEGVideoCodec();
+                audioCodec = new $.ipc.PCMAudioCodec();
+                mixedChannel.url = map["MJPEG_PCM"]["url"];
+            } else {
+                throw "unknown mixed channel. neither h264acc nor mjpegpcm";
+            };
+
+            if (mixedChannel && videoCodec && audioCodec) {
+                result = {
+                    "postChannel": [mixedChannel],
+                    "videoCodec": videoCodec,
+                    "audioCodec": audioCodec
+                };
+                return result;
+            } else {
+                throw "error in getMixedPostDataChannel";
+            }
+        } else {
+            throw "undefined args in getMixedPostDataChannel";
+        }
+    };
+
+    Device.prototype.getMultiPostDataChannel = function(audioArr, videoArr) {
+        if (audioArr && videoArr) {
+            var result = {};
+            var videoCodec;
+            var audioCodec;
+            var videoChannel;
+            var audioChannel;
+            var audioCodecMap = {};
+            for (var i = audioArr.length - 1; i >= 0; i--) {
+                audioCodecMap[audioArr[i]["audio_codec"]] = audioArr[i];
+            }
+            var videoCodecMap = {};
+            for (var i = videoArr.length - 1; i >= 0; i--) {
+                videoCodecMap[videoArr[i]["video_codec"]] = videoArr[i];
+            }
+
+            if (audioCodecMap["AAC"]) {
+                audioCodec = new $.ipc.AACAudioCodec();
+                audioChannel = new $.ipc.DevicePostChannelAudio();
+                audioChannel.url = audioCodecMap["AAC"].url;
+            } else if (audioCodecMap["PCM"]) {
+                audioCodec = new $.ipc.PCMAudioCodec();
+                audioChannel = new $.ipc.DevicePostChannelAudio();
+                audioChannel.url = audioCodecMap["PCM"].url;
+            } else {
+                throw "unknown audio codec type, neither aac nor pcm";
+            }
+
+            if (videoCodecMap["H.264"]) {
+                videoCodec = new $.ipc.h264VideoCodec();
+                videoChannel = new $.ipc.DevicePostChannelVideo();
+                videoChannel.url = videoCodecMap["H.264"].url;
+                videoChannel.encrypt = videoCodecMap["H.264"].encrypt;
+            } else if (videoCodecMap["MJPEG"]) {
+                videoCodec = new $.ipc.mjpegVideoCodec();
+                videoChannel = new $.ipc.DevicePostChannelVideo();
+                videoChannel.url = videoCodecMap["MJPEG"].url;
+                videoChannel.encrypt = videoCodecMap["H.264"].encrypt;
+            } else {
+                throw "unknown video codec type, neither h264 nor mjpeg";
+            };
+
+            if (videoChannel && audioChannel && videoCodec && audioCodec) {
+                result = {
+                    "postChannel": [videoChannel, audioChannel],
+                    "videoCodec": videoCodec,
+                    "audioCodec": audioCodec
+                };
+                return result;
+            } else {
+                throw "error in getMultiPostDataChannel";
+            }
+        } else {
+            throw "undefined args in getMultiPostDataChannel";
+        }
+    };
+
+    Device.prototype.getMimeType = function(videoCodec) {
+        if (videoCodec) {
+            var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
+            var h264VideoCodec = new $.ipc.H264VideoCodec();
+            var map = {};
+            map[mjpegVideoCodec.name] = "application/x-tp-camera";
+            map[h264VideoCodec.name] = "application/x-tp-camera-h264";
+            var result = map[videoCodec.name];
+            if (result) {
+                return result;
+            } else {
+                throw "unknown video codec for getmimeType, neither mjpeg nor h264";
+            }
+        } else {
+            throw "undefined args in getmimeType";
+        }
+    };
+
+    Device.prototype.getPlayerType = function(mt) {
+        if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
+        var result = undefined;
+        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+            if (mt == mimeTypesArr[0]) {
+                result = $.ipc.IMG_PLAYER;
+            } else {
+                result = $.ipc.FLASH_PLAYER;
+            }
+        } else {
+            if ($.ipc.Browser.prototype.os == "MacOS") {
+                result = $.ipc.PLUGIN_MAC;
+            } else if ($.ipc.Browser.prototype.os == "Windows") {
+                if ($.ipc.Browser.prototype.type == "MSIE") {
+                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
+                        result = $.ipc.PLUGIN_IE_X86;
+                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
+                        result = $.ipc.PLUGIN_IE_X64;
+                    } else {
+                        console.info("unknown ie platform, return by default with: PLUGIN_IE_X86");
+                        result = $.ipc.PLUGIN_IE_X86;
+                    }
+                } else {
+                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
+                        result = $.ipc.PLUGIN_NON_IE_X86;
+                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
+                        result = $.ipc.PLUGIN_NON_IE_X64;
+                    } else {
+                        console.info("unknown browser platform, return by default with: PLUGIN_IE_X86");
+                        result = $.ipc.PLUGIN_NON_IE_X86;
                     }
                 }
-            };
-            if (data["smartlife.cam.ipcamera.liveStream"]) {
-                if (data["smartlife.cam.ipcamera.cloud"]["get_modules"]) {
+            } else {
+                console.info("unsupportted operation system");
+                result = undefined;
+            }
+        }
+        return result;
+    };
 
+    Device.prototype.getProductFromLinkieData = function(data) {
+        if (data) {
+            var tmpProduct = new $.ipc.IpcProduct();
+            try {
+                if (data["smartlife.cam.ipcamera.liveStream"] &&
+                    data["smartlife.cam.ipcamera.liveStream"]["get_modules"]) {
+                    var module = data["smartlife.cam.ipcamera.liveStream"]["get_modules"];
+                    var supportVideoResArr;
+                    if (module["resolutions"]) {
+                        supportVideoResArr = this.getSupportResArr(module["resolutions"]);
+                    } else {
+                        throw "no resolution data";
+                    }
+
+                    var postChannelInfo;
+                    if (module["audio_video"]) {
+                        postChannelInfo = this.getMixedPostDataChannel(module["audio_video"]);
+                    } else if (module["audio"] && module["video"]) {
+                        postChannelInfo = this.getMultiPostDataChannel(module["audio"], module["video"]);
+                    } else {
+                        throw "unknown post channel type";
+                    };
+
+                    if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"]
+                        && postChannelInfo["audioCodec"] && supportVideoResArr) {
+
+                        if (module["port"]) {
+                            for (var i = postChannelInfo["postChannel"].length - 1; i >= 0; i--) {
+                                postChannelInfo["postChannel"][i].port = module["port"];
+                            }
+                        } else {
+                            throw "linkie data have no port info";
+                        };
+
+                        tmpProduct.name = this.model.substring(0,5).toUpperCase();
+                        tmpProduct.supportVideoResArr = supportVideoResArr;
+                        tmpProduct.mimeType = this.getMimeType(postChannelInfo["videoCodec"]);
+                        tmpProduct.smallImgCssClass = tmpProduct.name + "-small-img";
+                        tmpProduct.middleImgCssClass = tmpProduct.name + "-middle-img";
+                        tmpProduct.playerType = 
+                    }
+                    
+                    
+
+                } else {
+                    throw "unknown linkie-like data";
                 }
+            } catch (err) {
+                throw "some error happened: " + err;
             }
         }
     };
@@ -1631,11 +1867,6 @@
                     id: device.id,
                     urlPrefix: "https://jp-alpha.tplinkcloud.com"
                 }) && device.get(args, undefined, extendArgs);
-                device.isOnline && !device.hasGetLINKIE && (args = {
-                    id: device.id,
-                    appServerUrl: device.appServerUrl,
-                    token: device.owner.token
-                }) && device.getLINKIE(args);
             };
 
             var activeDeviceArr = this.findActiveDeviceArr();
