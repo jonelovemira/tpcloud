@@ -572,6 +572,49 @@
 
     $.ipc = $.ipc || {};
 
+    function Codec() {
+        this.name = null;
+    };
+
+    function PCMAudioCodec() {
+        Codec.call(this, arguments);
+        this.name = "PCM";
+    };
+    $.ipc.inheritPrototype(PCMAudioCodec, Codec);
+
+    function AACAudioCodec() {
+        Codec.call(this, arguments);
+        this.name = "AAC";
+        this.pluginAudioTypeCode = 2;
+    };
+    $.ipc.inheritPrototype(AACAudioCodec, Codec);
+
+    function MJPEGVideoCodec() {
+        Codec.call(this, arguments);
+        this.name = "mjpeg";
+        this.mimeType = "application/x-tp-camera";
+    };
+    $.ipc.inheritPrototype(MJPEGVideoCodec, Codec);
+
+    function H264VideoCodec() {
+        Codec.call(this, arguments);
+        this.name = "h264";
+        this.mimeType = "application/x-tp-camera-h264";
+        this.pluginStreamTypeCode = 2;
+    };
+    $.ipc.inheritPrototype(H264VideoCodec, Codec);
+
+    $.ipc.PCMAudioCodec = PCMAudioCodec;
+    $.ipc.AACAudioCodec = AACAudioCodec;
+    $.ipc.MJPEGVideoCodec = MJPEGVideoCodec;
+    $.ipc.H264VideoCodec = H264VideoCodec;
+})(jQuery);
+
+(function($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
     function hasNewerVersion(version) {
         if (undefined == version || undefined == this.newestVersion) {
             console.error("args error in hasNewerVersion");
@@ -592,6 +635,9 @@
         hasNewerVersion: hasNewerVersion
     };
 
+    var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
+    var h264VideoCodec = new $.ipc.H264VideoCodec();
+
     function PLUGIN_NON_IE_X86() {};
 
     function PLUGIN_NON_IE_X64() {};
@@ -606,31 +652,25 @@
 
     function IMG_PLAYER() {};
 
-    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "non-ie-mjpeg",
-        "application/x-tp-camera-h264": "non-ie-h264"
-    };
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {};
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "non-ie-mjpeg";
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "non-ie-h264";
 
-    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "non-ie-mjpeg",
-        "application/x-tp-camera-h264": "non-ie-h264"
-    };
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap = {};
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "non-ie-mjpeg";
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "non-ie-h264";
 
-    PLUGIN_IE_X86.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "ie-mjpeg",
-        "application/x-tp-camera-h264": "ie-h264"
-    };
+    PLUGIN_IE_X86.prototype.mimetypeCssMap = {};
+    PLUGIN_IE_X86.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "ie-mjpeg";
+    PLUGIN_IE_X86.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "ie-h264";
 
-    PLUGIN_IE_X64.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "ie-mjpeg",
-        "application/x-tp-camera-h264": "ie-h264"
-    };
+    PLUGIN_IE_X64.prototype.mimetypeCssMap = {};
+    PLUGIN_IE_X64.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "ie-mjpeg";
+    PLUGIN_IE_X64.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "ie-h264";
 
-    PLUGIN_MAC.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "non-ie-mjpeg",
-        "application/x-tp-camera-h264": "non-ie-h264"
-    };
-
+    PLUGIN_MAC.prototype.mimetypeCssMap = {};
+    PLUGIN_MAC.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "non-ie-mjpeg";
+    PLUGIN_MAC.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "non-ie-h264";
 
     (function() {
         var tmp = [PLUGIN_NON_IE_X86, PLUGIN_NON_IE_X64, PLUGIN_IE_X86, PLUGIN_IE_X64, PLUGIN_MAC];
@@ -840,7 +880,7 @@
         var relayResolutionStr = this.generateRelayParam(device);
         var url = this.url;
         var type = this.name;
-        return "relayd -s 'http://127.0.0.1:" + this.port + url + "?" + localResolutionStr +
+        return "relayd -s 'http://127.0.0.1:" + this.port + "/" + url + "?" + localResolutionStr +
             "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" +
             device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
             device.owner.token + "' -t '" + device.relayVideoTime + "'";
@@ -917,228 +957,6 @@
     $.ipc.DevicePostChannelVideo = DevicePostChannelVideo;
     $.ipc.DevicePostChannelAudio = DevicePostChannelAudio;
     $.ipc.DevicePostChannelMixed = DevicePostChannelMixed;
-
-})(jQuery);
-
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
-    function Codec() {
-        this.name = null;
-    };
-
-    function PCMAudioCodec() {
-        Codec.call(this, arguments);
-        this.name = "PCM";
-    };
-    $.ipc.inheritPrototype(PCMAudioCodec, Codec);
-    function AACAudioCodec() {
-        Codec.call(this, arguments);
-        this.name = "AAC";
-        this.pluginAudioTypeCode = 2;
-    };
-    $.ipc.inheritPrototype(AACAudioCodec, Codec);
-
-    function MJPEGVideoCodec() {
-        Codec.call(this, arguments);
-        this.name = "mjpeg";
-    };
-    $.ipc.inheritPrototype(MJPEGVideoCodec, Codec);
-    function H264VideoCodec() {
-        Codec.call(this, arguments);
-        this.name = "h264";
-        this.pluginStreamTypeCode = 2;
-    };
-    $.ipc.inheritPrototype(H264VideoCodec, Codec);
-
-    $.ipc.PCMAudioCodec = PCMAudioCodec;
-    $.ipc.AACAudioCodec = AACAudioCodec;
-    $.ipc.MJPEGVideoCodec = MJPEGVideoCodec;
-    $.ipc.H264VideoCodec = H264VideoCodec;
-})(jQuery);
-
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
-    function IpcProduct() {
-        this.name = null;
-        this.supportVideoResArr = [];
-        this.mimeType = null;
-        this.smallImgCssClass = null;
-        this.middleImgCssClass = null;
-        this.playerType = null;
-        this.videoDataChannel = null;
-        this.released = null;
-        this.faqPath = null;
-        this.pluginPlayer = null;
-        this.firmwareDownloadPath = null;
-        this.firmwareNewestVersion = null;
-        this.audioCodec = null;
-    };
-
-    IpcProduct.prototype.getPlayerType = function(mt) {
-        if ($.inArray(mt, mimeTypesArr) < 0) {
-            console.error("mime types error in getPlayerType")
-        };
-        var result = undefined;
-        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
-            if (mt == mimeTypesArr[0]) {
-                result = $.ipc.IMG_PLAYER;
-            } else {
-                result = $.ipc.FLASH_PLAYER;
-            }
-        } else {
-            if ($.ipc.Browser.prototype.os == "MacOS") {
-                result = $.ipc.PLUGIN_MAC;
-            } else if ($.ipc.Browser.prototype.os == "Windows") {
-                if ($.ipc.Browser.prototype.type == "MSIE") {
-                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
-                        result = $.ipc.PLUGIN_IE_X86;
-                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
-                        result = $.ipc.PLUGIN_IE_X64;
-                    } else {
-                        console.info("unknown ie platform, return by default with: PLUGIN_IE_X86");
-                        result = $.ipc.PLUGIN_IE_X86;
-                    }
-                } else {
-                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
-                        result = $.ipc.PLUGIN_NON_IE_X86;
-                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
-                        result = $.ipc.PLUGIN_NON_IE_X64;
-                    } else {
-                        console.info("unknown browser platform, return by default with: PLUGIN_IE_X86");
-                        result = $.ipc.PLUGIN_NON_IE_X86;
-                    }
-                }
-            } else {
-                console.info("unsupportted operation system");
-                result = undefined;
-            }
-        }
-        return result;
-        // return $.ipc.IMG_PLAYER;
-    };
-
-    function findPostChannelForNC200() {
-        var result = null;
-        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
-            result = [videoChannel];
-        } else {
-            result = [videoChannel, audioChannel];
-        };
-        return result;
-    }
-
-    var mimeTypesArr = ["application/x-tp-camera", "application/x-tp-camera-h264"];
-
-    var videoChannel = new $.ipc.DevicePostChannelVideo();
-    videoChannel.url = '/stream/getvideo';
-    var audioChannel = new $.ipc.DevicePostChannelAudio();
-    audioChannel.url = '/stream/getaudioblock';
-    var mixedChannel = new $.ipc.DevicePostChannelMixed();
-    mixedChannel.url = '/stream/video/mixed';
-
-    var pcmAudioCodec = new $.ipc.AudioCodec();
-    pcmAudioCodec.name = "PCM";
-    var aacAudioCodec = new $.ipc.AudioCodec();
-    aacAudioCodec.name = "AAC";
-    aacAudioCodec.pluginAudioTypeCode = 2;
-    var h264VideoCodec = new $.ipc.VideoCodec();
-    h264VideoCodec.name = "h264";
-    h264VideoCodec.pluginStreamTypeCode = 2;
-    var mjpegVideoCodec = new $.ipc.VideoCodec();
-    mjpegVideoCodec.name = "mjpeg";
-
-    var NC200 = new IpcProduct();
-    NC200.name = "NC200";
-    NC200.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
-    NC200.mimeType = mimeTypesArr[0];
-    NC200.smallImgCssClass = "NC200-small-img";
-    NC200.middleImgCssClass = "NC200-middle-img";
-    NC200.playerType = NC200.getPlayerType(NC200.mimeType);
-    NC200.postDataChannel = findPostChannelForNC200();
-    NC200.audioCodec = pcmAudioCodec;
-    NC200.videoCodec = mjpegVideoCodec;
-
-    var NC210 = new IpcProduct();
-    NC210.name = "NC210";
-    NC210.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC210.mimeType = mimeTypesArr[1];
-    NC210.smallImgCssClass = "NC210-small-img";
-    NC210.middleImgCssClass = "NC210-middle-img";
-    NC210.playerType = NC210.getPlayerType(NC210.mimeType);
-    NC210.postDataChannel = [videoChannel, audioChannel];
-    NC210.audioCodec = aacAudioCodec;
-    NC210.videoCodec = h264VideoCodec;
-
-    var NC220 = new IpcProduct();
-    NC220.name = "NC220";
-    NC220.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
-    NC220.mimeType = mimeTypesArr[1];
-    NC220.smallImgCssClass = "NC220-small-img";
-    NC220.middleImgCssClass = "NC220-middle-img";
-    NC220.playerType = NC220.getPlayerType(NC220.mimeType);
-    NC220.postDataChannel = [videoChannel, audioChannel];
-    NC220.audioCodec = aacAudioCodec;
-    NC220.videoCodec = h264VideoCodec;
-
-    var NC230 = new IpcProduct();
-    NC230.name = "NC230";
-    NC230.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC230.mimeType = mimeTypesArr[1];
-    NC230.smallImgCssClass = "NC230-small-img";
-    NC230.middleImgCssClass = "NC230-middle-img";
-    NC230.playerType = NC230.getPlayerType(NC230.mimeType);
-    NC230.postDataChannel = [videoChannel, audioChannel];
-    NC230.audioCodec = aacAudioCodec;
-    NC230.videoCodec = h264VideoCodec;
-
-    var NC250 = new IpcProduct();
-    NC250.name = "NC250";
-    NC250.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC250.mimeType = mimeTypesArr[1];
-    NC250.smallImgCssClass = "NC250-small-img";
-    NC250.middleImgCssClass = "NC250-middle-img";
-    NC250.playerType = NC250.getPlayerType(NC250.mimeType);
-    NC250.postDataChannel = [videoChannel, audioChannel];
-    NC250.audioCodec = aacAudioCodec;
-    NC250.videoCodec = h264VideoCodec;
-
-    var NC350 = new IpcProduct();
-    NC350.name = "NC350";
-    NC350.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC350.mimeType = mimeTypesArr[1];
-    NC350.smallImgCssClass = "NC350-small-img";
-    NC350.middleImgCssClass = "NC350-middle-img";
-    NC350.playerType = NC350.getPlayerType(NC350.mimeType);
-    NC350.postDataChannel = [videoChannel, audioChannel];
-    NC350.audioCodec = aacAudioCodec;
-    NC350.videoCodec = h264VideoCodec;
-
-    var NC450 = new IpcProduct();
-    NC450.name = "NC450";
-    NC450.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC450.mimeType = mimeTypesArr[1];
-    NC450.smallImgCssClass = "NC450-small-img";
-    NC450.middleImgCssClass = "NC450-middle-img";
-    NC450.playerType = NC450.getPlayerType(NC450.mimeType);
-    NC450.postDataChannel = [videoChannel, audioChannel];
-    NC450.audioCodec = aacAudioCodec;
-    NC450.videoCodec = h264VideoCodec;
-
-    $.ipc.NC200 = NC200;
-    $.ipc.NC210 = NC210;
-    $.ipc.NC220 = NC220;
-    $.ipc.NC230 = NC230;
-    $.ipc.NC250 = NC250;
-    $.ipc.NC350 = NC350;
-    $.ipc.NC450 = NC450;
-
-    $.ipc.IpcProduct = IpcProduct;
 
 })(jQuery);
 
@@ -1457,18 +1275,18 @@
     Device.prototype.getSupportResArr = function(resDescriptionArr) {
         if (resDescriptionArr) {
             var ipcResObjMap = {
-                "640*480": $.ipc.RESOLUTION_VIDEO_VGA,
-                "320*240": $.ipc.RESOLUTION_VIDEO_QVGA,
+                "1920*1080": $.ipc.RESOLUTION_VIDEO_FULLHD,
                 "1280*720": $.ipc.RESOLUTION_VIDEO_HD,
-                "1920*1080": $.ipc.RESOLUTION_VIDEO_FULLHD
+                "640*480": $.ipc.RESOLUTION_VIDEO_VGA,
+                "320*240": $.ipc.RESOLUTION_VIDEO_QVGA
             };
             var result = [];
-            for (var i = resDescriptionArr.length - 1; i >= 0; i--) {
-                if (ipcResObjMap[resDescriptionArr[i]]) {
-                    result.push(ipcResObjMap[resDescriptionArr[i]]);
-                } else {
-                    console.warn("unknown resolution: " + resDescriptionArr[i]);
-                }
+            for (var key in ipcResObjMap) {
+                for (var i = resDescriptionArr.length - 1; i >= 0; i--) {
+                    if (resDescriptionArr[i] == key) {
+                        result.push(ipcResObjMap[key]);
+                    };
+                };
             };
             return result;
         } else {
@@ -1501,7 +1319,9 @@
 
             if (mixedChannel && videoCodec && audioCodec) {
                 result = {
-                    "postChannel": [mixedChannel],
+                    "postChannel": {
+                        "mixed": mixedChannel
+                    },
                     "videoCodec": videoCodec,
                     "audioCodec": audioCodec
                 };
@@ -1543,22 +1363,25 @@
             }
 
             if (videoCodecMap["H.264"]) {
-                videoCodec = new $.ipc.h264VideoCodec();
+                videoCodec = new $.ipc.H264VideoCodec();
                 videoChannel = new $.ipc.DevicePostChannelVideo();
                 videoChannel.url = videoCodecMap["H.264"].url;
                 videoChannel.encrypt = videoCodecMap["H.264"].encrypt;
             } else if (videoCodecMap["MJPEG"]) {
-                videoCodec = new $.ipc.mjpegVideoCodec();
+                videoCodec = new $.ipc.MJPEGVideoCodec();
                 videoChannel = new $.ipc.DevicePostChannelVideo();
                 videoChannel.url = videoCodecMap["MJPEG"].url;
-                videoChannel.encrypt = videoCodecMap["H.264"].encrypt;
+                videoChannel.encrypt = videoCodecMap["MJPEG"].encrypt;
             } else {
                 throw "unknown video codec type, neither h264 nor mjpeg";
             };
 
             if (videoChannel && audioChannel && videoCodec && audioCodec) {
                 result = {
-                    "postChannel": [videoChannel, audioChannel],
+                    "postChannel": {
+                        "video": videoChannel,
+                        "audio": audioChannel
+                    },
                     "videoCodec": videoCodec,
                     "audioCodec": audioCodec
                 };
@@ -1571,26 +1394,13 @@
         }
     };
 
-    Device.prototype.getMimeType = function(videoCodec) {
-        if (videoCodec) {
-            var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
-            var h264VideoCodec = new $.ipc.H264VideoCodec();
-            var map = {};
-            map[mjpegVideoCodec.name] = "application/x-tp-camera";
-            map[h264VideoCodec.name] = "application/x-tp-camera-h264";
-            var result = map[videoCodec.name];
-            if (result) {
-                return result;
-            } else {
-                throw "unknown video codec for getmimeType, neither mjpeg nor h264";
-            }
-        } else {
-            throw "undefined args in getmimeType";
-        }
-    };
-
     Device.prototype.getPlayerType = function(mt) {
-        if (mt in mimeTypesArr) {console.error("mime types error in getPlayerType")};
+        var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
+        var h264VideoCodec = new $.ipc.H264VideoCodec();
+        var mimeTypesArr = [mjpegVideoCodec.mimeType, h264VideoCodec.mimeType];
+        if ($.inArray(mt, mimeTypesArr) < 0) {
+            throw "unknown mime types for getPlayerType";
+        };
         var result = undefined;
         if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
@@ -1622,13 +1432,26 @@
                     }
                 }
             } else {
-                console.info("unsupportted operation system");
-                result = undefined;
+                throw "unsupportted operation system";
             }
         }
         return result;
     };
 
+    Device.prototype.dynamicFixPostChannelForNC200 = function(product) {
+        if (product) {
+            if (product.name == "NC200") {
+                if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+                    if (product["postDataChannel"]["video"] && product["postDataChannel"]["audio"]) {
+                        delete product["postDataChannel"]["audio"];
+                    };
+                };
+            };
+        } else {
+            throw "undefined args in dynamicFixPostChannelForNC200";
+        };
+    };
+ 
     Device.prototype.getProductFromLinkieData = function(data) {
         if (data) {
             var tmpProduct = new $.ipc.IpcProduct();
@@ -1652,8 +1475,7 @@
                         throw "unknown post channel type";
                     };
 
-                    if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"]
-                        && postChannelInfo["audioCodec"] && supportVideoResArr) {
+                    if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"] && postChannelInfo["audioCodec"] && supportVideoResArr) {
 
                         if (module["port"]) {
                             for (var i = postChannelInfo["postChannel"].length - 1; i >= 0; i--) {
@@ -1663,16 +1485,22 @@
                             throw "linkie data have no port info";
                         };
 
-                        tmpProduct.name = this.model.substring(0,5).toUpperCase();
+                        if (undefined == postChannelInfo["videoCodec"].mimeType) {
+                            throw "unknown mimeType";
+                        }
+
+                        tmpProduct.name = this.model.substring(0, 5).toUpperCase();
                         tmpProduct.supportVideoResArr = supportVideoResArr;
-                        tmpProduct.mimeType = this.getMimeType(postChannelInfo["videoCodec"]);
+                        tmpProduct.mimeType = postChannelInfo["videoCodec"].mimeType;
                         tmpProduct.smallImgCssClass = tmpProduct.name + "-small-img";
                         tmpProduct.middleImgCssClass = tmpProduct.name + "-middle-img";
-                        tmpProduct.playerType = 
+                        tmpProduct.playerType = this.getPlayerType(tmpProduct.mimeType);
+                        tmpProduct.postDataChannel = postChannelInfo["postChannel"];
+                        tmpProduct.audioCodec = postChannelInfo["audioCodec"];
+                        tmpProduct.videoCodec = postChannelInfo["videoCodec"];
+                        this.dynamicFixPostChannelForNC200(tmpProduct);
+                        return tmpProduct;
                     }
-                    
-                    
-
                 } else {
                     throw "unknown linkie-like data";
                 }
@@ -1720,11 +1548,11 @@
 
     Device.prototype.generateRelaydCommand = function() {
         var result = {};
-        for (var i = 0; i < this.product.postDataChannel.length; i++) {
-            var c = this.product.postDataChannel[i];
+        for (var key in this.product.postDataChannel) {
+            var c = this.product.postDataChannel[key];
             var commandStr = c.generateRelaydCommand(this);
             result[c.name] = commandStr;
-        };
+        }
         return result;
     };
 
@@ -1764,6 +1592,40 @@
     };
 
     $.ipc.Device = Device;
+
+})(jQuery);
+
+(function($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function IpcProduct () {
+        this.name = null;
+        this.supportVideoResArr = [];
+        this.mimeType = null;
+        this.smallImgCssClass = null;
+        this.middleImgCssClass = null;
+        this.playerType = null;
+        this.videoDataChannel = null;
+        this.released = null;
+        this.faqPath = null;
+        this.pluginPlayer = null;
+        this.firmwareDownloadPath = null;
+        this.firmwareNewestVersion = null;
+        this.audioCodec = null;
+    };
+
+    $.ipc.IpcProduct = IpcProduct;
+
+    if ($.ipc.config && $.ipc.config.presetLinkieData) {
+        var linkieData = $.ipc.config.presetLinkieData;
+        for (var key in linkieData) {
+            var d = new $.ipc.Device();
+            d.model = key;
+            $.ipc[key] = d.getProductFromLinkieData(linkieData[key]["DEFAULT"]);
+        }
+    }
 
 })(jQuery);
 
