@@ -77,7 +77,7 @@ $(function() {
             }
         };
 
-        var validateResult = currentController.model.logout(args, inputCallbacks);
+        var validateResult = currentController.model.logout(args, inputCallbacks)["validateResult"];
         if (validateResult != undefined && !validateResult.code) {
             console.error(validateResult.msg);
         };
@@ -121,7 +121,7 @@ $(function() {
                 currentController.view.renderError(errCodeTipsMap["-1"]);
             }
         };
-        var validateResult = currentController.model.modifyPassword(args, inputCallbacks);
+        var validateResult = currentController.model.modifyPassword(args, inputCallbacks)["validateResult"];
         if (validateResult != undefined && !validateResult.code) {
             currentController.view.renderError(validateResult.msg);
         };
@@ -542,7 +542,7 @@ $(function() {
                 },
                 "errorCallback": errorFunc
             };
-            var validateResult = activeDev.get(args, inputCallbacks);
+            var validateResult = activeDev.get(args, inputCallbacks)["validateResult"];
             if (validateResult != undefined && !validateResult.code) {
                 console.error(validateResult.msg);
             };
@@ -594,7 +594,7 @@ $(function() {
                         },
                         "errorCallback": errorFunc
                     };
-                    var validateResult = activeDev.changeName(args, inputCallbacks);
+                    var validateResult = activeDev.changeName(args, inputCallbacks)["validateResult"];
                     if (validateResult != undefined && !validateResult.code) {
                         currentController.view.renderMsg(validateResult.msg);
                     };
@@ -659,7 +659,7 @@ $(function() {
                     },
                     "errorCallback": errorFunc
                 };
-                var validateResult = activeDev.unbind(args, inputCallbacks);
+                var validateResult = activeDev.unbind(args, inputCallbacks)["validateResult"];
                 if (validateResult != undefined && !validateResult.code) {
                     currentController.view.renderMsg(validateResult.msg);
                 };
