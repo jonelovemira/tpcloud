@@ -269,12 +269,13 @@
     };
 
     User.prototype.register = function(args, inputCallbacks) {
-
+        var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
             (!this.validateUsername(args.username).code && this.validateUsername(args.username)) ||
             (!this.validatePassword(args.password).code && this.validatePassword(args.password));
         if (!validateResult.code) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -283,22 +284,24 @@
             "password": args.encryptText(args.password)
         });
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/register",
             data: data,
             callbacks: inputCallbacks,
             changeState: $.noop
         });
+        return result;
     };
 
     User.prototype.login = function(args, inputCallbacks) {
-
+        var result = {};
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
             (!this.validatePassword(args.password).code && this.validatePassword(args.password, {
                 "patternTestFailMsg": tips.types.password.invalidShort
             }));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -312,18 +315,21 @@
             this.email = response.msg.email;
         }
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/login",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     User.prototype.logout = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -335,36 +341,42 @@
             $.removeCookie("token");
         }
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/logout",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     User.prototype.sendActiveEmail = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
             "email": args.email
         });
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/sendActiveEmail",
             data: data,
             callbacks: inputCallbacks,
             changeState: $.noop
         });
+        return result;
     };
 
     User.prototype.resetPassword = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -375,20 +387,23 @@
             this.password = null;
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/forgetPassword",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     User.prototype.modifyPassword = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
             (!this.validatePassword(args.password).code && this.validatePassword(args.password)) ||
             (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
         if (undefined == this.account) {
             console.error("args error in modifyPassword");
@@ -405,36 +420,42 @@
             this.password = null;
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/modifyPassword",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     User.prototype.forgotPassword = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
             "email": args.email
         });
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/forgetPassword",
             data: data,
             callbacks: inputCallbacks,
             changeState: $.noop
         });
+        return result;
     };
 
     User.prototype.getUser = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -445,12 +466,13 @@
             this.username = response.msg.username;
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/getUser",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     User.prototype.validateAccount = function(tmpAccount) {
@@ -1215,10 +1237,12 @@
         if (this.owner == undefined) {
             console.error("owner is undefined");
         }
+        var result = {};
         var validateResult = (!this.owner.validateEmailFormat(args.email).code && this.owner.validateEmailFormat(args.email)) ||
             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var urlPrefix = this.BACK_END_WEB_PROTOCAL + this.webServerUrl;
@@ -1238,13 +1262,14 @@
             this.stateChangeCallbacks.fire(this);
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: urlPrefix + "/getCamera",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc,
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
+        return result;
     };
     Device.prototype.addNc200UpgradeCookie = function() {
         var device = this;
@@ -1268,7 +1293,7 @@
             undefined == args.azDNS || undefined == this.webServerUrl) {
             console.error("args error in upgrade");
         }
-
+        var result = {};
         var urlPrefix = this.BACK_END_WEB_PROTOCAL + this.webServerUrl;
 
         var data = {
@@ -1294,23 +1319,27 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: urlPrefix + "/init.php",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc,
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
+
+        return result;
     };
 
     Device.prototype.changeName = function(args, inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.token || undefined == this.appServerUrl) {
             console.error("args error in changeName")
         };
+        var result = {};
         var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id)) ||
             (!this.validateNameFormat(args.name).code && this.validateNameFormat(args.name));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -1326,24 +1355,28 @@
             this.stateChangeCallbacks.fire(this);
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: this.appServerUrl + "?token=" + this.owner.token,
             data: data,
             changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
             callbacks: inputCallbacks,
         }, $.xAjax.defaults.xType);
+
+        return result;
     };
 
     Device.prototype.unbind = function(args, inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.token ||
             undefined == this.appServerUrl) {
             console.error("args error in unbind");
-        }
+        };
+        var result = {};
         var validateResult = (!this.owner.validateAccount(args.account).code && this.owner.validateAccount(args.account)) ||
             (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -1354,22 +1387,25 @@
             }
         });
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: this.appServerUrl + "?token=" + this.owner.token,
             data: data,
             changeState: $.noop,
             errCodeStrIndex: "error_code",
             callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
+        return result;
     };
 
     Device.prototype.getLocalInfo = function(args, inputCallbacks) {
         if (undefined == args.token || undefined == args.appServerUrl) {
             console.error("args error in getLocalInfo");
         }
+        var result = {};
         var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         var data = JSON.stringify({
@@ -1390,13 +1426,14 @@
             };
         }
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: args.appServerUrl + "?token=" + args.token,
             data: data,
             changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
             callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
+        return result;
     };
 
     Device.prototype.generateRelaydCommand = function() {
@@ -1514,6 +1551,7 @@
         if (undefined == this.owner) {
             console.error("owner of device list is undefined")
         };
+        var result = {};
         var data = {};
         var changeStateFunc = function(response) {
             var oldDevices = this.devices;
@@ -1568,13 +1606,14 @@
         };
 
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/getDeviceList",
             data: data,
             callbacks: inputCallbacks,
             extendAjaxOptions: extendAjaxOptions,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     DeviceList.prototype.findActiveDeviceArr = function() {
@@ -1633,7 +1672,7 @@
             console.error("args error in getUpgradeList");
             return;
         };
-
+        var result = {};
         var data = {
             "REQUEST": "GETUPGRADELIST",
             "DATA": {
@@ -1651,14 +1690,14 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/init.php",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc,
             extendAjaxOptions: extendAjaxOptions
         });
-
+        return result;
     };
 
     DeviceList.prototype.upgradeAll = function(inputCallbacks) {
@@ -1666,7 +1705,7 @@
             console.error("args error in upgradeAll");
             return;
         };
-
+        var result = {};
         var data = {
             "REQUEST": "EXEUPGRADELIST",
             "DATA": {
@@ -1680,13 +1719,14 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/init.php",
             data: data,
             callbacks: inputCallbacks,
             changeState: $.noop,
             extendAjaxOptions: extendAjaxOptions
         });
+        return result;
     };
 
     $.ipc.DeviceList = DeviceList;
@@ -1772,7 +1812,7 @@
     $.ipc.inheritPrototype(Software, $.ipc.Model);
 
     Software.prototype.getUpdateInfos = function(inputCallbacks) {
-
+        var result = {};
         var changeStateFunc = function(response) {
             var productNameObjMap = {};
 
@@ -1816,12 +1856,13 @@
             };
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/updateInfos",
             data: {},
             callbacks: inputCallbacks,
             changeState: changeStateFunc
         });
+        return result;
     };
 
     $.ipc.Software = Software;
@@ -1860,11 +1901,13 @@
     });
 
     Feedback.prototype.send = function(args, inputCallbacks) {
+        var result = {};
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
             (!this.validateProductName(args.productName).code && this.validateProductName(args.productName)) ||
             (!this.validateDescription(args.description).code && this.validateDescription(args.description));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
 
         if (undefined == args.problemType) {
@@ -1894,13 +1937,14 @@
             contentType: "application/x-www-form-urlencoded;charset=utf-8"
         };
 
-        this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: "/init3.php",
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc,
             extendAjaxOptions: extendAjaxOptions
         });
+        return result;
     };
 
     Feedback.prototype.validateAccount = function(tmpAccount) {
@@ -2039,6 +2083,7 @@
     $.ipc.inheritPrototype(FlashStatistics, Statistics);
 
     FlashStatistics.prototype.send = function(ajaxOptions) {
+        var result = {};
         var _self = this;
         var data = JSON.stringify({
             "version": "0.1",
@@ -2065,14 +2110,15 @@
             }
         }, ajaxOptions);
 
-        _self.makeAjaxRequest({
+        result["ajaxObj"] = _self.makeAjaxRequest({
             url: _self.url,
             data: data,
             callbacks: undefined,
             changeState: $.noop,
             errCodeStrIndex: "errorCode",
             extendAjaxOptions: extendAjaxOptions
-        }, $.xAjax.defaults.xType)
+        }, $.xAjax.defaults.xType);
+        return result;
     };
 
     function PluginStatistics() {
@@ -2081,6 +2127,7 @@
     $.ipc.inheritPrototype(PluginStatistics, Statistics);
 
     PluginStatistics.prototype.send = function(ajaxOptions) {
+        var result = {};
         var _self = this;
         var data = JSON.stringify({
             "version": "0.1",
@@ -2101,7 +2148,7 @@
             }
         }, ajaxOptions);
 
-        _self.makeAjaxRequest({
+        result["ajaxObj"] = _self.makeAjaxRequest({
             url: _self.url,
             data: data,
             callbacks: undefined,
@@ -2109,6 +2156,7 @@
             errCodeStrIndex: "errorCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
+        return result;
     };
 
     var stopReasonCodeMap = {
