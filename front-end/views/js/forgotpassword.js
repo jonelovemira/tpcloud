@@ -41,7 +41,7 @@ $(function() {
             }
         };
 
-        var validateResult = currentController.model.forgotPassword(args, inputCallbacks);
+        var validateResult = currentController.model.forgotPassword(args, inputCallbacks)["validateResult"];
         if (validateResult != undefined && !validateResult.code) {
             currentController.view.renderMsg(validateResult.msg);
         };

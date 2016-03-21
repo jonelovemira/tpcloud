@@ -98,7 +98,7 @@ $(function() {
             }
         };
 
-        var validateResult = currentController.model.login(args, inputCallbacks);
+        var validateResult = currentController.model.login(args, inputCallbacks)["validateResult"];
         if (validateResult != undefined && !validateResult.code) {
             this.view.showTips(validateResult.msg);
         };
