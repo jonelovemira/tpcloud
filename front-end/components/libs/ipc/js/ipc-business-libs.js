@@ -1023,8 +1023,6 @@
         this.BACK_END_WEB_PROTOCAL = "";
     };
 
-    var linkieDataList = {};
-
     $.ipc.inheritPrototype(Device, $.ipc.Model);
 
     var deviceErrorCodeInfo = {
@@ -1233,19 +1231,19 @@
     };
 
     Device.prototype.getLocalLinkieDataList = function() {
-        return linkieDataList;
+        return $.ipc.config.presetLinkieData;
     };
 
     Device.prototype.setLocalLinkieDataList = function(data) {
-        if (undefined == linkieDataList[this.model]) {
-            linkieDataList[this.model] = {};
+        if (undefined == $.ipc.config.presetLinkieData[this.model]) {
+            $.ipc.config.presetLinkieData[this.model] = {};
         }
-        linkieDataList[this.model][this.fwVer] = data;
+        $.ipc.config.presetLinkieData[this.model][this.fwVer] = data;
     };
 
     Device.prototype.isNeedGetLinkie = function() {
         var result = true;
-        if (linkieDataList[this.model] && linkieDataList[this.model][this.fwVer]) {
+        if ($.ipc.config.presetLinkieData[this.model] && $.ipc.config.presetLinkieData[this.model][this.fwVer]) {
             result = false;
         }
         return result;
@@ -1254,10 +1252,12 @@
     Device.prototype.getLinkie = function(args, inputCallbacks) {
         if (undefined == args.token || undefined == args.appServerUrl) {
             console.error("args error in getLocalInfo");
-        }
+        };
+        var result = {};
         var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
         if (validateResult.code == false) {
-            return validateResult;
+            result["validateResult"] = validateResult;
+            return result;
         };
         if (!this.isNeedGetLinkie()) {
             console.log("linkie data is already in cache when getLinkie. " +
@@ -1296,14 +1296,14 @@
             }
         });
 
-        return this.makeAjaxRequest({
+        result["ajaxObj"] = this.makeAjaxRequest({
             url: args.appServerUrl + "?token=" + args.token,
             data: data,
             changeState: changeStateFunc,
             errCodeStrIndex: "error_code",
             callbacks: inputCallbacks
         }, $.xAjax.defaults.xType);
-
+        return result;
     };
 
     Device.prototype.getSupportResArr = function(resDescriptionArr) {
@@ -1485,7 +1485,7 @@
             throw "undefined args in dynamicFixPostChannelForNC200";
         };
     };
- 
+
     Device.prototype.getProductFromLinkieData = function(data) {
         if (data) {
             var tmpProduct = new $.ipc.IpcProduct();
@@ -1637,7 +1637,7 @@
 
     $.ipc = $.ipc || {};
 
-    function IpcProduct () {
+    function IpcProduct() {
         this.name = null;
         this.supportVideoResArr = [];
         this.mimeType = null;
@@ -2355,7 +2355,7 @@
     $.ipc.stopReasonCodeMap = stopReasonCodeMap;
 })(jQuery);
 
-(function ($) {
+(function($) {
     "use strict";
 
     $.ipc = $.ipc || {};
@@ -2369,16 +2369,22 @@
 
     $.ipc.inheritPrototype(MyPlayer, $.ipc.Model);
 
+    MyPlayer.prototype.multiAsyncRequest = function(args) {
+        $.when.apply($, args.ajaxArr).done(args.success).fail(args.fail);
+    };
+
     MyPlayer.prototype.getDeviceLinkieData = function(callbacks) {
         var _self = this;
         var device = _self.device;
         if (device && device.owner.token && device.appServerUrl) {
             if (device.isNeedGetLinkie()) {
                 var result = device.getLinkie({
+                    "id": device.id,
                     "token": device.owner.token,
                     "appServerUrl": device.appServerUrl
-                }, callbacks);
-            }
+                }, callbacks)["ajaxObj"];
+                return result;
+            };
         };
     };
 
@@ -2546,6 +2552,33 @@
         return args.appServerUrl + "/ipc?token=" + args.token;
     };
 
+    NonPluginPlayer.prototype.getUrlAndLinkie = function() {
+        var _self = this;
+        var getUrlAjaxObj = _self.getRelayUrl();
+        var getLinkieAjaxObj = _self.getDeviceLinkieData();
+        var successFunc = function() {
+            var product;
+            try {
+                product = _self.device.getProductFromLinkieData($.ipc.config.presetLinkieData[_self.device.model][_self.device.fwVer]);
+            } catch (err) {};
+            if (product) {
+                $.extend(true, _self.device.product, product);
+            };
+            if (arguments[0][0]["error_code"] == 0) {
+                _self.device.relayUrl = arguments[0][0]["result"]["relayUrl"];
+                _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+            }
+        };
+        var failFunc = function () {
+            console.log(arguments);
+        };
+        _self.multiAsyncRequest({
+            success: successFunc,
+            fail: failFunc,
+            ajaxArr: [getUrlAjaxObj, getLinkieAjaxObj]
+        });
+    };
+
     NonPluginPlayer.prototype.getRelayUrl = function(args, inputCallbacks) {
         var _self = this;
 
@@ -2560,26 +2593,6 @@
                 "type": "relay"
             }
         });
-        var retryCount = 0;
-        var retryLimit = 3;
-        var changeStateFunc = function(response) {
-            _self.device.relayUrl = response.result.relayUrl;
-            _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
-        };
-
-        var extendAjaxOptions = {
-            error: function(xhr) {
-                if (xhr.statusText != "abort") {
-                    if (retryCount < retryLimit) {
-                        retryCount += 1;
-                        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                        _self.rubbisAjaxArr.push(ajaxObj);
-                    } else {
-                        _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
-                    }
-                };
-            }
-        };
 
         var requestArgs = {
             url: _self.generateAjaxUrl({
@@ -2588,13 +2601,13 @@
             }),
             data: data,
             callbacks: inputCallbacks,
-            changeState: changeStateFunc,
-            errCodeStrIndex: "error_code",
-            extendAjaxOptions: extendAjaxOptions
+            changeState: $.noop,
+            errCodeStrIndex: "error_code"
         };
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
         _self.rubbisAjaxArr.push(ajaxObj);
+        return ajaxObj;
     };
 
     NonPluginPlayer.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
@@ -2905,7 +2918,7 @@
 
     RtmpPlayer.prototype.preparePlay = function() {
         this.luckyTryForResId();
-        this.getRelayUrl();
+        this.getUrlAndLinkie();
     };
 
     RtmpPlayer.prototype.luckyTryForResId = function() {
@@ -3040,7 +3053,7 @@
 
     ImgPlayer.prototype.preparePlay = function() {
         this.killAllRelayClient();
-        this.getRelayUrl();
+        this.getUrlAndLinkie();
     };
 
     ImgPlayer.prototype.stateChangeHandler = function() {
