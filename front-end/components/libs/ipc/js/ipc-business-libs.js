@@ -1262,7 +1262,7 @@
             }
         });
 
-        this.makeAjaxRequest({
+        return this.makeAjaxRequest({
             url: args.appServerUrl + "?token=" + args.token,
             data: data,
             changeState: changeStateFunc,
@@ -2307,6 +2307,37 @@
     $.ipc.stopReasonCodeMap = stopReasonCodeMap;
 })(jQuery);
 
+(function ($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function MyPlayer() {
+        $.ipc.Model.call(this, arguments);
+        this.device = null;
+        this.playerObj = null;
+        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+    };
+
+    $.ipc.inheritPrototype(MyPlayer, $.ipc.Model);
+
+    MyPlayer.prototype.getDeviceLinkieData = function(callbacks) {
+        var _self = this;
+        var device = _self.device;
+        if (device && device.owner.token && device.appServerUrl) {
+            if (device.isNeedGetLinkie()) {
+                var result = device.getLinkie({
+                    "token": device.owner.token,
+                    "appServerUrl": device.appServerUrl
+                }, callbacks);
+            }
+        };
+    };
+
+    $.ipc.MyPlayer = MyPlayer;
+
+})(jQuery);
+
 (function($) {
     "use strict";
     $.ipc = $.ipc || {};
@@ -2325,13 +2356,11 @@
     };
 
     function NonPluginPlayer() {
-        $.ipc.Model.call(this, arguments);
+        $.ipc.MyPlayer.call(this, arguments);
         this.timer = null;
         this.statistics = null;
-        this.device = null;
         this.swfPath = null;
         this.playerElementId = null;
-        this.playerObj = null;
 
         this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
         this.maxRlyRdyFailedRtryReqRlySrvCnt = 3;
@@ -2349,7 +2378,6 @@
         this.rubbisIntervalObjArr = [];
 
         this.state = devicePlayingState.IDLE;
-        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
 
         this.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
 
@@ -2358,7 +2386,7 @@
         this.playerRenderFunc = null;
         this.netErrRenderFunc = null;
     };
-    $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.Model);
+    $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.MyPlayer);
     var playerErrorCodeInfo = {
         "-20107": function() {
             console.log("args is invalid")
@@ -3104,9 +3132,7 @@
     };
 
     function PluginPlayer() {
-        $.ipc.Model.call(this, arguments);
-        this.device = null;
-        this.playerObj = null;
+        $.ipc.MyPlayer.call(this, arguments);
         this.volume = 0;
 
         this.recordCallback = null;
@@ -3118,12 +3144,11 @@
         this.updatePlayerObjView = null;
         this.showOffline = null;
 
-        this.state = null;
-        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+        this.state = devicePlayingState.IDLE;
         this.videoReadyCallback = $.Callbacks("unique stopOnFalse");
     };
 
-    $.ipc.inheritPrototype(PluginPlayer, $.ipc.Model);
+    $.ipc.inheritPrototype(PluginPlayer, $.ipc.MyPlayer);
 
     PluginPlayer.prototype.triggerPlay = function() {
         if (this.playerObj) {
@@ -3153,7 +3178,7 @@
     };
 
     PluginPlayer.prototype.setVideoVolume = function() {
-        if (this.playerObj && this.volume) {
+        if (this.playerObj && this.volume != undefined) {
             this.playerObj.SetAudioVolume(parseInt(this.volume));
         };
     };

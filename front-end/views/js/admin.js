@@ -1492,7 +1492,7 @@ $(function() {
                             pluginPlayerRender: contextPluginPlayerRender,
                             updatePlayerObjView: contextUpdatePlayerObjView,
                             showOffline: contextShowOffline
-                        }
+                        };
 
                         dev.pluginPlayer.initPluginPlayer(args);
                     };
