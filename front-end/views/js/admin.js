@@ -1497,6 +1497,7 @@ $(function() {
                         dev.pluginPlayer.initPluginPlayer(args);
                     };
                     this.updatePluginPlayerView(dev);
+                    dev.pluginPlayer.volume = $("#volume-bar").slider("option", "value");
                     this.updateResolutionSelect(dev);
                     this.model.playedDeviceChanged = false;
                     dev.pluginPlayer.triggerPlay();
