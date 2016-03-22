@@ -3246,9 +3246,9 @@
 
     PluginPlayer.prototype.back2Idle = function() {
         this.state = devicePlayingState.IDLE;
-        if (this.playerObj) {
-            this.playerObj.StopVideo && this.playerObj.StopVideo();
-            this.playerObj.StopAudio && this.playerObj.StopAudio();
+        if (this.playerObj && $.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
+            this.playerObj.StopVideo();
+            this.playerObj.StopAudio();
         };
     };
 
@@ -3261,15 +3261,13 @@
         };
 
         var inputCallbacks = {
-            "errorCodeCallbackMap": {
-                0: function() {
-                    _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
-                    _self.stateChangeCallback.fireWith(_self);
-                }
+            commonCallback: function() {
+                _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
+                _self.stateChangeCallback.fireWith(_self);
             }
         };
 
-        var validateResult = _self.device.getLocalInfo(args, inputCallbacks);
+        var validateResult = _self.device.getLocalInfo(args, inputCallbacks)["validateResult"];
         if (validateResult != undefined && !validateResult.code) {
             console.error(validateResult.msg);
         };
