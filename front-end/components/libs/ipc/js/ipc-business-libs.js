@@ -3119,11 +3119,11 @@
 
     PluginPlayer.prototype.feedNormalPluginArgs = function() {
         var _self = this;
-        _self.playerObj.username = _self.device["auth_name"];
-        _self.playerObj.password = _self.device["password"];
+        _self.device["auth_name"] && (_self.playerObj.username = _self.device["auth_name"]);
+        _self.device["password"] && (_self.playerObj.password = _self.device["password"]);
         _self.playerObj.port = Number(_self.device["stream_port"]) || 8080;
-        _self.playerObj.ip = _self.device["iip"];
-        _self.playerObj.web_port = _self.device["web_port"];
+        _self.device["iip"] && (_self.playerObj.ip = _self.device["iip"]);
+        _self.device["web_port"] && (_self.playerObj.web_port = _self.device["web_port"]);
         _self.playerObj.cloud = true;
         _self.playerObj.recordcb = _self.recordCallback;
         _self.playerObj.snapshotcb = _self.snapshotCallback;
