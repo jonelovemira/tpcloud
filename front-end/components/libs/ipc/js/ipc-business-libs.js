@@ -2348,7 +2348,7 @@
         var retryCount = 0;
         var retryLimit = 3;
         var changeStateFunc = function(response) {
-            _self.device.relayUrl = response.result.relayUrl;
+            _self.device.relayUrl = response.result.relayUrl.replace(/^.*:\/\//, "");
             _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
         };
 
