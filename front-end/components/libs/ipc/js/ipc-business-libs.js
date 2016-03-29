@@ -1512,9 +1512,9 @@
                     if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"] && postChannelInfo["audioCodec"] && supportVideoResArr) {
 
                         if (module["port"]) {
-                            for (var i = postChannelInfo["postChannel"].length - 1; i >= 0; i--) {
-                                postChannelInfo["postChannel"][i].port = module["port"];
-                            }
+                            for (var channelIt in postChannelInfo["postChannel"]) {
+                                postChannelInfo["postChannel"][channelIt].port = module["port"];
+                            };
                         } else {
                             throw "linkie data have no port info";
                         };
@@ -2370,7 +2370,7 @@
     $.ipc.inheritPrototype(MyPlayer, $.ipc.Model);
 
     MyPlayer.prototype.multiAsyncRequest = function(args) {
-        $.when.apply($, args.ajaxArr).done(args.success).fail(args.fail);
+        $.when.apply($, args.ajaxArr).always(args.always).done(args.success).fail(args.fail);
     };
 
     MyPlayer.prototype.getDeviceLinkieData = function(callbacks) {
@@ -2473,7 +2473,7 @@
 
     NonPluginPlayer.prototype.clearLastStepRubbish = function() {
         for (var i = 0; i < this.rubbisAjaxArr.length; i++) {
-            this.rubbisAjaxArr[i].abort();
+            this.rubbisAjaxArr[i] && this.rubbisAjaxArr[i].abort();
         };
         delete this.rubbisAjaxArr;
         this.rubbisAjaxArr = [];
@@ -2520,7 +2520,7 @@
         console.log("retry full nonPluginPlayer flow due to device is not reachable: " + _self.currentNetErrRetryCnt);
         if (_self.currentNetErrRetryCnt <= _self.maxNetErrRetryCnt) {
             setTimeout(function() {
-                _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+                _self.changeStateTo(devicePlayingState.BEGIN_PLAY);
             }, 1000);
         } else {
             _self.renderNetworkError();
@@ -2552,10 +2552,17 @@
         return args.appServerUrl + "/ipc?token=" + args.token;
     };
 
-    NonPluginPlayer.prototype.getUrlAndLinkie = function() {
+    NonPluginPlayer.prototype.getUrlAndLinkie = function(currentTryIndex) {
         var _self = this;
+        var currentTry = currentTryIndex || 0;
+        if (currentTry >= 3) {
+            _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
+            return;
+        }
         var getUrlAjaxObj = _self.getRelayUrl();
         var getLinkieAjaxObj = _self.getDeviceLinkieData();
+        _self.rubbisAjaxArr.push(getUrlAjaxObj);
+        _self.rubbisAjaxArr.push(getLinkieAjaxObj);
         var successFunc = function() {
             var product;
             try {
@@ -2564,18 +2571,25 @@
             if (product) {
                 $.extend(true, _self.device.product, product);
             };
-            if (arguments[0][0]["error_code"] == 0) {
-                _self.device.relayUrl = arguments[0][0]["result"]["relayUrl"];
+            if (_self.device.relayUrl) {
                 _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+            } else {
+                _self.getUrlAndLinkie(currentTry)
             }
         };
-        var failFunc = function () {
-            console.log(arguments);
+        var failFunc = function() {
+            if (getUrlAjaxObj.status != 200 && getUrlAjaxObj.statusText != "abort") {
+                _self.getUrlAndLinkie(currentTry)
+            };
         };
+        var alwaysFunc = function () {
+            currentTry += 1;
+        }
         _self.multiAsyncRequest({
             success: successFunc,
             fail: failFunc,
-            ajaxArr: [getUrlAjaxObj, getLinkieAjaxObj]
+            ajaxArr: [getUrlAjaxObj, getLinkieAjaxObj],
+            always: alwaysFunc
         });
     };
 
@@ -2594,6 +2608,10 @@
             }
         });
 
+        var changeStateFunc = function(response) {
+            _self.device.relayUrl = response.result.relayUrl;
+        };
+
         var requestArgs = {
             url: _self.generateAjaxUrl({
                 appServerUrl: _self.device.appServerUrl,
@@ -2601,7 +2619,7 @@
             }),
             data: data,
             callbacks: inputCallbacks,
-            changeState: $.noop,
+            changeState: changeStateFunc,
             errCodeStrIndex: "error_code"
         };
 
