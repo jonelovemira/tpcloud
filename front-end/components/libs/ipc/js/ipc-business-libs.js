@@ -2582,7 +2582,7 @@
                 _self.getUrlAndLinkie(currentTry)
             };
         };
-        var alwaysFunc = function () {
+        var alwaysFunc = function() {
             currentTry += 1;
         }
         _self.multiAsyncRequest({
@@ -2765,8 +2765,8 @@
     function RtmpPlayer() {
         NonPluginPlayer.call(this, arguments);
 
-        this.protocol = "rtmps://";
-        this.port = 443;
+        this.protocol = "rtmpt://";
+        this.port = 8080;
         this.resourceAppName = "RtmpRelay";
 
         this.curResFailedRtryReqRlySrvCnt = 0;
@@ -2812,81 +2812,55 @@
             _self.playerObj.remove();
         };
 
+        var deviderIndex = args.resourcePath.indexOf("flv:");
+
+        var url = args.resourcePath.substring(deviderIndex + 4, args.resourcePath.length);
+        var netConnectionUrl = args.resourcePath.substring(0, deviderIndex);
+
         var width = _self.device.currentVideoResolution.playerContainerCss.player.width;
         var height = _self.device.currentVideoResolution.playerContainerCss.player.height;
+        $("#" + _self.playerElementId).width(width).height(height);
+        // var newPlayer = $f(_self.playerElementId, "/components/libs/player/flowplayer/flowplayer.swf", {
+        //     clip: {
+        //         scaling: 'fit',
+        //         provider: 'rtmp',
+        //         url: url
+        //     },
+        //     plugins: {
+        //         rtmp: {
+        //             url: '/components/libs/player/flowplayer/flowplayer.rtmp.swf',
+        //             netConnectionUrl: netConnectionUrl
+        //         }
+        //     },
+        //     canvas: {
+        //         backgroundGradient: 'none'
+        //     }
+        // });
+        $f(_self.playerElementId, "http://releases.flowplayer.org/swf/flowplayer-3.2.18.swf", {
 
-        var options = {
-            width: width,
-            height: height,
-            playlist: [{
-                sources: [{
-                    file: args.resourcePath
-                }]
-            }],
-            rtmp: {
-                bufferlength: 0.1
+            clip: {
+                url: url,
+                scaling: 'fit',
+                // configure clip to use hddn as our provider, referring to our rtmp plugin
+                provider: 'hddn'
             },
-            displaytitle: false,
-            mute: false,
-            ph: 1,
-            primary: "flash",
-            repeat: false,
-            stagevideo: false,
-            stretching: "exactfit",
-            responsive: true,
-            skin: {
-                name: "ipc-jwplayer-skin"
-            }
-        };
 
-        var newPlayer = jwplayer(_self.playerElementId);
-        newPlayer.setup(options);
-        _self.playerObj = newPlayer;
+            // streaming plugins are configured under the plugins node
+            plugins: {
 
+                // here is our rtmp plugin configuration
+                hddn: {
+                    url: "flowplayer.rtmp-3.2.13.swf",
 
-        newPlayer.on('ready', function() {
-            console.log("player ready");
-        });
-
-        newPlayer.on('setupError', function(e) {
-            _self.playerObjErrorCallbacks.fire(e);
-        });
-
-        newPlayer.on('play', function() {
-            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.success.push(_self.statistics.SUCCESS);
-            _self.hideCoverFunc();
-        })
-
-        newPlayer.on('playlist', function() {
-            newPlayer.play();
-        });
-
-        newPlayer.on('idle', function() {
-            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.stopReason.push($.ipc.stopReasonCodeMap.UNKNOWN_ERROR);
-        });
-
-        newPlayer.on('pause', function() {
-            _self.statistics && Object.prototype.toString.call(_self.statistics.stopReason) === '[object Array]' && _self.statistics.stopReason.push($.ipc.stopReasonCodeMap.USER_STOPPED_VIDEO);
-        });
-
-        newPlayer.on('buffer', function() {
-            console.log("buffer");
-        });
-
-        newPlayer.on('bufferChange', function() {
-            console.log("bufferChange");
-        });
-
-        newPlayer.on('complete', function() {
-            if (_self.timer.currentTime >= _self.timer.timeout - _self.timer.networkFactorDelta) {
-                _self.timer.currentTime == _self.timer.timeout;
-            } else {
-                _self.playerObjErrorCallbacks.fire();
+                    // netConnectionUrl defines where the streams are found
+                    netConnectionUrl: netConnectionUrl
+                }
+            },
+            canvas: {
+                backgroundGradient: 'none'
             }
         });
-        newPlayer.on('error', function() {
-            _self.playerObjErrorCallbacks.fire();
-        });
+        _self.hideCoverFunc();
 
         _self.state = devicePlayingState.PLAYING;
     };
