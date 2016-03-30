@@ -2836,10 +2836,12 @@
         //         backgroundGradient: 'none'
         //     }
         // });
-        $f(_self.playerElementId, "http://releases.flowplayer.org/swf/flowplayer-3.2.18.swf", {
+        flowplayer(_self.playerElementId, "http://releases.flowplayer.org/swf/flowplayer-3.2.18.swf", {
+
 
             clip: {
                 url: url,
+                live: true,
                 scaling: 'fit',
                 // configure clip to use hddn as our provider, referring to our rtmp plugin
                 provider: 'hddn'
@@ -2853,7 +2855,7 @@
                     url: "flowplayer.rtmp-3.2.13.swf",
 
                     // netConnectionUrl defines where the streams are found
-                    netConnectionUrl: netConnectionUrl
+                    netConnectionUrl: encodeURIComponent(netConnectionUrl)
                 }
             },
             canvas: {
