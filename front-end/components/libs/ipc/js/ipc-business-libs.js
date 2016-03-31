@@ -2820,41 +2820,17 @@
         var width = _self.device.currentVideoResolution.playerContainerCss.player.width;
         var height = _self.device.currentVideoResolution.playerContainerCss.player.height;
         $("#" + _self.playerElementId).width(width).height(height);
-        // var newPlayer = $f(_self.playerElementId, "/components/libs/player/flowplayer/flowplayer.swf", {
-        //     clip: {
-        //         scaling: 'fit',
-        //         provider: 'rtmp',
-        //         url: url
-        //     },
-        //     plugins: {
-        //         rtmp: {
-        //             url: '/components/libs/player/flowplayer/flowplayer.rtmp.swf',
-        //             netConnectionUrl: netConnectionUrl
-        //         }
-        //     },
-        //     canvas: {
-        //         backgroundGradient: 'none'
-        //     }
-        // });
-        flowplayer(_self.playerElementId, "http://releases.flowplayer.org/swf/flowplayer-3.2.18.swf", {
-
-
+        var container = document.getElementById(_self.playerElementId);
+        flowplayer(container, "http://releases.flowplayer.org/swf/flowplayer-3.2.18.swf", {
             clip: {
                 url: url,
                 live: true,
                 scaling: 'fit',
-                // configure clip to use hddn as our provider, referring to our rtmp plugin
                 provider: 'hddn'
             },
-
-            // streaming plugins are configured under the plugins node
             plugins: {
-
-                // here is our rtmp plugin configuration
                 hddn: {
                     url: "flowplayer.rtmp-3.2.13.swf",
-
-                    // netConnectionUrl defines where the streams are found
                     netConnectionUrl: encodeURIComponent(netConnectionUrl)
                 }
             },
@@ -2863,7 +2839,11 @@
             }
         });
         _self.hideCoverFunc();
+        _self.playerObj = flowplayer();
 
+        _self.playerObj.on('error', function (e, api) {
+            console.log(e, api);
+        })
         _self.state = devicePlayingState.PLAYING;
     };
 
