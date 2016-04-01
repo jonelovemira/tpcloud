@@ -12,11 +12,11 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["320*240", "640*480"],
                         "port": 8080,
                         "video": [{
                             "video_codec": "MJPEG",
-                            "url": "stream/getvideo"
+                            "url": "stream/getvideo",
+                            "resolutions": ["320*240", "640*480"]
                         }],
                         "audio": [{
                             "audio_codec": "PCM",
@@ -32,14 +32,15 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["1280*720"],
                         "port": 8080,
                         "video": [{
                             "video_codec": "H.264",
                             "url": "stream/video/h264",
+                            "resolutions": ["1280*720"],
                             "encrypt": []
                         }, {
                             "video_codec": "MJPEG",
+                            "resolutions": ["320*240", "640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "audio": [{
@@ -62,26 +63,24 @@
                             "audio_codec": "PCM"
                         }, {
                             "encrypt": ["PLAIN", "AES128CBC_XOR", "XOR", "LEAD_AES128CBC"],
-                            "url": "stream/audio/mpegaac",
+                            "url": "stream/getaudio",
                             "audio_codec": "AAC"
                         }],
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "audio_video": [{
                             "video_codec": "H.264",
+                            "resolutions": ["1280*720"],
                             "url": "stream/video/mixed",
                             "audio_codec": "AAC"
-                        }, {
-                            "video_codec": "MJPEG",
-                            "url": "stream/video/mjpeg_mixed",
-                            "audio_codec": "PCM"
                         }],
-                        "resolutions": ["1280*720"],
                         "video": [{
                             "video_codec": "H.264",
                             "encrypt": ["PLAIN", "AES128CBC_XOR", "XOR", "LEAD_AES128CBC"],
-                            "url": "stream/video/h264"
+                            "resolutions": ["1280*720"],
+                            "url": "stream/getvideo"
                         }, {
                             "video_codec": "MJPEG",
+                            "resolutions": ["640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "version": "0.0"
@@ -95,13 +94,14 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["320*240", "640*480"],
                         "port": 8080,
                         "video": [{
                             "video_codec": "H.264",
+                            "resolutions": ["320*240", "640*480"],
                             "url": "stream/video/h264",
                             "encrypt": []
                         }, {
+                            "resolutions": ["320*240", "640*480"],
                             "video_codec": "MJPEG",
                             "url": "stream/video/mjpeg"
                         }],
@@ -123,14 +123,15 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["1280*720"],
                         "port": 8080,
                         "video": [{
+                            "resolutions": ["1280*720"],
                             "video_codec": "H.264",
                             "url": "stream/video/h264",
                             "encrypt": []
                         }, {
                             "video_codec": "MJPEG",
+                            "resolutions": ["640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "audio": [{
@@ -151,14 +152,15 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["1280*720"],
                         "port": 8080,
                         "video": [{
                             "video_codec": "H.264",
+                            "resolutions": ["1280*720"],
                             "url": "stream/video/h264",
                             "encrypt": []
                         }, {
                             "video_codec": "MJPEG",
+                            "resolutions": ["640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "audio": [{
@@ -179,14 +181,15 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["1280*720"],
                         "port": 8080,
                         "video": [{
                             "video_codec": "H.264",
+                            "resolutions": ["1280*720"],
                             "url": "stream/video/h264",
                             "encrypt": []
                         }, {
                             "video_codec": "MJPEG",
+                            "resolutions": ["640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "audio": [{
@@ -207,14 +210,15 @@
                     "get_modules": {
                         "name": "smartlife.cam.ipcamera.liveStream",
                         "version": "0.0",
-                        "resolutions": ["1280*720"],
                         "port": 8080,
                         "video": [{
+                            "resolutions": ["1280*720"],
                             "video_codec": "H.264",
                             "url": "stream/video/h264",
                             "encrypt": []
                         }, {
                             "video_codec": "MJPEG",
+                            "resolutions": ["640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "audio": [{
@@ -231,3 +235,6 @@
         }
     }
 })(jQuery);
+
+
+            

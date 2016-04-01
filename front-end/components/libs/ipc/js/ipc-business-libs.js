@@ -1230,20 +1230,27 @@
         return result;
     };
 
-    Device.prototype.getLocalLinkieDataList = function() {
-        return $.ipc.config.presetLinkieData;
+    Device.prototype.getLocalLinkieData = function() {
+        var key = this.model.substring(0, 5).toUpperCase();
+        var result;
+        if ($.ipc.config.presetLinkieData[key]) {
+            result = $.ipc.config.presetLinkieData[key][this.fwVer];
+        }
+        return result;
     };
 
-    Device.prototype.setLocalLinkieDataList = function(data) {
-        if (undefined == $.ipc.config.presetLinkieData[this.model]) {
-            $.ipc.config.presetLinkieData[this.model] = {};
+    Device.prototype.updateLocalLinkieDataList = function(data) {
+        var key = this.model.substring(0, 5).toUpperCase();
+        if (undefined == $.ipc.config.presetLinkieData[key]) {
+            $.ipc.config.presetLinkieData[key] = {};
         }
-        $.ipc.config.presetLinkieData[this.model][this.fwVer] = data;
+        $.ipc.config.presetLinkieData[key][this.fwVer] = data;
     };
 
     Device.prototype.isNeedGetLinkie = function() {
         var result = true;
-        if ($.ipc.config.presetLinkieData[this.model] && $.ipc.config.presetLinkieData[this.model][this.fwVer]) {
+        var key = this.model.substring(0, 5).toUpperCase();
+        if ($.ipc.config.presetLinkieData[key] && $.ipc.config.presetLinkieData[key][this.fwVer]) {
             result = false;
         }
         return result;
@@ -1266,7 +1273,7 @@
 
         var changeStateFunc = function(response) {
             if (response && response.result && response.result.responseData) {
-                this.setLocalLinkieDataList(response.result.responseData);
+                this.updateLocalLinkieDataList(response.result.responseData);
             };
         };
         var _self = this;
@@ -1274,7 +1281,7 @@
         inputCallbacks.errorCodeCallbackMap = inputCallbacks.errorCodeCallbackMap || {};
         var tmpFunc = inputCallbacks.errorCodeCallbackMap["-51207"];
         inputCallbacks.errorCodeCallbackMap["-51207"] = function() {
-            _self.setLocalLinkieDataList("-51207");
+            _self.updateLocalLinkieDataList("-51207");
             tmpFunc && tmpFunc();
         };
 
@@ -1285,9 +1292,6 @@
                     "command": "LINKIE",
                     "content": {
                         "smartlife.cam.ipcamera.liveStream": {
-                            "get_modules": {}
-                        },
-                        "smartlife.cam.ipcamera.cloud": {
                             "get_modules": {}
                         }
                     }
@@ -1339,14 +1343,17 @@
             var mixedChannel = new $.ipc.DevicePostChannelMixed();
             var videoCodec;
             var audioCodec;
+            var supportVideoResArr;
             if (map["H.264_AAC"]) {
                 videoCodec = new $.ipc.H264VideoCodec();
                 audioCodec = new $.ipc.AACAudioCodec();
                 mixedChannel.url = map["H.264_AAC"]["url"];
+                supportVideoResArr = this.getSupportResArr(map["H.264_AAC"]["resolutions"]);
             } else if (map["MJPEG_PCM"]) {
                 videoCodec = new $.ipc.MJPEGVideoCodec();
                 audioCodec = new $.ipc.PCMAudioCodec();
                 mixedChannel.url = map["MJPEG_PCM"]["url"];
+                supportVideoResArr = this.getSupportResArr(map["MJPEG_PCM"]["resolutions"]);
             } else {
                 throw "unknown mixed channel. neither h264acc nor mjpegpcm";
             };
@@ -1357,7 +1364,8 @@
                         "mixed": mixedChannel
                     },
                     "videoCodec": videoCodec,
-                    "audioCodec": audioCodec
+                    "audioCodec": audioCodec,
+                    "supportVideoResArr": supportVideoResArr
                 };
                 return result;
             } else {
@@ -1376,6 +1384,7 @@
             var videoChannel;
             var audioChannel;
             var audioCodecMap = {};
+            var supportVideoResArr;
             for (var i = audioArr.length - 1; i >= 0; i--) {
                 audioCodecMap[audioArr[i]["audio_codec"]] = audioArr[i];
             }
@@ -1401,11 +1410,13 @@
                 videoChannel = new $.ipc.DevicePostChannelVideo();
                 videoChannel.url = videoCodecMap["H.264"].url;
                 videoChannel.encrypt = videoCodecMap["H.264"].encrypt;
+                supportVideoResArr = this.getSupportResArr(videoCodecMap["H.264"]["resolutions"]);
             } else if (videoCodecMap["MJPEG"]) {
                 videoCodec = new $.ipc.MJPEGVideoCodec();
                 videoChannel = new $.ipc.DevicePostChannelVideo();
                 videoChannel.url = videoCodecMap["MJPEG"].url;
                 videoChannel.encrypt = videoCodecMap["MJPEG"].encrypt;
+                supportVideoResArr = this.getSupportResArr(videoCodecMap["MJPEG"]["resolutions"]);
             } else {
                 throw "unknown video codec type, neither h264 nor mjpeg";
             };
@@ -1417,7 +1428,8 @@
                         "audio": audioChannel
                     },
                     "videoCodec": videoCodec,
-                    "audioCodec": audioCodec
+                    "audioCodec": audioCodec,
+                    "supportVideoResArr": supportVideoResArr
                 };
                 return result;
             } else {
@@ -1485,7 +1497,6 @@
             throw "undefined args in dynamicFixPostChannelForNC200";
         };
     };
-
     Device.prototype.getProductFromLinkieData = function(data) {
         if (data) {
             var tmpProduct = new $.ipc.IpcProduct();
@@ -1493,12 +1504,6 @@
                 if (data["smartlife.cam.ipcamera.liveStream"] &&
                     data["smartlife.cam.ipcamera.liveStream"]["get_modules"]) {
                     var module = data["smartlife.cam.ipcamera.liveStream"]["get_modules"];
-                    var supportVideoResArr;
-                    if (module["resolutions"]) {
-                        supportVideoResArr = this.getSupportResArr(module["resolutions"]);
-                    } else {
-                        throw "no resolution data";
-                    }
 
                     var postChannelInfo;
                     if (module["audio_video"]) {
@@ -1509,7 +1514,7 @@
                         throw "unknown post channel type";
                     };
 
-                    if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"] && postChannelInfo["audioCodec"] && supportVideoResArr) {
+                    if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"] && postChannelInfo["audioCodec"]) {
 
                         if (module["port"]) {
                             for (var channelIt in postChannelInfo["postChannel"]) {
@@ -1524,7 +1529,7 @@
                         }
 
                         tmpProduct.name = this.model.substring(0, 5).toUpperCase();
-                        tmpProduct.supportVideoResArr = supportVideoResArr;
+                        tmpProduct.supportVideoResArr = postChannelInfo["supportVideoResArr"];
                         tmpProduct.mimeType = postChannelInfo["videoCodec"].mimeType;
                         tmpProduct.smallImgCssClass = tmpProduct.name + "-small-img";
                         tmpProduct.middleImgCssClass = tmpProduct.name + "-middle-img";
@@ -1541,6 +1546,21 @@
             } catch (err) {
                 throw "some error happened: " + err;
             }
+        }
+    };
+
+    Device.prototype.clearLinkieProduct = function() {
+        if (this.product) {
+            var tmpProduct = this.product;
+            delete tmpProduct.name;
+            delete tmpProduct.supportVideoResArr;
+            delete tmpProduct.mimeType;
+            delete tmpProduct.smallImgCssClass;
+            delete tmpProduct.middleImgCssClass;
+            delete tmpProduct.playerType;
+            delete tmpProduct.postDataChannel;
+            delete tmpProduct.audioCodec;
+            delete tmpProduct.videoCodec;
         }
     };
 
@@ -2566,9 +2586,13 @@
         var successFunc = function() {
             var product;
             try {
-                product = _self.device.getProductFromLinkieData($.ipc.config.presetLinkieData[_self.device.model][_self.device.fwVer]);
-            } catch (err) {};
+                var linkieData = _self.device.getLocalLinkieData();
+                product = _self.device.getProductFromLinkieData(linkieData);
+            } catch (err) {
+                console.error(err);
+            };
             if (product) {
+                _self.device.clearLinkieProduct();
                 $.extend(true, _self.device.product, product);
             };
             if (_self.device.relayUrl) {
@@ -2582,7 +2606,7 @@
                 _self.getUrlAndLinkie(currentTry)
             };
         };
-        var alwaysFunc = function () {
+        var alwaysFunc = function() {
             currentTry += 1;
         }
         _self.multiAsyncRequest({
