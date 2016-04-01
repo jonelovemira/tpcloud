@@ -1,23 +1,3 @@
-/*****************************************************************************
- * Copyright© 2004-2015 TP-LINK TECHNOLOGIES CO., LTD.
- * File Name: ipc-business-libs.js
- * Author:    Jone Xu
- * Version:   1.0
- * Description:
- *     This is business libs for interact with backend from front-ends model.
- *
- * Requires:
- *     jquery-1.8.2.min.js           jquery libs 
- *     ipc-info-libs.js              ipc msg tips library   
- *     ipc-secret-libs.js            ipc encrypt, base64 encode/decode library   
- *     jquery.cookie.js              cookie management
- *
- * History:
- *     2015-10-20: Jone Xu           File created.
- *     2015-10-21: Jone Xu           Finish the methods of User
- *     2015-10-23: Jone Xu           Add validate methods to check attrs
- *****************************************************************************/
-
 (function($) {
     "use strict";
 
