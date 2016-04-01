@@ -35,12 +35,12 @@
                         "port": 8080,
                         "video": [{
                             "video_codec": "H.264",
-                            "url": "stream/video/h264",
+                            "url": "stream/getvideo",
                             "resolutions": ["1280*720"],
                             "encrypt": []
                         }, {
                             "video_codec": "MJPEG",
-                            "resolutions": ["320*240", "640*480"],
+                            "resolutions": ["640*480"],
                             "url": "stream/video/mjpeg"
                         }],
                         "audio": [{
@@ -48,7 +48,7 @@
                             "url": "stream/audio/wavpcm"
                         }, {
                             "audio_codec": "AAC",
-                            "url": "stream/audio/mpegaac",
+                            "url": "stream/getaudio",
                             "encrypt": []
                         }]
                     }
@@ -98,7 +98,7 @@
                         "video": [{
                             "video_codec": "H.264",
                             "resolutions": ["320*240", "640*480"],
-                            "url": "stream/video/h264",
+                            "url": "stream/getvideo",
                             "encrypt": []
                         }, {
                             "resolutions": ["320*240", "640*480"],
@@ -110,7 +110,7 @@
                             "url": "stream/audio/wavpcm"
                         }, {
                             "audio_codec": "AAC",
-                            "url": "stream/audio/mpegaac",
+                            "url": "stream/getaudio",
                             "encrypt": []
                         }]
                     }
