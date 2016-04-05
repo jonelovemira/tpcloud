@@ -2,9 +2,9 @@
 
 CATALINA_HOME=/usr/local/tomcat7
 WEB_ROOT=$CATALINA_HOME/webapps/web-3.0
-CDN_PATH="http://cdn.tplinkcloud.com/"
+CDN=""
 DEVELOP_PATH=`pwd`
-
+PROJECT_NAME="ipc-web-front-end"
 
 init(){
 	curl --silent --location https://rpm.nodesource.com/setup | bash -
@@ -22,19 +22,12 @@ update(){
 
 config(){
 
-	rm -rf $WEB_ROOT/common $WEB_ROOT/components $WEB_ROOT/data $WEB_ROOT/views $WEB_ROOT/index.html
-
-	sed -i "s@PRODUCT_CDN_PATH\s*=\s*'[^']*'@PRODUCT_CDN_PATH = '$CDN_PATH'@g" $DEVELOP_PATH/fis-conf.js
+	rm -rf $WEB_ROOT/$PROJECT_NAME $WEB_ROOT/index.html
+	export CDN_PATH=$CDN
 
 	fis3 release $1 -d $WEB_ROOT
 	
-	if [ "$1"x = "product"x ] ; then
-		find $WEB_ROOT -maxdepth 2 -type d -not -name pages -not -name "." -exec rm -ir {} \;
-	fi
-	rm -rf $WEB_ROOT/deploy $WEB_ROOT/fis-conf.js
-
-	
-	
+	rm -rf $WEB_ROOT/deploy
 }
 
 start(){

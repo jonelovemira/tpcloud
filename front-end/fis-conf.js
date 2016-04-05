@@ -1,9 +1,9 @@
 /**
  * [set rules for release src file]
  */
-var ALPHA_CDN_PATH = '';
-var BETA_CDN_PATH = '';
-var PRODUCT_CDN_PATH = 'http://test.com/cdn';
+var ALPHA_CDN_PATH = process.env.CDN_PATH || '';
+var BETA_CDN_PATH = process.env.CDN_PATH || '';
+var PRODUCT_CDN_PATH = process.env.CDN_PATH || '';
 
 fis.set('project.ignore', [
     '.git/**',
@@ -11,58 +11,62 @@ fis.set('project.ignore', [
     'create-package'
 ]);
 
-fis.match('*', {
-    release: '/${version}/$0',
-});
-
-fis.match('/views/pages/{*,**/*}.html', {
-    release: '/${version}/$0'
-});
-
-fis.match('/views/pages/index.html', {
-    release: '/${version}/index.html'
-});
-
-fis.media('build').match('/views/pages/index.html', {
-    release: '/${version}/$0'
-});
-
-fis.media('build').match('*.{js,css,png,ico}', {
-    useHash: true
-});
-
-fis.media('build').match('*.js', {
-    optimizer: fis.plugin('uglify-js')
-});
-
-fis.media('build').match('*.css', {
-    optimizer: fis.plugin('clean-css')
-});
-
-fis.media('build').match('*.png', {
-    optimizer: fis.plugin('png-compressor')
-});
-
-fis.media('build').match('*.min.{js,css}', {
-    optimizer: false
-});
-
-fis.media('build').match('jwplayer.js', {
-    useHash: false
-});
+fis.media('build')
+    .match('*', {
+        release: '/${projectName}/${version}/$0'
+    })
+    .match('/views/pages/index.html', {
+        release: '/index.html'
+    })
+    .match('deploy', {
+        release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: '/$0'
+    })
+    .match('*.{js,css,png,ico}', {
+        useHash: true
+    })
+    .match('*.js', {
+        optimizer: fis.plugin('uglify-js')
+    })
+    .match('*.css', {
+        optimizer: fis.plugin('clean-css')
+    })
+    .match('*.png', {
+        optimizer: fis.plugin('png-compressor')
+    })
+    .match('*.min.{js,css}', {
+        optimizer: false
+    })
+    .match('jwplayer.js', {
+        useHash: false
+    });
 
 
-fis.media('alpha').match('*.{js,css,png,ico}', {
-    domain: ALPHA_CDN_PATH
-});
+fis.media('alpha')
+    .match('*.{js,css,png,ico}', {
+        domain: ALPHA_CDN_PATH
+    })
+    .match('*', {
+        release: '/$0'
+    });
 
-fis.media('beta').match('*.{js,css,png,ico}', {
-    domain: BETA_CDN_PATH
-});
+fis.media('beta')
+    .match('*.{js,css,png,ico}', {
+        domain: BETA_CDN_PATH
+    })
+    .match('*', {
+        release: '/$0'
+    });
 
-fis.media('product').match('*.{js,css,png,ico}', {
-    domain: PRODUCT_CDN_PATH
-});
+fis.media('product')
+    .match('*.{js,css,png,ico}', {
+        domain: PRODUCT_CDN_PATH
+    })
+    .match('*', {
+        release: '/$0'
+    });
 
 fis.match('fis-conf.js', {
     useHash: false,
@@ -259,4 +263,7 @@ var myResourceLocate = function(ret, conf, settings, opt) {
 }
 
 fis.config.set('modules.postpackager', [myResourceLocate, templateInheritance]);
-fis.set('version', process.env.VERSION);
+var version = process.env.VERSION || "1.0.1";
+fis.set('version', version);
+var projectName = process.env.PROJECT_NAME || "ipc-web-front-end";
+fis.set('projectName', projectName);
