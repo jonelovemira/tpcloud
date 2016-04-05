@@ -1459,23 +1459,17 @@
                 result = $.ipc.PLUGIN_MAC;
             } else if ($.ipc.Browser.prototype.os == "Windows") {
                 if ($.ipc.Browser.prototype.type == "MSIE") {
-                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
-                        result = $.ipc.PLUGIN_IE_X86;
-                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
+                    if (navigator.userAgent.indexOf("x64") != -1) {
                         result = $.ipc.PLUGIN_IE_X64;
                     } else {
-                        console.info("unknown ie platform, return by default with: PLUGIN_IE_X86");
                         result = $.ipc.PLUGIN_IE_X86;
-                    }
+                    };
                 } else {
-                    if ($.ipc.Browser.prototype.platform.indexOf("32") >= 0) {
-                        result = $.ipc.PLUGIN_NON_IE_X86;
-                    } else if ($.ipc.Browser.prototype.platform.indexOf("64") >= 0) {
+                    if (navigator.userAgent.indexOf("x64") != -1) {
                         result = $.ipc.PLUGIN_NON_IE_X64;
                     } else {
-                        console.info("unknown browser platform, return by default with: PLUGIN_IE_X86");
                         result = $.ipc.PLUGIN_NON_IE_X86;
-                    }
+                    };
                 }
             } else {
                 throw "unsupportted operation system";
