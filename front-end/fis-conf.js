@@ -15,14 +15,16 @@ fis.media('build')
     .match('*', {
         release: '/${projectName}/${version}/$0'
     })
-    .match('/views/pages/index.html', {
-        release: '/index.html'
+    .match(/views\/pages\/(.*).html/, {
+        release: '/$1'
     })
     .match('deploy', {
         release: '/$0'
     })
     .match('fis-conf.js', {
-        release: '/$0'
+        release: '/$0',
+        useHash: false,
+        optimizer: false
     })
     .match('*.{js,css,png,ico}', {
         useHash: true
@@ -50,6 +52,9 @@ fis.media('alpha')
     })
     .match('*', {
         release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: false
     });
 
 fis.media('beta')
@@ -58,6 +63,9 @@ fis.media('beta')
     })
     .match('*', {
         release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: false
     });
 
 fis.media('product')
@@ -66,12 +74,10 @@ fis.media('product')
     })
     .match('*', {
         release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: false
     });
-
-fis.match('fis-conf.js', {
-    useHash: false,
-    optimizer: false
-});
 
 /**
  * [getBaseFileId ]

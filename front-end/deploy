@@ -22,7 +22,7 @@ update(){
 
 config(){
 
-	rm -rf $WEB_ROOT/$PROJECT_NAME $WEB_ROOT/index.html
+	rm -rf $WEB_ROOT/$PROJECT_NAME $WEB_ROOT/*.html
 	export CDN_PATH=$CDN
 
 	fis3 release $1 -d $WEB_ROOT
