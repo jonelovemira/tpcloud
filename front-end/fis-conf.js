@@ -12,19 +12,19 @@ fis.set('project.ignore', [
 ]);
 
 fis.match('*', {
-    release: '/$0',
+    release: '/${version}/$0',
 });
 
 fis.match('/views/pages/{*,**/*}.html', {
-    release: '$0'
+    release: '/${version}/$0'
 });
 
 fis.match('/views/pages/index.html', {
-    release: '/index.html'
+    release: '/${version}/index.html'
 });
 
 fis.media('build').match('/views/pages/index.html', {
-    release: '$0'
+    release: '/${version}/$0'
 });
 
 fis.media('build').match('*.{js,css,png,ico}', {
@@ -212,7 +212,7 @@ var templateInheritance = function(ret, conf, settings, opt) {
             if (baseFileName) {
                 var baseFile = fis.uri(baseFileName, file.dirname);
                 if (baseFile.file) {
-                    var content = templateInherit(file, ret.src[baseFile.file.release]);
+                    var content = templateInherit(file, ret.src[baseFile.file.subpath]);
                     file.setContent(content);
                 }
             }
@@ -259,3 +259,4 @@ var myResourceLocate = function(ret, conf, settings, opt) {
 }
 
 fis.config.set('modules.postpackager', [myResourceLocate, templateInheritance]);
+fis.set('version', process.env.VERSION);
