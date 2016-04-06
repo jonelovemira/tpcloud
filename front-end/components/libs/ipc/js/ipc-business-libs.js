@@ -1440,35 +1440,78 @@
         }
     };
 
-    Device.prototype.getPlayerType = function(mt) {
+    Device.prototype.getPlayerTypeAndPostChannel = function(orderedPlayerTypeArr, postChannelMap) {
+        if (orderedPlayerTypeArr && postChannelMap && orderedPlayerTypeArr.length > 0) {
+            var result = {};
+            var pluginPlayers = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.PLUGIN_NON_IE_X64, $.ipc.PLUGIN_IE_X86, $.ipc.PLUGIN_IE_X64, $.ipc.PLUGIN_MAC];
+            if (orderedPlayerTypeArr[0] == $.ipc.FLASH_PLAYER) {
+                result["playerType"] = orderedPlayerTypeArr[0];
+                result["postChannel"] = postChannelMap["mixed"] || postChannelMap["multi"];
+            } else if ($.inArray(orderedPlayerTypeArr[0], pluginPlayers) >= 0) {
+                if (postChannelMap["multi"]) {
+                    result["playerType"] = orderedPlayerTypeArr[0];
+                    result["postChannel"] = postChannelMap["multi"];
+                } else {
+                    if (orderedPlayerTypeArr.length > 1 && orderedPlayerTypeArr[1] == $.ipc.FLASH_PLAYER) {
+                        result["playerType"] = orderedPlayerTypeArr[1];
+                        result["postChannel"] = postChannelMap["mixed"];
+                    }
+                }
+            } else {
+                if (postChannelMap["multi"]) {
+                    result["playerType"] = orderedPlayerTypeArr[0];
+                    result["postChannel"] = postChannelMap["multi"];
+                }
+            }
+            return result;
+        } else {
+            throw "undefined args in getPlayerTypeAndPostChannel";
+        }
+    };
+
+    Device.prototype.dynamicFixPostChannelForMjpeg = function(product) {
+        if (product) {
+            if (product.mimeType == (new $.ipc.MJPEGVideoCodec()).mimeType) {
+                if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+                    if (product["postDataChannel"]["video"] && product["postDataChannel"]["audio"]) {
+                        delete product["postDataChannel"]["audio"];
+                    };
+                };
+            };
+        } else {
+            throw "undefined args in dynamicFixPostChannelForMjpeg";
+        };
+    };
+
+    Device.prototype.getOrderedPlayerTypeArr = function(mt) {
         var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
         var h264VideoCodec = new $.ipc.H264VideoCodec();
         var mimeTypesArr = [mjpegVideoCodec.mimeType, h264VideoCodec.mimeType];
         if ($.inArray(mt, mimeTypesArr) < 0) {
-            throw "unknown mime types for getPlayerType";
+            throw "unknown mime types for getOrderedPlayerTypeArr";
         };
         var result = undefined;
         if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
             if (mt == mimeTypesArr[0]) {
-                result = $.ipc.IMG_PLAYER;
+                result = [$.ipc.IMG_PLAYER];
             } else {
-                result = $.ipc.FLASH_PLAYER;
+                result = [$.ipc.FLASH_PLAYER];
             }
         } else {
             if ($.ipc.Browser.prototype.os == "MacOS") {
-                result = $.ipc.PLUGIN_MAC;
+                result = [$.ipc.PLUGIN_MAC, $.ipc.FLASH_PLAYER];
             } else if ($.ipc.Browser.prototype.os == "Windows") {
                 if ($.ipc.Browser.prototype.type == "MSIE") {
                     if (navigator.userAgent.indexOf("x64") != -1) {
-                        result = $.ipc.PLUGIN_IE_X64;
+                        result = [$.ipc.PLUGIN_IE_X64, $.ipc.FLASH_PLAYER];
                     } else {
-                        result = $.ipc.PLUGIN_IE_X86;
+                        result = [$.ipc.PLUGIN_IE_X86, $.ipc.FLASH_PLAYER];
                     };
                 } else {
                     if (navigator.userAgent.indexOf("x64") != -1) {
-                        result = $.ipc.PLUGIN_NON_IE_X64;
+                        result = [$.ipc.PLUGIN_NON_IE_X64, $.ipc.FLASH_PLAYER];
                     } else {
-                        result = $.ipc.PLUGIN_NON_IE_X86;
+                        result = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.FLASH_PLAYER];
                     };
                 }
             } else {
@@ -1478,19 +1521,6 @@
         return result;
     };
 
-    Device.prototype.dynamicFixPostChannelForNC200 = function(product) {
-        if (product) {
-            if (product.name == "NC200") {
-                if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
-                    if (product["postDataChannel"]["video"] && product["postDataChannel"]["audio"]) {
-                        delete product["postDataChannel"]["audio"];
-                    };
-                };
-            };
-        } else {
-            throw "undefined args in dynamicFixPostChannelForNC200";
-        };
-    };
     Device.prototype.getProductFromLinkieData = function(data) {
         if (data) {
             var tmpProduct = new $.ipc.IpcProduct();
@@ -1499,39 +1529,42 @@
                     data["smartlife.cam.ipcamera.liveStream"]["get_modules"]) {
                     var module = data["smartlife.cam.ipcamera.liveStream"]["get_modules"];
 
-                    var postChannelInfo;
+                    var postChannelInfoMap = {};
                     if (module["audio_video"]) {
-                        postChannelInfo = this.getMixedPostDataChannel(module["audio_video"]);
-                    } else if (module["audio"] && module["video"]) {
-                        postChannelInfo = this.getMultiPostDataChannel(module["audio"], module["video"]);
-                    } else {
-                        throw "unknown post channel type";
+                        postChannelInfoMap["mixed"] = this.getMixedPostDataChannel(module["audio_video"]);
+                    };
+                    if (module["audio"] && module["video"]) {
+                        postChannelInfoMap["multi"] = this.getMultiPostDataChannel(module["audio"], module["video"]);
                     };
 
-                    if (postChannelInfo["postChannel"] && postChannelInfo["videoCodec"] && postChannelInfo["audioCodec"]) {
-
+                    if ((postChannelInfoMap["mixed"] || postChannelInfoMap["multi"])) {
+                        var mimeType;
                         if (module["port"]) {
-                            for (var channelIt in postChannelInfo["postChannel"]) {
-                                postChannelInfo["postChannel"][channelIt].port = module["port"];
-                            };
+                            for (var type in postChannelInfoMap) {
+                                mimeType = postChannelInfoMap[type]["videoCodec"].mimeType;
+                                for (var channelIt in postChannelInfoMap[type]["postChannel"]) {
+                                    postChannelInfoMap[type]["postChannel"][channelIt].port = module["port"];
+                                };
+                                if (undefined == postChannelInfoMap[type]["videoCodec"].mimeType) {
+                                    throw "unknown mimeType";
+                                };
+                            }
                         } else {
                             throw "linkie data have no port info";
                         };
 
-                        if (undefined == postChannelInfo["videoCodec"].mimeType) {
-                            throw "unknown mimeType";
-                        }
-
                         tmpProduct.name = this.model.substring(0, 5).toUpperCase();
-                        tmpProduct.supportVideoResArr = postChannelInfo["supportVideoResArr"];
-                        tmpProduct.mimeType = postChannelInfo["videoCodec"].mimeType;
+                        tmpProduct.mimeType = mimeType;
+                        tmpProduct.orderedPlayerTypeArr = this.getOrderedPlayerTypeArr(tmpProduct.mimeType);
+                        var playerTypeAndPostChannel = this.getPlayerTypeAndPostChannel(tmpProduct.orderedPlayerTypeArr, postChannelInfoMap);
+                        tmpProduct.playerType = playerTypeAndPostChannel["playerType"];
+                        tmpProduct.supportVideoResArr = playerTypeAndPostChannel["postChannel"]["supportVideoResArr"];
                         tmpProduct.smallImgCssClass = tmpProduct.name + "-small-img";
                         tmpProduct.middleImgCssClass = tmpProduct.name + "-middle-img";
-                        tmpProduct.playerType = this.getPlayerType(tmpProduct.mimeType);
-                        tmpProduct.postDataChannel = postChannelInfo["postChannel"];
-                        tmpProduct.audioCodec = postChannelInfo["audioCodec"];
-                        tmpProduct.videoCodec = postChannelInfo["videoCodec"];
-                        this.dynamicFixPostChannelForNC200(tmpProduct);
+                        tmpProduct.postDataChannel = playerTypeAndPostChannel["postChannel"]["postChannel"];
+                        tmpProduct.audioCodec = playerTypeAndPostChannel["postChannel"]["audioCodec"];
+                        tmpProduct.videoCodec = playerTypeAndPostChannel["postChannel"]["videoCodec"];
+                        this.dynamicFixPostChannelForMjpeg(tmpProduct);
                         return tmpProduct;
                     }
                 } else {
@@ -1555,6 +1588,15 @@
             delete tmpProduct.postDataChannel;
             delete tmpProduct.audioCodec;
             delete tmpProduct.videoCodec;
+        }
+    };
+
+    Device.prototype.updateProduct = function(product) {
+        if (product) {
+            this.clearLinkieProduct();
+            $.extend(true, this.product, product);
+        } else {
+            console.log("cannot update product with undefined product");
         }
     };
 
@@ -2586,8 +2628,7 @@
                 console.error(err);
             };
             if (product) {
-                _self.device.clearLinkieProduct();
-                $.extend(true, _self.device.product, product);
+                _self.device.updateProduct(product);
             };
             if (_self.device.relayUrl) {
                 _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
