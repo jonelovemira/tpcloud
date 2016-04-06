@@ -71,7 +71,7 @@
                 console.log("OK");
             },
             "-1": function() {
-                console.log("unknow error");
+                console.log("uncatched response code from backend server");
             },
         },
         errorCallback: function(xhr) {
