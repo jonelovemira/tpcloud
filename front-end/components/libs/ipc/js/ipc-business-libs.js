@@ -2352,7 +2352,7 @@
             data: data,
             callbacks: undefined,
             changeState: $.noop,
-            errCodeStrIndex: "errorCode",
+            errCodeStrIndex: "errCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
         return result;
@@ -2390,7 +2390,7 @@
             data: data,
             callbacks: undefined,
             changeState: $.noop,
-            errCodeStrIndex: "errorCode",
+            errCodeStrIndex: "errCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
         return result;
@@ -2484,7 +2484,7 @@
         this.currentNetErrRetryCnt = 0;
         this.maxNetErrRetryCnt = 3;
 
-        this.rubbisAjaxArr = [];
+        this.rubbishAjaxArr = [];
         this.rubbisIntervalObjArr = [];
 
         this.state = devicePlayingState.IDLE;
@@ -2528,11 +2528,11 @@
     };
 
     NonPluginPlayer.prototype.clearLastStepRubbish = function() {
-        for (var i = 0; i < this.rubbisAjaxArr.length; i++) {
-            this.rubbisAjaxArr[i] && this.rubbisAjaxArr[i].abort();
+        for (var i = 0; i < this.rubbishAjaxArr.length; i++) {
+            this.rubbishAjaxArr[i] && this.rubbishAjaxArr[i].abort();
         };
-        delete this.rubbisAjaxArr;
-        this.rubbisAjaxArr = [];
+        delete this.rubbishAjaxArr;
+        this.rubbishAjaxArr = [];
 
         for (var i = 0; i < this.rubbisIntervalObjArr.length; i++) {
             clearInterval(this.rubbisIntervalObjArr[i]);
@@ -2617,8 +2617,8 @@
         }
         var getUrlAjaxObj = _self.getRelayUrl();
         var getLinkieAjaxObj = _self.getDeviceLinkieData();
-        _self.rubbisAjaxArr.push(getUrlAjaxObj);
-        _self.rubbisAjaxArr.push(getLinkieAjaxObj);
+        _self.rubbishAjaxArr.push(getUrlAjaxObj);
+        _self.rubbishAjaxArr.push(getLinkieAjaxObj);
         var successFunc = function() {
             var product;
             try {
@@ -2683,7 +2683,7 @@
         };
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        _self.rubbisAjaxArr.push(ajaxObj);
+        _self.rubbishAjaxArr.push(ajaxObj);
         return ajaxObj;
     };
 
@@ -2720,7 +2720,7 @@
                     if (retryCount < retryLimit) {
                         retryCount += 1;
                         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                        _self.rubbisAjaxArr.push(ajaxObj);
+                        _self.rubbishAjaxArr.push(ajaxObj);
                     } else {
                         _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
                     }
@@ -2741,7 +2741,7 @@
         };
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        _self.rubbisAjaxArr.push(ajaxObj);
+        _self.rubbishAjaxArr.push(ajaxObj);
     };
 
     NonPluginPlayer.prototype.requestRelayService = function() {
@@ -2784,10 +2784,10 @@
         var currentCount = 1;
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        _self.rubbisAjaxArr.push(ajaxObj);
+        _self.rubbishAjaxArr.push(ajaxObj);
         var intervalObj = setInterval(function() {
             ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-            _self.rubbisAjaxArr.push(ajaxObj);
+            _self.rubbishAjaxArr.push(ajaxObj);
             currentCount += 1;
             if (currentCount >= _self.queryIsRelayReadyAjaxLimit) {
                 _self.changeStateTo(devicePlayingState.NEED_RELAY_READY_FAILED_TRY);
@@ -3084,10 +3084,10 @@
 
             var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
             var currentCount = 1;
-            this.rubbisAjaxArr.push(ajaxObj);
+            this.rubbishAjaxArr.push(ajaxObj);
             var intervalObj = setInterval(function() {
                 ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                _self.rubbisAjaxArr.push(ajaxObj);
+                _self.rubbishAjaxArr.push(ajaxObj);
                 currentCount += 1;
                 if (currentCount >= _self.getResIdAjaxLimit) {
                     _self.changeStateTo(devicePlayingState.NEED_RES_FAILED_RETRY);
@@ -3281,6 +3281,7 @@
         this.pluginPlayerRender = null;
         this.updatePlayerObjView = null;
         this.showOffline = null;
+        this.rubbishAjaxArr = [];
 
         this.state = devicePlayingState.IDLE;
         this.videoReadyCallback = $.Callbacks("unique stopOnFalse");
@@ -3327,6 +3328,7 @@
             this.playerObj.StopVideo();
             this.playerObj.StopAudio();
         };
+        this.clearLastStepRubbish();
     };
 
     PluginPlayer.prototype.getDeviceLocalInfo = function() {
@@ -3337,25 +3339,70 @@
             id: _self.device.id
         };
 
-        var inputCallbacks = {
-            commonCallback: function() {
-                _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
-                _self.stateChangeCallback.fireWith(_self);
-            }
+        var result = _self.device.getLocalInfo(args);
+        if (result["validateResult"] != undefined && !result["validateResult"].code) {
+            console.error(result["validateResult"].msg);
         };
+        return result["ajaxObj"];
+    };
 
-        var validateResult = _self.device.getLocalInfo(args, inputCallbacks)["validateResult"];
-        if (validateResult != undefined && !validateResult.code) {
-            console.error(validateResult.msg);
+    PluginPlayer.prototype.getLinkieAndLocal = function(currentTryIndex) {
+        var _self = this;
+        var currentTry = currentTryIndex || 0;
+        if (currentTry >= 3) {
+            _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
+            _self.stateChangeCallback.fireWith(_self);
+            return;
+        }
+        var getLocalInfoAjaxObj = _self.getDeviceLocalInfo();
+        var getLinkieAjaxObj = _self.getDeviceLinkieData();
+        _self.rubbishAjaxArr.push(getLocalInfoAjaxObj);
+        _self.rubbishAjaxArr.push(getLinkieAjaxObj);
+        var successFunc = function() {
+            var product;
+            try {
+                var linkieData = _self.device.getLocalLinkieData();
+                product = _self.device.getProductFromLinkieData(linkieData);
+            } catch (err) {
+                console.error(err);
+            };
+            if (product) {
+                _self.device.updateProduct(product);
+            };
+            _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
+            _self.stateChangeCallback.fireWith(_self);
         };
+        var failFunc = function() {
+            if (getLocalInfoAjaxObj.status != 200 && getLocalInfoAjaxObj.statusText != "abort") {
+                _self.getLinkieAndLocal(currentTry)
+            };
+        };
+        var alwaysFunc = function() {
+            currentTry += 1;
+        }
+        _self.multiAsyncRequest({
+            success: successFunc,
+            fail: failFunc,
+            ajaxArr: [getLocalInfoAjaxObj, getLinkieAjaxObj],
+            always: alwaysFunc
+        });
+    };
+
+    PluginPlayer.prototype.clearLastStepRubbish = function() {
+        for (var i = 0; i < this.rubbishAjaxArr.length; i++) {
+            this.rubbishAjaxArr[i] && this.rubbishAjaxArr[i].abort();
+        };
+        delete this.rubbishAjaxArr;
+        this.rubbishAjaxArr = [];
     };
 
     PluginPlayer.prototype.pluginPlayerStateChangeHandler = function() {
         if (this.device.isActive == false) {
             this.back2Idle();
         } else {
+            this.clearLastStepRubbish();
             var stateLogicMap = {};
-            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getDeviceLocalInfo;
+            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getLinkieAndLocal;
             stateLogicMap[devicePlayingState.DEVICE_LOCAL_INFO_READY] = this.play;
 
             var defaultFunc = function() {
