@@ -2605,7 +2605,7 @@
                 var linkieData = _self.device.getLocalLinkieData();
                 product = _self.device.getProductFromLinkieData(linkieData);
             } catch (err) {
-                console.error(err);
+                console.log(err);
             };
             if (product) {
                 _self.device.updateProduct(product);
@@ -3344,7 +3344,7 @@
                 var linkieData = _self.device.getLocalLinkieData();
                 product = _self.device.getProductFromLinkieData(linkieData);
             } catch (err) {
-                console.error(err);
+                console.log(err);
             };
             if (product) {
                 _self.device.updateProduct(product);
