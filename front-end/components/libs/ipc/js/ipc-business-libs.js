@@ -574,6 +574,49 @@
 
     $.ipc = $.ipc || {};
 
+    function Codec() {
+        this.name = null;
+    };
+
+    function PCMAudioCodec() {
+        Codec.call(this, arguments);
+        this.name = "PCM";
+    };
+    $.ipc.inheritPrototype(PCMAudioCodec, Codec);
+
+    function AACAudioCodec() {
+        Codec.call(this, arguments);
+        this.name = "AAC";
+        this.pluginAudioTypeCode = 2;
+    };
+    $.ipc.inheritPrototype(AACAudioCodec, Codec);
+
+    function MJPEGVideoCodec() {
+        Codec.call(this, arguments);
+        this.name = "mjpeg";
+        this.mimeType = "application/x-tp-camera";
+    };
+    $.ipc.inheritPrototype(MJPEGVideoCodec, Codec);
+
+    function H264VideoCodec() {
+        Codec.call(this, arguments);
+        this.name = "h264";
+        this.mimeType = "application/x-tp-camera-h264";
+        this.pluginStreamTypeCode = 2;
+    };
+    $.ipc.inheritPrototype(H264VideoCodec, Codec);
+
+    $.ipc.PCMAudioCodec = PCMAudioCodec;
+    $.ipc.AACAudioCodec = AACAudioCodec;
+    $.ipc.MJPEGVideoCodec = MJPEGVideoCodec;
+    $.ipc.H264VideoCodec = H264VideoCodec;
+})(jQuery);
+
+(function($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
     function hasNewerVersion(version) {
         if (undefined == version || undefined == this.newestVersion) {
             console.error("args error in hasNewerVersion");
@@ -594,6 +637,9 @@
         hasNewerVersion: hasNewerVersion
     };
 
+    var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
+    var h264VideoCodec = new $.ipc.H264VideoCodec();
+
     function PLUGIN_NON_IE_X86() {};
 
     function PLUGIN_NON_IE_X64() {};
@@ -608,31 +654,25 @@
 
     function IMG_PLAYER() {};
 
-    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "non-ie-mjpeg",
-        "application/x-tp-camera-h264": "non-ie-h264"
-    };
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap = {};
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "non-ie-mjpeg";
+    PLUGIN_NON_IE_X86.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "non-ie-h264";
 
-    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "non-ie-mjpeg",
-        "application/x-tp-camera-h264": "non-ie-h264"
-    };
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap = {};
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "non-ie-mjpeg";
+    PLUGIN_NON_IE_X64.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "non-ie-h264";
 
-    PLUGIN_IE_X86.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "ie-mjpeg",
-        "application/x-tp-camera-h264": "ie-h264"
-    };
+    PLUGIN_IE_X86.prototype.mimetypeCssMap = {};
+    PLUGIN_IE_X86.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "ie-mjpeg";
+    PLUGIN_IE_X86.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "ie-h264";
 
-    PLUGIN_IE_X64.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "ie-mjpeg",
-        "application/x-tp-camera-h264": "ie-h264"
-    };
+    PLUGIN_IE_X64.prototype.mimetypeCssMap = {};
+    PLUGIN_IE_X64.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "ie-mjpeg";
+    PLUGIN_IE_X64.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "ie-h264";
 
-    PLUGIN_MAC.prototype.mimetypeCssMap = {
-        "application/x-tp-camera": "non-ie-mjpeg",
-        "application/x-tp-camera-h264": "non-ie-h264"
-    };
-
+    PLUGIN_MAC.prototype.mimetypeCssMap = {};
+    PLUGIN_MAC.prototype.mimetypeCssMap[mjpegVideoCodec.mimeType] = "non-ie-mjpeg";
+    PLUGIN_MAC.prototype.mimetypeCssMap[h264VideoCodec.mimeType] = "non-ie-h264";
 
     (function() {
         var tmp = [PLUGIN_NON_IE_X86, PLUGIN_NON_IE_X64, PLUGIN_IE_X86, PLUGIN_IE_X64, PLUGIN_MAC];
@@ -832,6 +872,7 @@
         this.videoCodec = null;
         this.audioCodec = null;
         this.name = null;
+        this.port = null;
     };
     Channel.prototype.generateRelaydCommand = function(device) {
         if (undefined == device) {
@@ -841,7 +882,7 @@
         var relayResolutionStr = this.generateRelayParam(device);
         var url = this.url;
         var type = this.name;
-        return "relayd -s 'http://127.0.0.1:8080" + url + "?" + localResolutionStr +
+        return "relayd -s 'http://127.0.0.1:" + this.port + "/" + url + "?" + localResolutionStr +
             "' -d 'http://" + device.relayUrl + "/relayservice?deviceid=" +
             device.id + "&type=" + type + "&" + relayResolutionStr + "' -a 'X-token: " +
             device.owner.token + "' -t '" + device.relayVideoTime + "'";
@@ -918,208 +959,6 @@
     $.ipc.DevicePostChannelVideo = DevicePostChannelVideo;
     $.ipc.DevicePostChannelAudio = DevicePostChannelAudio;
     $.ipc.DevicePostChannelMixed = DevicePostChannelMixed;
-
-})(jQuery);
-
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
-    function Codec() {
-        this.name = null;
-    };
-
-    function AudioCodec() {
-        Codec.call(this, arguments);
-        this.pluginAudioTypeCode = null;
-    };
-    $.ipc.inheritPrototype(AudioCodec, Codec);
-
-    function VideoCodec() {
-        Codec.call(this, arguments);
-        this.pluginStreamTypeCode = null;
-    };
-    $.ipc.inheritPrototype(VideoCodec, Codec);
-
-    $.ipc.AudioCodec = AudioCodec;
-    $.ipc.VideoCodec = VideoCodec;
-})(jQuery);
-
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
-    function IpcProduct() {
-        this.name = null;
-        this.supportVideoResArr = [];
-        this.mimeType = null;
-        this.smallImgCssClass = null;
-        this.middleImgCssClass = null;
-        this.playerType = null;
-        this.videoDataChannel = null;
-        this.released = null;
-        this.faqPath = null;
-        this.pluginPlayer = null;
-        this.firmwareDownloadPath = null;
-        this.firmwareNewestVersion = null;
-        this.audioCodec = null;
-    };
-
-    IpcProduct.prototype.getPlayerType = function(mt) {
-        if ($.inArray(mt, mimeTypesArr) < 0) {
-            console.error("mime types error in getPlayerType")
-        };
-        var result = undefined;
-        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
-            if (mt == mimeTypesArr[0]) {
-                result = $.ipc.IMG_PLAYER;
-            } else {
-                result = $.ipc.FLASH_PLAYER;
-            }
-        } else {
-            if ($.ipc.Browser.prototype.os == "MacOS") {
-                result = $.ipc.PLUGIN_MAC;
-            } else if ($.ipc.Browser.prototype.os == "Windows") {
-                if ($.ipc.Browser.prototype.type == "MSIE") {
-                    if (navigator.userAgent.indexOf("x64") != -1) {
-                        result = $.ipc.PLUGIN_IE_X64;
-                    } else {
-                        result = $.ipc.PLUGIN_IE_X86;
-                    };
-                } else {
-                    if (navigator.userAgent.indexOf("x64") != -1) {
-                        result = $.ipc.PLUGIN_NON_IE_X64;
-                    } else {
-                        result = $.ipc.PLUGIN_NON_IE_X86;
-                    };
-                }
-            } else {
-                console.info("unsupportted operation system");
-                result = undefined;
-            }
-        }
-        return result;
-        // return $.ipc.IMG_PLAYER;
-    };
-
-    function findPostChannelForNC200() {
-        var result = null;
-        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
-            result = [videoChannel];
-        } else {
-            result = [videoChannel, audioChannel];
-        };
-        return result;
-    }
-
-    var mimeTypesArr = ["application/x-tp-camera", "application/x-tp-camera-h264"];
-
-    var videoChannel = new $.ipc.DevicePostChannelVideo();
-    videoChannel.url = '/stream/getvideo';
-    var audioChannel = new $.ipc.DevicePostChannelAudio();
-    audioChannel.url = '/stream/getaudioblock';
-    var mixedChannel = new $.ipc.DevicePostChannelMixed();
-    mixedChannel.url = '/stream/video/mixed';
-
-    var pcmAudioCodec = new $.ipc.AudioCodec();
-    pcmAudioCodec.name = "PCM";
-    var aacAudioCodec = new $.ipc.AudioCodec();
-    aacAudioCodec.name = "AAC";
-    aacAudioCodec.pluginAudioTypeCode = 2;
-    var h264VideoCodec = new $.ipc.VideoCodec();
-    h264VideoCodec.name = "h264";
-    h264VideoCodec.pluginStreamTypeCode = 2;
-    var mjpegVideoCodec = new $.ipc.VideoCodec();
-    mjpegVideoCodec.name = "mjpeg";
-
-    var NC200 = new IpcProduct();
-    NC200.name = "NC200";
-    NC200.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
-    NC200.mimeType = mimeTypesArr[0];
-    NC200.smallImgCssClass = "NC200-small-img";
-    NC200.middleImgCssClass = "NC200-middle-img";
-    NC200.playerType = NC200.getPlayerType(NC200.mimeType);
-    NC200.postDataChannel = findPostChannelForNC200();
-    NC200.audioCodec = pcmAudioCodec;
-    NC200.videoCodec = mjpegVideoCodec;
-
-    var NC210 = new IpcProduct();
-    NC210.name = "NC210";
-    NC210.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC210.mimeType = mimeTypesArr[1];
-    NC210.smallImgCssClass = "NC210-small-img";
-    NC210.middleImgCssClass = "NC210-middle-img";
-    NC210.playerType = NC210.getPlayerType(NC210.mimeType);
-    NC210.postDataChannel = [videoChannel, audioChannel];
-    NC210.audioCodec = aacAudioCodec;
-    NC210.videoCodec = h264VideoCodec;
-
-    var NC220 = new IpcProduct();
-    NC220.name = "NC220";
-    NC220.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_VGA, $.ipc.RESOLUTION_VIDEO_QVGA];
-    NC220.mimeType = mimeTypesArr[1];
-    NC220.smallImgCssClass = "NC220-small-img";
-    NC220.middleImgCssClass = "NC220-middle-img";
-    NC220.playerType = NC220.getPlayerType(NC220.mimeType);
-    NC220.postDataChannel = [videoChannel, audioChannel];
-    NC220.audioCodec = aacAudioCodec;
-    NC220.videoCodec = h264VideoCodec;
-
-    var NC230 = new IpcProduct();
-    NC230.name = "NC230";
-    NC230.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC230.mimeType = mimeTypesArr[1];
-    NC230.smallImgCssClass = "NC230-small-img";
-    NC230.middleImgCssClass = "NC230-middle-img";
-    NC230.playerType = NC230.getPlayerType(NC230.mimeType);
-    NC230.postDataChannel = [videoChannel, audioChannel];
-    NC230.audioCodec = aacAudioCodec;
-    NC230.videoCodec = h264VideoCodec;
-
-    var NC250 = new IpcProduct();
-    NC250.name = "NC250";
-    NC250.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC250.mimeType = mimeTypesArr[1];
-    NC250.smallImgCssClass = "NC250-small-img";
-    NC250.middleImgCssClass = "NC250-middle-img";
-    NC250.playerType = NC250.getPlayerType(NC250.mimeType);
-    NC250.postDataChannel = [videoChannel, audioChannel];
-    NC250.audioCodec = aacAudioCodec;
-    NC250.videoCodec = h264VideoCodec;
-
-    var NC350 = new IpcProduct();
-    NC350.name = "NC350";
-    NC350.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC350.mimeType = mimeTypesArr[1];
-    NC350.smallImgCssClass = "NC350-small-img";
-    NC350.middleImgCssClass = "NC350-middle-img";
-    NC350.playerType = NC350.getPlayerType(NC350.mimeType);
-    NC350.postDataChannel = [videoChannel, audioChannel];
-    NC350.audioCodec = aacAudioCodec;
-    NC350.videoCodec = h264VideoCodec;
-
-    var NC450 = new IpcProduct();
-    NC450.name = "NC450";
-    NC450.supportVideoResArr = [$.ipc.RESOLUTION_VIDEO_HD];
-    NC450.mimeType = mimeTypesArr[1];
-    NC450.smallImgCssClass = "NC450-small-img";
-    NC450.middleImgCssClass = "NC450-middle-img";
-    NC450.playerType = NC450.getPlayerType(NC450.mimeType);
-    NC450.postDataChannel = [videoChannel, audioChannel];
-    NC450.audioCodec = aacAudioCodec;
-    NC450.videoCodec = h264VideoCodec;
-
-    $.ipc.NC200 = NC200;
-    $.ipc.NC210 = NC210;
-    $.ipc.NC220 = NC220;
-    $.ipc.NC230 = NC230;
-    $.ipc.NC250 = NC250;
-    $.ipc.NC350 = NC350;
-    $.ipc.NC450 = NC450;
-
-    $.ipc.IpcProduct = IpcProduct;
 
 })(jQuery);
 
@@ -1371,6 +1210,376 @@
         return result;
     };
 
+    Device.prototype.getLocalLinkieData = function() {
+        var key = this.model.substring(0, 5).toUpperCase();
+        var result;
+        if ($.ipc.config.presetLinkieData[key]) {
+            result = $.ipc.config.presetLinkieData[key][this.fwVer];
+        }
+        return result;
+    };
+
+    Device.prototype.updateLocalLinkieDataList = function(data) {
+        var key = this.model.substring(0, 5).toUpperCase();
+        if (undefined == $.ipc.config.presetLinkieData[key]) {
+            $.ipc.config.presetLinkieData[key] = {};
+        }
+        $.ipc.config.presetLinkieData[key][this.fwVer] = data;
+    };
+
+    Device.prototype.isNeedGetLinkie = function() {
+        var result = true;
+        var key = this.model.substring(0, 5).toUpperCase();
+        if ($.ipc.config.presetLinkieData[key] && $.ipc.config.presetLinkieData[key][this.fwVer]) {
+            result = false;
+        }
+        return result;
+    };
+
+    Device.prototype.getLinkie = function(args, inputCallbacks) {
+        if (undefined == args.token || undefined == args.appServerUrl) {
+            console.error("args error in getLocalInfo");
+        };
+        var result = {};
+        var validateResult = (!this.validateIdFormat(args.id).code && this.validateIdFormat(args.id));
+        if (validateResult.code == false) {
+            result["validateResult"] = validateResult;
+            return result;
+        };
+        if (!this.isNeedGetLinkie()) {
+            console.log("linkie data is already in cache when getLinkie. " +
+                "passthrough to get linkie data anyway.");
+        }
+
+        var changeStateFunc = function(response) {
+            if (response && response.result && response.result.responseData) {
+                this.updateLocalLinkieDataList(response.result.responseData);
+            };
+        };
+        var _self = this;
+        inputCallbacks = inputCallbacks || {};
+        inputCallbacks.errorCodeCallbackMap = inputCallbacks.errorCodeCallbackMap || {};
+        var tmpFunc = inputCallbacks.errorCodeCallbackMap["-51207"];
+        inputCallbacks.errorCodeCallbackMap["-51207"] = function() {
+            _self.updateLocalLinkieDataList("-51207");
+            tmpFunc && tmpFunc();
+        };
+
+        var data = JSON.stringify({
+            "method": "passthrough",
+            "params": {
+                "requestData": {
+                    "command": "LINKIE",
+                    "content": {
+                        "smartlife.cam.ipcamera.liveStream": {
+                            "get_modules": {}
+                        }
+                    }
+                },
+                "deviceId": args.id
+            }
+        });
+
+        result["ajaxObj"] = this.makeAjaxRequest({
+            url: args.appServerUrl + "?token=" + args.token,
+            data: data,
+            changeState: changeStateFunc,
+            errCodeStrIndex: "error_code",
+            callbacks: inputCallbacks
+        }, $.xAjax.defaults.xType);
+        return result;
+    };
+
+    Device.prototype.getSupportResArr = function(resDescriptionArr) {
+        if (resDescriptionArr) {
+            var ipcResObjMap = {
+                "1920*1080": $.ipc.RESOLUTION_VIDEO_FULLHD,
+                "1280*720": $.ipc.RESOLUTION_VIDEO_HD,
+                "640*480": $.ipc.RESOLUTION_VIDEO_VGA,
+                "320*240": $.ipc.RESOLUTION_VIDEO_QVGA
+            };
+            var result = [];
+            for (var key in ipcResObjMap) {
+                for (var i = resDescriptionArr.length - 1; i >= 0; i--) {
+                    if (resDescriptionArr[i] == key) {
+                        result.push(ipcResObjMap[key]);
+                    };
+                };
+            };
+            return result;
+        } else {
+            throw "undefined args in getSupportResArr";
+        }
+    };
+
+    Device.prototype.getMixedPostDataChannel = function(supporttedMixed) {
+        if (supporttedMixed) {
+            var map = {};
+            for (var i = supporttedMixed.length - 1; i >= 0; i--) {
+                var tmp = supporttedMixed[i];
+                map[tmp["video_codec"] + "_" + tmp["audio_codec"]] = tmp;
+            };
+            var result = {};
+            var mixedChannel = new $.ipc.DevicePostChannelMixed();
+            var videoCodec;
+            var audioCodec;
+            var supportVideoResArr;
+            if (map["H.264_AAC"]) {
+                videoCodec = new $.ipc.H264VideoCodec();
+                audioCodec = new $.ipc.AACAudioCodec();
+                mixedChannel.url = map["H.264_AAC"]["url"];
+                supportVideoResArr = this.getSupportResArr(map["H.264_AAC"]["resolutions"]);
+            } else if (map["MJPEG_PCM"]) {
+                videoCodec = new $.ipc.MJPEGVideoCodec();
+                audioCodec = new $.ipc.PCMAudioCodec();
+                mixedChannel.url = map["MJPEG_PCM"]["url"];
+                supportVideoResArr = this.getSupportResArr(map["MJPEG_PCM"]["resolutions"]);
+            } else {
+                throw "unknown mixed channel. neither h264acc nor mjpegpcm";
+            };
+
+            if (mixedChannel && videoCodec && audioCodec) {
+                result = {
+                    "postChannel": {
+                        "mixed": mixedChannel
+                    },
+                    "videoCodec": videoCodec,
+                    "audioCodec": audioCodec,
+                    "supportVideoResArr": supportVideoResArr
+                };
+                return result;
+            } else {
+                throw "error in getMixedPostDataChannel";
+            }
+        } else {
+            throw "undefined args in getMixedPostDataChannel";
+        }
+    };
+
+    Device.prototype.getMultiPostDataChannel = function(audioArr, videoArr) {
+        if (audioArr && videoArr) {
+            var result = {};
+            var videoCodec;
+            var audioCodec;
+            var videoChannel;
+            var audioChannel;
+            var audioCodecMap = {};
+            var supportVideoResArr;
+            for (var i = audioArr.length - 1; i >= 0; i--) {
+                audioCodecMap[audioArr[i]["audio_codec"]] = audioArr[i];
+            }
+            var videoCodecMap = {};
+            for (var i = videoArr.length - 1; i >= 0; i--) {
+                videoCodecMap[videoArr[i]["video_codec"]] = videoArr[i];
+            }
+
+            if (audioCodecMap["AAC"]) {
+                audioCodec = new $.ipc.AACAudioCodec();
+                audioChannel = new $.ipc.DevicePostChannelAudio();
+                audioChannel.url = audioCodecMap["AAC"].url;
+            } else if (audioCodecMap["PCM"]) {
+                audioCodec = new $.ipc.PCMAudioCodec();
+                audioChannel = new $.ipc.DevicePostChannelAudio();
+                audioChannel.url = audioCodecMap["PCM"].url;
+            } else {
+                throw "unknown audio codec type, neither aac nor pcm";
+            }
+
+            if (videoCodecMap["H.264"]) {
+                videoCodec = new $.ipc.H264VideoCodec();
+                videoChannel = new $.ipc.DevicePostChannelVideo();
+                videoChannel.url = videoCodecMap["H.264"].url;
+                videoChannel.encrypt = videoCodecMap["H.264"].encrypt;
+                supportVideoResArr = this.getSupportResArr(videoCodecMap["H.264"]["resolutions"]);
+            } else if (videoCodecMap["MJPEG"]) {
+                videoCodec = new $.ipc.MJPEGVideoCodec();
+                videoChannel = new $.ipc.DevicePostChannelVideo();
+                videoChannel.url = videoCodecMap["MJPEG"].url;
+                videoChannel.encrypt = videoCodecMap["MJPEG"].encrypt;
+                supportVideoResArr = this.getSupportResArr(videoCodecMap["MJPEG"]["resolutions"]);
+            } else {
+                throw "unknown video codec type, neither h264 nor mjpeg";
+            };
+
+            if (videoChannel && audioChannel && videoCodec && audioCodec) {
+                result = {
+                    "postChannel": {
+                        "video": videoChannel,
+                        "audio": audioChannel
+                    },
+                    "videoCodec": videoCodec,
+                    "audioCodec": audioCodec,
+                    "supportVideoResArr": supportVideoResArr
+                };
+                return result;
+            } else {
+                throw "error in getMultiPostDataChannel";
+            }
+        } else {
+            throw "undefined args in getMultiPostDataChannel";
+        }
+    };
+
+    Device.prototype.getPlayerTypeAndPostChannel = function(orderedPlayerTypeArr, postChannelMap) {
+        if (orderedPlayerTypeArr && postChannelMap && orderedPlayerTypeArr.length > 0) {
+            var result = {};
+            var pluginPlayers = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.PLUGIN_NON_IE_X64, $.ipc.PLUGIN_IE_X86, $.ipc.PLUGIN_IE_X64, $.ipc.PLUGIN_MAC];
+            if (orderedPlayerTypeArr[0] == $.ipc.FLASH_PLAYER) {
+                result["playerType"] = orderedPlayerTypeArr[0];
+                result["postChannel"] = postChannelMap["mixed"] || postChannelMap["multi"];
+            } else if ($.inArray(orderedPlayerTypeArr[0], pluginPlayers) >= 0) {
+                if (postChannelMap["multi"]) {
+                    result["playerType"] = orderedPlayerTypeArr[0];
+                    result["postChannel"] = postChannelMap["multi"];
+                } else {
+                    if (orderedPlayerTypeArr.length > 1 && orderedPlayerTypeArr[1] == $.ipc.FLASH_PLAYER) {
+                        result["playerType"] = orderedPlayerTypeArr[1];
+                        result["postChannel"] = postChannelMap["mixed"];
+                    }
+                }
+            } else {
+                if (postChannelMap["multi"]) {
+                    result["playerType"] = orderedPlayerTypeArr[0];
+                    result["postChannel"] = postChannelMap["multi"];
+                }
+            }
+            return result;
+        } else {
+            throw "undefined args in getPlayerTypeAndPostChannel";
+        }
+    };
+
+    Device.prototype.dynamicFixPostChannelForMjpeg = function(product) {
+        if (product) {
+            if (product.mimeType == (new $.ipc.MJPEGVideoCodec()).mimeType) {
+                if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+                    if (product["postDataChannel"]["video"] && product["postDataChannel"]["audio"]) {
+                        delete product["postDataChannel"]["audio"];
+                    };
+                };
+            };
+        } else {
+            throw "undefined args in dynamicFixPostChannelForMjpeg";
+        };
+    };
+
+    Device.prototype.getOrderedPlayerTypeArr = function(mt) {
+        var mjpegVideoCodec = new $.ipc.MJPEGVideoCodec();
+        var h264VideoCodec = new $.ipc.H264VideoCodec();
+        var mimeTypesArr = [mjpegVideoCodec.mimeType, h264VideoCodec.mimeType];
+        if ($.inArray(mt, mimeTypesArr) < 0) {
+            throw "unknown mime types for getOrderedPlayerTypeArr";
+        };
+        var result = undefined;
+        if (($.ipc.Browser.prototype.type == "Chrome" && parseInt($.ipc.Browser.prototype.version) >= 42) || $.ipc.Browser.prototype.type.indexOf("Edge") >= 0) {
+            if (mt == mimeTypesArr[0]) {
+                result = [$.ipc.IMG_PLAYER];
+            } else {
+                result = [$.ipc.FLASH_PLAYER];
+            }
+        } else {
+            if ($.ipc.Browser.prototype.os == "MacOS") {
+                result = [$.ipc.PLUGIN_MAC, $.ipc.FLASH_PLAYER];
+            } else if ($.ipc.Browser.prototype.os == "Windows") {
+                if ($.ipc.Browser.prototype.type == "MSIE") {
+                    if (navigator.userAgent.indexOf("x64") != -1) {
+                        result = [$.ipc.PLUGIN_IE_X64, $.ipc.FLASH_PLAYER];
+                    } else {
+                        result = [$.ipc.PLUGIN_IE_X86, $.ipc.FLASH_PLAYER];
+                    };
+                } else {
+                    if (navigator.userAgent.indexOf("x64") != -1) {
+                        result = [$.ipc.PLUGIN_NON_IE_X64, $.ipc.FLASH_PLAYER];
+                    } else {
+                        result = [$.ipc.PLUGIN_NON_IE_X86, $.ipc.FLASH_PLAYER];
+                    };
+                }
+            } else {
+                throw "unsupportted operation system";
+            }
+        }
+        return result;
+    };
+
+    Device.prototype.getProductFromLinkieData = function(data) {
+        if (data) {
+            var tmpProduct = new $.ipc.IpcProduct();
+            try {
+                if (data["smartlife.cam.ipcamera.liveStream"] &&
+                    data["smartlife.cam.ipcamera.liveStream"]["get_modules"]) {
+                    var module = data["smartlife.cam.ipcamera.liveStream"]["get_modules"];
+
+                    var postChannelInfoMap = {};
+                    if (module["audio_video"]) {
+                        postChannelInfoMap["mixed"] = this.getMixedPostDataChannel(module["audio_video"]);
+                    };
+                    if (module["audio"] && module["video"]) {
+                        postChannelInfoMap["multi"] = this.getMultiPostDataChannel(module["audio"], module["video"]);
+                    };
+
+                    if ((postChannelInfoMap["mixed"] || postChannelInfoMap["multi"])) {
+                        var mimeType;
+                        if (module["port"]) {
+                            for (var type in postChannelInfoMap) {
+                                mimeType = postChannelInfoMap[type]["videoCodec"].mimeType;
+                                for (var channelIt in postChannelInfoMap[type]["postChannel"]) {
+                                    postChannelInfoMap[type]["postChannel"][channelIt].port = module["port"];
+                                };
+                                if (undefined == postChannelInfoMap[type]["videoCodec"].mimeType) {
+                                    throw "unknown mimeType";
+                                };
+                            }
+                        } else {
+                            throw "linkie data have no port info";
+                        };
+
+                        tmpProduct.name = this.model.substring(0, 5).toUpperCase();
+                        tmpProduct.mimeType = mimeType;
+                        tmpProduct.orderedPlayerTypeArr = this.getOrderedPlayerTypeArr(tmpProduct.mimeType);
+                        var playerTypeAndPostChannel = this.getPlayerTypeAndPostChannel(tmpProduct.orderedPlayerTypeArr, postChannelInfoMap);
+                        tmpProduct.playerType = playerTypeAndPostChannel["playerType"];
+                        tmpProduct.supportVideoResArr = playerTypeAndPostChannel["postChannel"]["supportVideoResArr"];
+                        tmpProduct.smallImgCssClass = tmpProduct.name + "-small-img";
+                        tmpProduct.middleImgCssClass = tmpProduct.name + "-middle-img";
+                        tmpProduct.postDataChannel = playerTypeAndPostChannel["postChannel"]["postChannel"];
+                        tmpProduct.audioCodec = playerTypeAndPostChannel["postChannel"]["audioCodec"];
+                        tmpProduct.videoCodec = playerTypeAndPostChannel["postChannel"]["videoCodec"];
+                        this.dynamicFixPostChannelForMjpeg(tmpProduct);
+                        return tmpProduct;
+                    }
+                } else {
+                    throw "unknown linkie-like data";
+                }
+            } catch (err) {
+                throw "some error happened: " + err;
+            }
+        }
+    };
+
+    Device.prototype.clearLinkieProduct = function() {
+        if (this.product) {
+            var tmpProduct = this.product;
+            delete tmpProduct.name;
+            delete tmpProduct.supportVideoResArr;
+            delete tmpProduct.mimeType;
+            delete tmpProduct.smallImgCssClass;
+            delete tmpProduct.middleImgCssClass;
+            delete tmpProduct.playerType;
+            delete tmpProduct.postDataChannel;
+            delete tmpProduct.audioCodec;
+            delete tmpProduct.videoCodec;
+        }
+    };
+
+    Device.prototype.updateProduct = function(product) {
+        if (product) {
+            this.clearLinkieProduct();
+            $.extend(true, this.product, product);
+        } else {
+            console.log("cannot update product with undefined product");
+        }
+    };
+
     Device.prototype.getLocalInfo = function(args, inputCallbacks) {
         if (undefined == args.token || undefined == args.appServerUrl) {
             console.error("args error in getLocalInfo");
@@ -1412,11 +1621,11 @@
 
     Device.prototype.generateRelaydCommand = function() {
         var result = {};
-        for (var i = 0; i < this.product.postDataChannel.length; i++) {
-            var c = this.product.postDataChannel[i];
+        for (var key in this.product.postDataChannel) {
+            var c = this.product.postDataChannel[key];
             var commandStr = c.generateRelaydCommand(this);
             result[c.name] = commandStr;
-        };
+        }
         return result;
     };
 
@@ -1456,6 +1665,40 @@
     };
 
     $.ipc.Device = Device;
+
+})(jQuery);
+
+(function($) {
+    "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function IpcProduct() {
+        this.name = null;
+        this.supportVideoResArr = [];
+        this.mimeType = null;
+        this.smallImgCssClass = null;
+        this.middleImgCssClass = null;
+        this.playerType = null;
+        this.videoDataChannel = null;
+        this.released = null;
+        this.faqPath = null;
+        this.pluginPlayer = null;
+        this.firmwareDownloadPath = null;
+        this.firmwareNewestVersion = null;
+        this.audioCodec = null;
+    };
+
+    $.ipc.IpcProduct = IpcProduct;
+
+    if ($.ipc.config && $.ipc.config.presetLinkieData) {
+        var linkieData = $.ipc.config.presetLinkieData;
+        for (var key in linkieData) {
+            var d = new $.ipc.Device();
+            d.model = key;
+            $.ipc[key] = d.getProductFromLinkieData(linkieData[key]["DEFAULT"]);
+        }
+    }
 
 })(jQuery);
 
@@ -2089,7 +2332,7 @@
             data: data,
             callbacks: undefined,
             changeState: $.noop,
-            errCodeStrIndex: "errorCode",
+            errCodeStrIndex: "errCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
         return result;
@@ -2127,7 +2370,7 @@
             data: data,
             callbacks: undefined,
             changeState: $.noop,
-            errCodeStrIndex: "errorCode",
+            errCodeStrIndex: "errCode",
             extendAjaxOptions: extendAjaxOptions
         }, $.xAjax.defaults.xType);
         return result;
@@ -2150,6 +2393,43 @@
 
 (function($) {
     "use strict";
+
+    $.ipc = $.ipc || {};
+
+    function MyPlayer() {
+        $.ipc.Model.call(this, arguments);
+        this.device = null;
+        this.playerObj = null;
+        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+    };
+
+    $.ipc.inheritPrototype(MyPlayer, $.ipc.Model);
+
+    MyPlayer.prototype.multiAsyncRequest = function(args) {
+        $.when.apply($, args.ajaxArr).always(args.always).done(args.success).fail(args.fail);
+    };
+
+    MyPlayer.prototype.getDeviceLinkieData = function(callbacks) {
+        var _self = this;
+        var device = _self.device;
+        if (device && device.owner.token && device.appServerUrl) {
+            if (device.isNeedGetLinkie()) {
+                var result = device.getLinkie({
+                    "id": device.id,
+                    "token": device.owner.token,
+                    "appServerUrl": device.appServerUrl
+                }, callbacks)["ajaxObj"];
+                return result;
+            };
+        };
+    };
+
+    $.ipc.MyPlayer = MyPlayer;
+
+})(jQuery);
+
+(function($) {
+    "use strict";
     $.ipc = $.ipc || {};
 
     var devicePlayingState = {
@@ -2166,13 +2446,11 @@
     };
 
     function NonPluginPlayer() {
-        $.ipc.Model.call(this, arguments);
+        $.ipc.MyPlayer.call(this, arguments);
         this.timer = null;
         this.statistics = null;
-        this.device = null;
         this.swfPath = null;
         this.playerElementId = null;
-        this.playerObj = null;
 
         this.curRlyRdyFailedRtryReqRlySrvCnt = 0;
         this.maxRlyRdyFailedRtryReqRlySrvCnt = 3;
@@ -2186,11 +2464,10 @@
         this.currentNetErrRetryCnt = 0;
         this.maxNetErrRetryCnt = 3;
 
-        this.rubbisAjaxArr = [];
+        this.rubbishAjaxArr = [];
         this.rubbisIntervalObjArr = [];
 
         this.state = devicePlayingState.IDLE;
-        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
 
         this.playerObjErrorCallbacks = $.Callbacks("unique stopOnFalse");
 
@@ -2199,7 +2476,7 @@
         this.playerRenderFunc = null;
         this.netErrRenderFunc = null;
     };
-    $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.Model);
+    $.ipc.inheritPrototype(NonPluginPlayer, $.ipc.MyPlayer);
     var playerErrorCodeInfo = {
         "-20107": function() {
             console.log("args is invalid")
@@ -2231,11 +2508,11 @@
     };
 
     NonPluginPlayer.prototype.clearLastStepRubbish = function() {
-        for (var i = 0; i < this.rubbisAjaxArr.length; i++) {
-            this.rubbisAjaxArr[i].abort();
+        for (var i = 0; i < this.rubbishAjaxArr.length; i++) {
+            this.rubbishAjaxArr[i] && this.rubbishAjaxArr[i].abort();
         };
-        delete this.rubbisAjaxArr;
-        this.rubbisAjaxArr = [];
+        delete this.rubbishAjaxArr;
+        this.rubbishAjaxArr = [];
 
         for (var i = 0; i < this.rubbisIntervalObjArr.length; i++) {
             clearInterval(this.rubbisIntervalObjArr[i]);
@@ -2279,7 +2556,7 @@
         console.log("retry full nonPluginPlayer flow due to device is not reachable: " + _self.currentNetErrRetryCnt);
         if (_self.currentNetErrRetryCnt <= _self.maxNetErrRetryCnt) {
             setTimeout(function() {
-                _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+                _self.changeStateTo(devicePlayingState.BEGIN_PLAY);
             }, 1000);
         } else {
             _self.renderNetworkError();
@@ -2311,6 +2588,50 @@
         return args.appServerUrl + "/ipc?token=" + args.token;
     };
 
+    NonPluginPlayer.prototype.getUrlAndLinkie = function(currentTryIndex) {
+        var _self = this;
+        var currentTry = currentTryIndex || 0;
+        if (currentTry >= 3) {
+            _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
+            return;
+        }
+        var getUrlAjaxObj = _self.getRelayUrl();
+        var getLinkieAjaxObj = _self.getDeviceLinkieData();
+        _self.rubbishAjaxArr.push(getUrlAjaxObj);
+        _self.rubbishAjaxArr.push(getLinkieAjaxObj);
+        var successFunc = function() {
+            var product;
+            try {
+                var linkieData = _self.device.getLocalLinkieData();
+                product = _self.device.getProductFromLinkieData(linkieData);
+            } catch (err) {
+                console.error(err);
+            };
+            if (product) {
+                _self.device.updateProduct(product);
+            };
+            if (_self.device.relayUrl) {
+                _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
+            } else {
+                _self.getUrlAndLinkie(currentTry)
+            }
+        };
+        var failFunc = function() {
+            if (getUrlAjaxObj.status != 200 && getUrlAjaxObj.statusText != "abort") {
+                _self.getUrlAndLinkie(currentTry)
+            };
+        };
+        var alwaysFunc = function() {
+            currentTry += 1;
+        }
+        _self.multiAsyncRequest({
+            success: successFunc,
+            fail: failFunc,
+            ajaxArr: [getUrlAjaxObj, getLinkieAjaxObj],
+            always: alwaysFunc
+        });
+    };
+
     NonPluginPlayer.prototype.getRelayUrl = function(args, inputCallbacks) {
         var _self = this;
 
@@ -2325,25 +2646,9 @@
                 "type": "relay"
             }
         });
-        var retryCount = 0;
-        var retryLimit = 3;
+
         var changeStateFunc = function(response) {
             _self.device.relayUrl = response.result.relayUrl.replace(/^.*:\/\//, "");
-            _self.changeStateTo(devicePlayingState.RELAY_URL_READY);
-        };
-
-        var extendAjaxOptions = {
-            error: function(xhr) {
-                if (xhr.statusText != "abort") {
-                    if (retryCount < retryLimit) {
-                        retryCount += 1;
-                        var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                        _self.rubbisAjaxArr.push(ajaxObj);
-                    } else {
-                        _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
-                    }
-                };
-            }
         };
 
         var requestArgs = {
@@ -2354,12 +2659,12 @@
             data: data,
             callbacks: inputCallbacks,
             changeState: changeStateFunc,
-            errCodeStrIndex: "error_code",
-            extendAjaxOptions: extendAjaxOptions
+            errCodeStrIndex: "error_code"
         };
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        _self.rubbisAjaxArr.push(ajaxObj);
+        _self.rubbishAjaxArr.push(ajaxObj);
+        return ajaxObj;
     };
 
     NonPluginPlayer.prototype.requestSingleRelayService = function(reachedFlag, key, command) {
@@ -2395,7 +2700,7 @@
                     if (retryCount < retryLimit) {
                         retryCount += 1;
                         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                        _self.rubbisAjaxArr.push(ajaxObj);
+                        _self.rubbishAjaxArr.push(ajaxObj);
                     } else {
                         _self.changeStateTo(devicePlayingState.NETWORK_ERROR);
                     }
@@ -2416,7 +2721,7 @@
         };
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        _self.rubbisAjaxArr.push(ajaxObj);
+        _self.rubbishAjaxArr.push(ajaxObj);
     };
 
     NonPluginPlayer.prototype.requestRelayService = function() {
@@ -2459,10 +2764,10 @@
         var currentCount = 1;
 
         var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-        _self.rubbisAjaxArr.push(ajaxObj);
+        _self.rubbishAjaxArr.push(ajaxObj);
         var intervalObj = setInterval(function() {
             ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-            _self.rubbisAjaxArr.push(ajaxObj);
+            _self.rubbishAjaxArr.push(ajaxObj);
             currentCount += 1;
             if (currentCount >= _self.queryIsRelayReadyAjaxLimit) {
                 _self.changeStateTo(devicePlayingState.NEED_RELAY_READY_FAILED_TRY);
@@ -2670,7 +2975,7 @@
 
     RtmpPlayer.prototype.preparePlay = function() {
         this.luckyTryForResId();
-        this.getRelayUrl();
+        this.getUrlAndLinkie();
     };
 
     RtmpPlayer.prototype.luckyTryForResId = function() {
@@ -2759,10 +3064,10 @@
 
             var ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
             var currentCount = 1;
-            this.rubbisAjaxArr.push(ajaxObj);
+            this.rubbishAjaxArr.push(ajaxObj);
             var intervalObj = setInterval(function() {
                 ajaxObj = _self.makeAjaxRequest(requestArgs, $.xAjax.defaults.xType);
-                _self.rubbisAjaxArr.push(ajaxObj);
+                _self.rubbishAjaxArr.push(ajaxObj);
                 currentCount += 1;
                 if (currentCount >= _self.getResIdAjaxLimit) {
                     _self.changeStateTo(devicePlayingState.NEED_RES_FAILED_RETRY);
@@ -2805,7 +3110,7 @@
 
     ImgPlayer.prototype.preparePlay = function() {
         this.killAllRelayClient();
-        this.getRelayUrl();
+        this.getUrlAndLinkie();
     };
 
     ImgPlayer.prototype.stateChangeHandler = function() {
@@ -2945,9 +3250,7 @@
     };
 
     function PluginPlayer() {
-        $.ipc.Model.call(this, arguments);
-        this.device = null;
-        this.playerObj = null;
+        $.ipc.MyPlayer.call(this, arguments);
         this.volume = 0;
 
         this.recordCallback = null;
@@ -2958,13 +3261,13 @@
         this.pluginPlayerRender = null;
         this.updatePlayerObjView = null;
         this.showOffline = null;
+        this.rubbishAjaxArr = [];
 
-        this.state = null;
-        this.stateChangeCallback = $.Callbacks("unique stopOnFalse");
+        this.state = devicePlayingState.IDLE;
         this.videoReadyCallback = $.Callbacks("unique stopOnFalse");
     };
 
-    $.ipc.inheritPrototype(PluginPlayer, $.ipc.Model);
+    $.ipc.inheritPrototype(PluginPlayer, $.ipc.MyPlayer);
 
     PluginPlayer.prototype.triggerPlay = function() {
         if (this.playerObj) {
@@ -3005,6 +3308,7 @@
             this.playerObj.StopVideo();
             this.playerObj.StopAudio();
         };
+        this.clearLastStepRubbish();
     };
 
     PluginPlayer.prototype.getDeviceLocalInfo = function() {
@@ -3015,25 +3319,70 @@
             id: _self.device.id
         };
 
-        var inputCallbacks = {
-            commonCallback: function() {
-                _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
-                _self.stateChangeCallback.fireWith(_self);
-            }
+        var result = _self.device.getLocalInfo(args);
+        if (result["validateResult"] != undefined && !result["validateResult"].code) {
+            console.error(result["validateResult"].msg);
         };
+        return result["ajaxObj"];
+    };
 
-        var validateResult = _self.device.getLocalInfo(args, inputCallbacks)["validateResult"];
-        if (validateResult != undefined && !validateResult.code) {
-            console.error(validateResult.msg);
+    PluginPlayer.prototype.getLinkieAndLocal = function(currentTryIndex) {
+        var _self = this;
+        var currentTry = currentTryIndex || 0;
+        if (currentTry >= 3) {
+            _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
+            _self.stateChangeCallback.fireWith(_self);
+            return;
+        }
+        var getLocalInfoAjaxObj = _self.getDeviceLocalInfo();
+        var getLinkieAjaxObj = _self.getDeviceLinkieData();
+        _self.rubbishAjaxArr.push(getLocalInfoAjaxObj);
+        _self.rubbishAjaxArr.push(getLinkieAjaxObj);
+        var successFunc = function() {
+            var product;
+            try {
+                var linkieData = _self.device.getLocalLinkieData();
+                product = _self.device.getProductFromLinkieData(linkieData);
+            } catch (err) {
+                console.error(err);
+            };
+            if (product) {
+                _self.device.updateProduct(product);
+            };
+            _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
+            _self.stateChangeCallback.fireWith(_self);
         };
+        var failFunc = function() {
+            if (getLocalInfoAjaxObj.status != 200 && getLocalInfoAjaxObj.statusText != "abort") {
+                _self.getLinkieAndLocal(currentTry)
+            };
+        };
+        var alwaysFunc = function() {
+            currentTry += 1;
+        }
+        _self.multiAsyncRequest({
+            success: successFunc,
+            fail: failFunc,
+            ajaxArr: [getLocalInfoAjaxObj, getLinkieAjaxObj],
+            always: alwaysFunc
+        });
+    };
+
+    PluginPlayer.prototype.clearLastStepRubbish = function() {
+        for (var i = 0; i < this.rubbishAjaxArr.length; i++) {
+            this.rubbishAjaxArr[i] && this.rubbishAjaxArr[i].abort();
+        };
+        delete this.rubbishAjaxArr;
+        this.rubbishAjaxArr = [];
     };
 
     PluginPlayer.prototype.pluginPlayerStateChangeHandler = function() {
         if (this.device.isActive == false) {
             this.back2Idle();
         } else {
+            this.clearLastStepRubbish();
             var stateLogicMap = {};
-            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getDeviceLocalInfo;
+            stateLogicMap[devicePlayingState.BEGIN_PLAY] = this.getLinkieAndLocal;
             stateLogicMap[devicePlayingState.DEVICE_LOCAL_INFO_READY] = this.play;
 
             var defaultFunc = function() {
