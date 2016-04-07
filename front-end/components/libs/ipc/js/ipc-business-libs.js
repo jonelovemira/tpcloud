@@ -68,7 +68,7 @@
     Model.prototype.errorCodeCallbacks = {
         errorCodeCallbackMap: {
             "0": function() {
-                console.log("OK");
+                console.log("default msg for success processed response");
             },
             "-1": function() {
                 console.log("uncatched response code from backend server");
