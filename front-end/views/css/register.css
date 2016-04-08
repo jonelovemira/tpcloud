@@ -1,0 +1,88 @@
+#register-account{
+    width:250px;
+}
+
+.account-ctrl {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.account-ctrl:hover {
+  text-decoration: underline;
+  color: blue;
+}
+#maincontent {
+    padding-bottom: 50px;
+    margin: 0 auto;
+    position: relative;
+    width: 1000px;
+}
+
+.userinfo {
+    height: 222px;
+    position: relative;
+    padding-left: 60px;
+    width: 400px;
+}
+
+.content-cell{
+    width:100%;
+}
+
+.form {
+    top: -20px;
+    margin-top: 40px;
+    height: auto;
+    width: auto;
+}
+
+.userinfo-cell{
+    width:100%;
+    height:80px;
+}
+
+.userinfo-title{
+    font-family:'MYRIADPRO-LIGHTSEMIEXT';
+    color:#323232;
+    font-size: 1.5em;
+}
+.userinfo-cell-span{
+    float: left;
+    height: 25px;
+    width: 100%;
+}
+
+.userinfo-input{
+    height: 17px;
+    padding-left: 5px;
+    width: 302px;
+}
+
+.infocus{
+    border: 1px solid #aaa;
+    background:#FAFAFA;
+    height:17px;
+    color:#323232;
+    font-family: 'MYRIADPRO-LIGHTSEMIEXT';
+    padding:5px;
+}
+
+.btncontent{
+    clear:both;
+    margin: 10px;
+    margin-left: 60px;
+}
+
+.toggle-tips {
+    margin-top:20px;
+}
+
+.content-title-offset{
+    float: left;
+    height: 20px;
+    width: 58px;
+}
+
+#goto-register {
+    display: none;
+}
