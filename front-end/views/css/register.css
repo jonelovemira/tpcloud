@@ -1,6 +1,12 @@
 #register-account{
     width:250px;
 }
+
+.account-ctrl {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
 .account-ctrl:hover {
   text-decoration: underline;
   color: blue;
@@ -75,4 +81,8 @@
     float: left;
     height: 20px;
     width: 58px;
+}
+
+#goto-register {
+    display: none;
 }
