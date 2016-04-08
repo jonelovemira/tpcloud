@@ -51,6 +51,14 @@ var tips = {
         },
         "refreshCamera": {
             "failed": "Failed to refresh the camera info. Please try again later."
+        },
+        "register": {
+            "failed": "Operation failed. Please try again later.",
+            "success": "Register successfully."
+        },
+        "activate": {
+            "failed": "Operation failed. Please try again later.",
+            "success": "Activate successfully."
         }
     },
     "types": {
@@ -105,7 +113,7 @@ var tips = {
             "outOfLimit": "Password should contain 6 to 32 characters.",
             "wrongForChange": "Current password is incorrect."
         },
-        "newPassword": {
+        "confirmPassword": {
             "notSame": "Passwords don’t match."
         },
         "deviceName": {
@@ -117,6 +125,12 @@ var tips = {
             "required": "Firmware update required.",
             "downloading": "Downloading firmware...",
             "upgrading": "Updating firmware..."
+        },
+        "register": {
+            "emailAlreadyRegistered": "Email address has been registered already."
+        },
+        "activate": {
+            "alreadyActivated": "Account has been activated already."
         }
     }
 };
