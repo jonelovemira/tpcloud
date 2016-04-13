@@ -39,8 +39,10 @@
 
 #### 代码片段
 * Model  
- Model类，在该基类中封装了两个方法，一个是异步获取数据更新自身状态的方法，一个是封装的validate成员属性类。
+ Model类，在该基类中封装了两个方法，一个是异步获取数据更新自身状态的方法，一个是封装的validate成员属性类。 
+
  * makeAjaxRequest方法
+
  ```javascript
  Model.prototype.makeAjaxRequest = function(inputArgs, xDomain) {
 
@@ -84,7 +86,7 @@
 
         return $.xAjax(ajaxOptions, xDomain);
     };
- ```
+ ```  
  * validate方法
  ```javascript
  Model.prototype.validateAttr = function(inputArgs) {
@@ -113,9 +115,12 @@
         return e;
     };
  ```
+
 * Controller  
  Controller类：内部封装两个方法，一个是addHandler接口，用于绑定DOM事件，通常外部不需要调用。
+
  * addHandler方法 (注意：这个方法仅在类内部使用)
+
  ```javascript
  BaseController.prototype.addHandler = function(inputArgs) {
         var currentController = this;
@@ -133,7 +138,9 @@
         });
     };
  ```
+
  * batchInitHandler。供外部使用的绑定事件的接口。
+ 
  ```javascript
  BaseController.prototype.batchInitHandler = function(appendedSelectorHandlerMap, 
     selectorMsgProduceFuncMap) {
@@ -155,7 +162,9 @@
         };
     };
  ```  
+
  使用用例如下：
+
  ```javascript
  SoftwareController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
@@ -178,5 +187,6 @@
         this.batchInitHandler(appendedSelectorHandlerMap, selectorMsgProduceFuncMap);
     };
  ```  
+ 
  这样页面就监听了$(“#ipc-arrow-left”)元素上的click事件，并使用turnMenuLeft进行响应。
  
