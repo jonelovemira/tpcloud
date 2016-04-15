@@ -41,9 +41,16 @@ fis.media('build')
     .match('*.min.{js,css}', {
         optimizer: false
     })
+    .match('require.js', {
+        optimizer: false
+    })
     .match('jwplayer.js', {
         useHash: false
     });
+
+fis.hook('amd', {
+    baseUrl: './'
+})
 
 
 fis.media('alpha')
