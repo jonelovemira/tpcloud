@@ -1,9 +1,5 @@
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
-    $.ipc.compareVersion = function versionCompare(v1, v2, options) {
+define(["jquery"], function ($) {
+    return function (v1, v2, options) {
         var defaultOptions = {
             lexicographical: false,
             zeroExtend: true
@@ -52,4 +48,4 @@
 
         return 0;
     };
-})(jQuery);
+});

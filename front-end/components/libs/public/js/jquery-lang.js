@@ -27,51 +27,69 @@
  Changelog: See readme.md
  */
 var Lang = (function () {
-	var Lang = function (defaultLang, currentLang, allowCookieOverride) {
-		var self = this,
-			cookieLang;
-		
+	"use strict";
+
+	var Lang = function () {
 		// Enable firing events
 		this._fireEvents = true;
-		
+
 		// Allow storage of dynamic language pack data
 		this._dynamic = {};
-		
+	};
+
+	/**
+	 * Initialise the library with the library options.
+	 * @param {Object} options The options to init the library with.
+	 * See the readme.md for the details of the options available.
+	 */
+	Lang.prototype.init = function (options) {
+		var self = this,
+			cookieLang,
+			defaultLang,
+			currentLang,
+			allowCookieOverride;
+
+		options = options || {};
+		options.cookie = options.cookie || {};
+
+		defaultLang = options.defaultLang;
+		currentLang = options.currentLang;
+		allowCookieOverride = options.allowCookieOverride;
+
+		// Set cookie settings
+		this.cookieName = options.cookie.name || 'langCookie';
+		this.cookieExpiry = options.cookie.expiry || 365;
+		this.cookiePath = options.cookie.path || '/';
+
 		// Store existing mutation methods so we can auto-run
 		// translations when new data is added to the page
 		this._mutationCopies = {
 			append: $.fn.append,
 			appendTo: $.fn.appendTo,
 			prepend: $.fn.prepend,
-			prependTo: $.fn.prependTo,
 			before: $.fn.before,
 			after: $.fn.after,
-			html: $.fn.html,
-			insertBefore: $.fn.insertBefore,
-			text : $.fn.text,
+			html: $.fn.html
 		};
-		
+
 		// Now override the existing mutation methods with our own
 		$.fn.append = function () { return self._mutation(this, 'append', arguments) };
 		$.fn.appendTo = function () { return self._mutation(this, 'appendTo', arguments) };
 		$.fn.prepend = function () { return self._mutation(this, 'prepend', arguments) };
-		$.fn.prependTo = function () { return self._mutation(this, 'prependTo', arguments) };
 		$.fn.before = function () { return self._mutation(this, 'before', arguments) };
 		$.fn.after = function () { return self._mutation(this, 'after', arguments) };
 		$.fn.html = function () { return self._mutation(this, 'html', arguments) };
-		$.fn.insertBefore = function () { return self._mutation(this, 'insertBefore', arguments) };
-		$.fn.text = function () { return self._mutation(this, 'text', arguments) };
-		
+
 		// Set default and current language to the default one
 		// to start with
 		this.defaultLang = defaultLang || 'en';
 		this.currentLang = defaultLang || 'en';
-		
+
 		// Check for cookie support when no current language is specified
-		if ((allowCookieOverride || !currentLang) && $.cookie) {
+		if ((allowCookieOverride || !currentLang) && typeof Cookies !== 'undefined') {
 			// Check for an existing language cookie
-			cookieLang = $.cookie('langCookie');
-			
+			cookieLang = Cookies.get(this.cookieName);
+
 			if (cookieLang) {
 				// We have a cookie language, set the current language
 				currentLang = cookieLang;
@@ -81,7 +99,7 @@ var Lang = (function () {
 		$(function () {
 			// Setup data on the language items
 			self._start();
-	
+
 			// Check if the current language is not the same as our default
 			if (currentLang && currentLang !== self.defaultLang) {
 				// Switch to the current language
@@ -160,11 +178,11 @@ var Lang = (function () {
 				},
 				error: function () {
 					if (callback) { callback(true, lang, self._dynamic[lang]); }
-					console.error('Error loading language pack' + self._dynamic[lang]);
+					throw('Error loading language pack' + self._dynamic[lang]);
 				}
 			});
 		} else {
-			console.error('Cannot load language pack, no file path specified!');
+			throw('Cannot load language pack, no file path specified!');
 		}
 	};
 
@@ -275,6 +293,12 @@ var Lang = (function () {
 			nodeObjArray.push(nodeObj);
 		});
 		
+		// If element has only one text node and data-lang-token is defined
+		// set langContentKey property to use as a token
+		if(nodes.length == 1){
+			nodeObjArray[0].langToken = elem.data('langToken');
+		}
+		
 		return nodeObjArray;
 	};
 
@@ -296,7 +320,8 @@ var Lang = (function () {
 			textNode = nodes[index];
 			
 			if (langNotDefault) {
-				defaultText = $.trim(textNode.langDefaultText);
+				// If langToken is set, use it as a token
+				defaultText = textNode.langToken || $.trim(textNode.langDefaultText);
 				
 				if (defaultText) {
 					// Translate the langDefaultText
@@ -309,7 +334,11 @@ var Lang = (function () {
 						} catch (e) {
 							
 						}
-					} 
+					} else {
+						if (console && console.log) {
+							console.log('Translation for "' + defaultText + '" not found!');
+						}
+					}
 				}
 			} else {
 				// Replace with original text
@@ -448,7 +477,7 @@ var Lang = (function () {
 				} else if (!this.pack[lang] && !this._dynamic[lang]) {
 					// Pack not loaded and no dynamic entry
 					if (callback) { callback('Language pack not defined for: ' + lang, lang, selector); }
-					console.error('Could not change language to ' + lang + ' because no language pack for this language exists!');
+					throw('Could not change language to ' + lang + ' because no language pack for this language exists!');
 				}
 			}
 			
@@ -480,18 +509,18 @@ var Lang = (function () {
 			}
 			
 			// Check for cookie support
-			if ($.cookie) {
+			if (typeof Cookies !== "undefined") {
 				// Set a cookie to remember this language setting with 1 year expiry
-				$.cookie('langCookie', lang, {
-					expires: 365,
-					path: '/'
+				Cookies.set(self.cookieName, lang, {
+					expires: self.cookieExpiry,
+					path: self.cookiePath
 				});
 			}
 			
 			if (callback) { callback(false, lang, selector); }
 		} else {
 			if (callback) { callback('No language pack defined for: ' + lang, lang, selector); }
-			console.error('Attempt to change language to "' + lang + '" but no language pack for that language is loaded!');
+			throw('Attempt to change language to "' + lang + '" but no language pack for that language is loaded!');
 		}
 	};
 	
@@ -527,6 +556,12 @@ var Lang = (function () {
 				if (!translation) {
 					// No token translation was found, test for regex match
 					translation = this._regexMatch(text, lang);
+				}
+				
+				if (!translation) {
+					if (console && console.log) {
+						console.log('Translation for "' + text + '" not found in language pack: ' + lang);
+					}
 				}
 	
 				return translation || text;

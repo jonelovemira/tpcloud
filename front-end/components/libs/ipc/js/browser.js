@@ -1,9 +1,4 @@
-(function($) {
-
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
+define(function () {
     function findBrowserOS() {
         if (navigator.appVersion.indexOf("Win") != -1) return "Windows";
         if (navigator.appVersion.indexOf("Mac") != -1) return "MacOS";
@@ -26,7 +21,7 @@
         if (/trident/i.test(M[1])) {
             tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
             return 'MSIE ' + (tem[1] || '');
-        }
+        };
         if (M[1] === 'Chrome') {
             tem = ua.match(/\bOPR\/(\d+)/);
             if (tem != null) return 'Opera ' + tem[1];
@@ -40,12 +35,13 @@
 
     var browserTypeVersion = findBrowserTypeVersion();
 
-    function Browser() {};
-    Browser.prototype.os = findBrowserOS();
-    Browser.prototype.platform = navigator.platform;
-    Browser.prototype.type = browserTypeVersion.split(' ')[0];
-    Browser.prototype.version = browserTypeVersion.split(' ')[1];
+    var browser = {
+        os: findBrowserOS(),
+        platform: navigator.platform,
+        type: browserTypeVersion.split(' ')[0],
+        version: browserTypeVersion.split(' ')[1],
+        userAgent: navigator.userAgent
+    };
 
-    $.ipc.Browser = Browser;
-
-})(jQuery);
+    return browser;
+});

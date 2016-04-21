@@ -1,7 +1,27 @@
-(function($) {
-    "use strict";
+define(["browser", "jquery"], function (browser, $) {
+    var normalAjaxDefaults = {
+        type: "post",
+        data: {},
+        dataType: "json",
+        cache: false,
+        contentType: "application/json;charset=utf-8",
+        headers: {
+            Accept: "application/json, */*; version=1.0; charset=utf-8;"
+        },
+        timeout: 60000,
+        async: true,
+        global: false
+    };
 
-    $.ipc = $.ipc || {};
+    var ieXDomainAjaxDefaults = {
+        timeout: 60000,
+        type: "post",
+        data: {}
+    };
+
+    var defaults = {
+        xType: "xDomain"
+    };
 
     function ieXDomainAjax(options) {
         if (window.XDomainRequest == undefined) {
@@ -14,7 +34,7 @@
             return;
         };
 
-        var newOptions = $.extend(true, {}, $.xAjax.ieXDomainAjaxDefaults, options);
+        var newOptions = $.extend(true, {}, ieXDomainAjaxDefaults, options);
 
         if (newOptions.url == undefined) {
             console.error("no url in ieXDomainAjax");
@@ -48,7 +68,7 @@
     };
 
     function normalAjax(options) {
-        var newOptions = $.extend(true, {}, $.xAjax.normalAjaxDefaults, options);
+        var newOptions = $.extend(true, {}, normalAjaxDefaults, options);
 
         if (newOptions.url == undefined) {
             console.error("options.url in undefined in normalAjax");
@@ -80,38 +100,13 @@
         "MSIE 10": ieXDomainAjax
     };
 
-    $.xAjax = function(options, xDomain) {
+    var xDomainStr = defaults.xType;
+    var xDomainAjaxMap = {};
+    xDomainAjaxMap[xDomainStr] = browserAjaxMap[browser.type + ' ' + browser.version] || normalAjax;
+
+    return function (options, xDomain) {
         var ajaxFunction = xDomainAjaxMap[xDomain] || normalAjax;
         var ajaxObj = ajaxFunction(options);
         return ajaxObj;
-    };
-
-    $.xAjax.normalAjaxDefaults = {
-        type: "post",
-        data: {},
-        dataType: "json",
-        cache: false,
-        contentType: "application/json;charset=utf-8",
-        headers: {
-            Accept: "application/json, */*; version=1.0; charset=utf-8;"
-        },
-        timeout: 60000,
-        async: true,
-        global: false
-    };
-
-    $.xAjax.ieXDomainAjaxDefaults = {
-        timeout: 60000,
-        type: "post",
-        data: {}
-    };
-
-    $.xAjax.defaults = {
-        xType: "xDomain"
-    };
-
-    var xDomainStr = $.xAjax.defaults.xType;
-    var xDomainAjaxMap = {};
-    xDomainAjaxMap[xDomainStr] = browserAjaxMap[$.ipc.Browser.prototype.type + ' ' + $.ipc.Browser.prototype.version] || normalAjax;
-
-})(jQuery);
+    }
+});

@@ -1,4 +1,4 @@
-(function ($){
+define(["jquery"], function ($){
     /*****************************************************************************
                             base64.js       
     *****************************************************************************/
@@ -1037,13 +1037,11 @@
     RSAKey.prototype.encrypt = RSAEncrypt;
     //RSAKey.prototype.encrypt_b64 = RSAEncryptB64;
 
-    $.ipc = $.ipc || {};
+    var secret = {
+      rsaEncrypt: rsa_encrypt,
+      base64encode: base64encode,
+      base64decode: base64decode
+    }
     
-    function Secret(){};
-    Secret.rsaEncrypt = rsa_encrypt;
-    Secret.base64encode = base64encode;
-    Secret.base64decode = base64decode;
-
-    $.ipc.Secret = Secret;
-
-})(jQuery);
+    return secret;
+});

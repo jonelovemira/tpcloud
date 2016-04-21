@@ -1,12 +1,7 @@
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
+define(["Model", "inheritPrototype", "Cookies", "User", "Device", "jquery"], 
+    function (Model, inheritPrototype, Cookies, User, Device, $) {
     function DeviceList() {
-
-        $.ipc.Model.call(this, arguments);
-
+        Model.call(this, arguments);
         this.owner = null;
         this.url == null;
         this.upgradeList = [];
@@ -15,7 +10,7 @@
         this.playedDeviceChanged = false;
     };
 
-    $.ipc.inheritPrototype(DeviceList, $.ipc.Model);
+    inheritPrototype(DeviceList, Model);
 
     var deviceListErrorCodeInfo = {
         100: function() {
@@ -38,28 +33,25 @@
     DeviceList.prototype.errorCodeCallbacks = DeviceList.prototype.extendErrorCodeCallback({
         "errorCodeCallbackMap": deviceListErrorCodeInfo
     });
-
     DeviceList.prototype.clearNc200UpgradeCookie = function(response) {
         if (response && response.msg) {
             for (var i = 0; i < response.msg.length; i++) {
                 if (undefined == response.msg[i].needForceUpgrade || 0 == response.msg[i].needForceUpgrade) {
-                    $.removeCookie(response.msg[i].id);
+                    Cookies.remove(response.msg[i].id);
                 }
             };
         };
     };
-
     DeviceList.prototype.updateFromNc200UpgradeCookie = function(response) {
         if (response) {
             for (var i = 0; i < response.msg.length; i++) {
-                if ($.cookie(response.msg[i].id)) {
-                    response.msg[i].system_status = $.cookie(response.msg[i].id);
+                if (Cookies.get(response.msg[i].id)) {
+                    response.msg[i].system_status = Cookies.get(response.msg[i].id);
                 };
             };
         };
         return response;
     };
-
     DeviceList.prototype.getDeviceList = function(inputCallbacks, extendArgs) {
         if (undefined == this.owner) {
             console.error("owner of device list is undefined")
@@ -75,7 +67,7 @@
             response = this.updateFromNc200UpgradeCookie(response);
 
             for (var i = 0; i < response.msg.length; i++) {
-                var newDevice = new $.ipc.Device();
+                var newDevice = new Device();
                 newDevice.init(response.msg[i]);
                 newDevice.owner = this.owner;
                 this.devices.push(newDevice);
@@ -87,7 +79,7 @@
                     $.extend(true, oldDevices[i], response.msg[tmpIndex]);
                     this.devices[tmpIndex] = oldDevices[i];
                 } else {
-                    oldDevices[i].clearRubbish();
+                    oldDevices[i].clearRubbish && oldDevices[i].clearRubbish();
                 }
             };
 
@@ -106,8 +98,7 @@
             if (activeDeviceArr.length <= 0 && this.devices.length > 0) {
                 this.changeActiveDevice(undefined, this.devices[0]);
             };
-        };
-
+        }
         var extendAjaxOptions = {
             headers: {
                 "X-AutoRefresh": "false"
@@ -128,7 +119,6 @@
         });
         return result;
     };
-
     DeviceList.prototype.findActiveDeviceArr = function() {
         var result = [];
         for (var i = 0; i < this.devices.length; i++) {
@@ -138,7 +128,6 @@
         };
         return result;
     };
-
     DeviceList.prototype.findFirstActiveDevIndex = function() {
         var index = null;
         for (var i = 0; i < this.devices.length; i++) {
@@ -149,7 +138,6 @@
         };
         return index;
     };
-
     DeviceList.prototype.changeActiveDevice = function(srcDevice, destDevice) {
         if (undefined == destDevice) {
             console.error("args error in setActiveDevice");
@@ -159,8 +147,7 @@
         };
         destDevice.isActive = true;
         this.playedDeviceChanged = true;
-    };
-
+    }
     DeviceList.prototype.findIdForIndex = function(devIndex) {
         if (undefined == devIndex) {
             return undefined;
@@ -170,7 +157,6 @@
         };
         return this.devices[devIndex].id;
     };
-
     DeviceList.prototype.findIndexForId = function(devId) {
         for (var i = 0; i < this.devices.length; i++) {
             if (this.devices[i].id == devId) {
@@ -179,7 +165,6 @@
         };
         return undefined;
     };
-
     DeviceList.prototype.getUpgradeList = function(inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.email || undefined == this.owner.token) {
             console.error("args error in getUpgradeList");
@@ -212,7 +197,6 @@
         });
         return result;
     };
-
     DeviceList.prototype.upgradeAll = function(inputCallbacks) {
         if (undefined == this.owner || undefined == this.owner.email || undefined == this.owner.token || undefined == this.upgradeList) {
             console.error("args error in upgradeAll");
@@ -242,6 +226,5 @@
         return result;
     };
 
-    $.ipc.DeviceList = DeviceList;
-
-})(jQuery);
+    return DeviceList;
+});

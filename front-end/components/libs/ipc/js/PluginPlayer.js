@@ -1,16 +1,7 @@
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
-    var devicePlayingState = {
-        IDLE: 0,
-        BEGIN_PLAY: 1,
-        DEVICE_LOCAL_INFO_READY: 2
-    };
-
+define(["devicePlayingState", "Player", "jquery", "inheritPrototype", "browser", "PluginPlayerStatistics"], 
+    function (devicePlayingState, Player, $, inheritPrototype, browser, PluginPlayerStatistics) {
     function PluginPlayer() {
-        $.ipc.MyPlayer.call(this, arguments);
+        Player.call(this, arguments);
         this.volume = 0;
 
         this.recordCallback = null;
@@ -27,7 +18,7 @@
         this.videoReadyCallback = $.Callbacks("unique stopOnFalse");
     };
 
-    $.ipc.inheritPrototype(PluginPlayer, $.ipc.MyPlayer);
+    inheritPrototype(PluginPlayer, Player);
 
     PluginPlayer.prototype.triggerPlay = function() {
         if (this.playerObj) {
@@ -64,7 +55,7 @@
 
     PluginPlayer.prototype.back2Idle = function() {
         this.state = devicePlayingState.IDLE;
-        if (this.playerObj && $.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
+        if (this.playerObj && browser.type.indexOf("MSIE") >= 0) {
             this.playerObj.StopVideo();
             this.playerObj.StopAudio();
         };
@@ -224,7 +215,7 @@
         _self.playerObj.cldmac = _self.device.mac;
         _self.playerObj.cldtime = 30;
         _self.playerObj.clddevid = _self.device.id;
-        if ($.ipc.Browser.prototype.type.indexOf("MSIE") >= 0) {
+        if (browser.type.indexOf("MSIE") >= 0) {
             _self.playerObj.recordcbinvoke(_self.recordCallback);
             _self.playerObj.overtimecallback(_self.timeupCallback);
             _self.playerObj.SetCloudDevID(_self.device.id);
@@ -234,7 +225,7 @@
     };
 
     PluginPlayer.prototype.gatherStatics = function() {
-        var statistics = new $.ipc.PluginStatistics();
+        var statistics = new PluginPlayerStatistics();
         statistics.devID = this.device.id;
         statistics.devModel = this.device.model.substring(0, 5);
         statistics.firmwareVersion = this.device.fwVer;
@@ -249,83 +240,5 @@
         return args.appServerUrl + "/?token=" + args.token;
     };
 
-
-    function MjpegPluginPlayer() {
-        PluginPlayer.call(this, arguments);
-    };
-    $.ipc.inheritPrototype(MjpegPluginPlayer, PluginPlayer);
-
-
-    MjpegPluginPlayer.prototype.feedMyArgs = function() {};
-
-    MjpegPluginPlayer.prototype.setResolution = function(val) {
-        var _self = this;
-        var width = null;
-        var height = null;
-        if (_self.device.currentVideoResolution.pluginPlayerObjCss) {
-            width = _self.device.currentVideoResolution.pluginPlayerObjCss.css.width;
-            height = _self.device.currentVideoResolution.pluginPlayerObjCss.css.height;
-        } else {
-            width = _self.device.currentVideoResolution.playerContainerCss.player.width;
-            height = _self.device.currentVideoResolution.playerContainerCss.player.height;
-        };
-        var data = JSON.stringify({
-            "method": "passthrough",
-            "params": {
-                "requestData": {
-                    "command": "SET_RESOLUTION",
-                    "content": {
-                        "width": width,
-                        "height": height
-                    }
-                },
-                "deviceId": _self.device.id
-            }
-        });
-
-        var changeStateFunc = function(response) {
-            this.playerObj.PlayVideo();
-            this.playerObj.PlayAudio();
-        };
-        var callbacks = {
-            "errorCodeCallbackMap": {
-                "-1": $.proxy(changeStateFunc, _self)
-            },
-            "errorCallback": $.proxy(changeStateFunc, _self)
-        };
-
-        var args = {
-            url: _self.generateAjaxUrl({
-                appServerUrl: _self.device.appServerUrl,
-                token: _self.device.owner.token,
-            }),
-            data: data,
-            callbacks: callbacks,
-            changeState: changeStateFunc
-        };
-        _self.makeAjaxRequest(args, $.xAjax.defaults.xType);
-    };
-
-
-    function H264PluginPlayer() {
-        PluginPlayer.call(this, arguments);
-    };
-    $.ipc.inheritPrototype(H264PluginPlayer, PluginPlayer);
-
-    H264PluginPlayer.prototype.feedMyArgs = function() {
-        var _self = this;
-        _self.playerObj.streamtype = _self.device.product.videoCodec.pluginStreamTypeCode;
-        _self.playerObj.streamresolution = _self.device.currentVideoResolution.pluginStreamResCode;
-        _self.playerObj.audiostreamtype = _self.device.product.audioCodec.pluginAudioTypeCode;
-    };
-
-    H264PluginPlayer.prototype.setResolution = function(val) {
-        var code = this.device.currentVideoResolution.pluginStreamResCode;
-        this.playerObj.ChangeStreamResolution(code);
-    };
-
-
-    $.ipc.PluginPlayer = PluginPlayer;
-    $.ipc.H264PluginPlayer = H264PluginPlayer;
-    $.ipc.MjpegPluginPlayer = MjpegPluginPlayer;
-})(jQuery);
+    return PluginPlayer;
+})

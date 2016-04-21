@@ -1,10 +1,8 @@
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
+define(["Model", "inheritPrototype", "tips", "jquery"], 
+    function (Model, inheritPrototype, tips, $) {
 
     function Feedback() {
-        $.ipc.Model.call(this, arguments);
+        Model.call(this, arguments);
         this.account = null;
         this.productName = null;
         this.country = null;
@@ -12,7 +10,7 @@
         this.description = null;
     };
 
-    $.ipc.inheritPrototype(Feedback, $.ipc.Model);
+    inheritPrototype(Feedback, Model);
 
     var feedbackErrorCodeInfo = {
         1000: function() {
@@ -24,12 +22,11 @@
         1011: function() {
             console.log("username cannot be empty")
         },
-    };
+    }; 
 
     Feedback.prototype.errorCodeCallbacks = Feedback.prototype.extendErrorCodeCallback({
         "errorCodeCallbackMap": feedbackErrorCodeInfo
     });
-
     Feedback.prototype.send = function(args, inputCallbacks) {
         var result = {};
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
@@ -76,7 +73,6 @@
         });
         return result;
     };
-
     Feedback.prototype.validateAccount = function(tmpAccount) {
         if (undefined == tmpAccount) {
             console.error("args error in validateAccount");
@@ -95,7 +91,6 @@
 
         return this.validateAttr(validateArgs);
     };
-
     Feedback.prototype.validateDescription = function(tmpDescription) {
         if (undefined == tmpDescription) {
             console.error("args error in validateDescription");
@@ -113,7 +108,6 @@
 
         return this.validateAttr(validateArgs);
     };
-
     Feedback.prototype.validateProductName = function(productName) {
         if (undefined == productName) {
             console.error("args error in validateProductName");
@@ -132,5 +126,5 @@
         return this.validateAttr(validateArgs);
     };
 
-    $.ipc.Feedback = Feedback;
-})(jQuery);
+    return Feedback;
+});

@@ -1,7 +1,4 @@
-(function($) {
-    "use strict";
-    $.ipc = $.ipc || {};
-
+define(["jquery", "stopReasonCodeMap"], function ($, stopReasonCodeMap) {
     function Timer() {
         this.timeout = null;
         this.updateIntervalObj = null;
@@ -23,10 +20,10 @@
             _self.currentTime += _self.intervalTime;
             if (_self.currentTime >= _self.timeout) {
                 clearInterval(_self.updateIntervalObj);
-                _self.timeoutCallback.fire($.ipc.stopReasonCodeMap.VIDEO_TIME_UP);
+                _self.timeoutCallback.fire(stopReasonCodeMap.VIDEO_TIME_UP);
             };
         }, _self.intervalTime);
     };
 
-    $.ipc.Timer = Timer;
-})(jQuery);
+    return Timer;
+})

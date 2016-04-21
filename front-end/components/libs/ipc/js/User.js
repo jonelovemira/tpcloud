@@ -1,10 +1,7 @@
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
+define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error"], 
+    function (Model, inheritPrototype, Cookies, $, tips, Error) {
     function User() {
-        $.ipc.Model.call(this, arguments);
+        Model.call(this, arguments);
         this.username = null;
         this.token = null;
         this.email = null;
@@ -14,7 +11,7 @@
         this.rememberMe = null;
     };
 
-    $.ipc.inheritPrototype(User, $.ipc.Model);
+    inheritPrototype(User, Model);
 
     var userErrorCodeInfo = {
         100: function() {
@@ -79,14 +76,14 @@
     User.prototype.readCookieDataCallbacks = $.Callbacks("unique stopOnFalse");
 
     User.prototype.readDataFromCookie = function(callbacks) {
-        $.cookie("rmbUser") && (this.rememberMe = true);
-        $.cookie("token") && (this.token = $.cookie("token"));
-        $.cookie("email") && (this.email = $.cookie("email"));
+        Cookies.get("rmbUser") && (this.rememberMe = true);
+        Cookies.get("token") && (this.token = Cookies.get("token"));
+        Cookies.get("email") && (this.email = Cookies.get("email"));
 
-        if ($.cookie("userName")) {
-            this.account = $.cookie("userName");
-        } else if ($.cookie("account")) {
-            this.account = $.cookie("account");
+        if (Cookies.get("userName")) {
+            this.account = Cookies.get("userName");
+        } else if (Cookies.get("account")) {
+            this.account = Cookies.get("account");
         }
 
         this.readCookieDataCallbacks.fire();
@@ -162,7 +159,7 @@
 
         var changeStateFunc = function(response) {
             this.token = null;
-            $.removeCookie("token");
+            Cookies.remove("token");
         }
 
         result["ajaxObj"] = this.makeAjaxRequest({
@@ -366,7 +363,7 @@
             return;
         };
         if (tmpNewPassword != tmpNewPasswordSecond) {
-            var err = new $.ipc.Error();
+            var err = new Error();
             err.code = false;
             err.msg = tips.types.newPassword.notSame;
             return err;
@@ -409,6 +406,5 @@
         this.rememberMe = rememberMe;
     };
 
-    $.ipc.User = User;
-
-})(jQuery);
+    return User;
+})

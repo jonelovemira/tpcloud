@@ -1,7 +1,4 @@
-(function($) {
-    "use strict";
-    $.ipc = $.ipc || {};
-
+define(function () {
     function PlayerContainerCss() {
         this.player = {};
         this.loadingImg = {};
@@ -78,39 +75,11 @@
         width: fullhdPlayerContainerCss.player.width
     };
 
-    $.ipc.vgaPlayerContainerCss = vgaPlayerContainerCss;
-    $.ipc.qvgaPlayerContainerCss = qvgaPlayerContainerCss;
-    $.ipc.hdPlayerContainerCss = hdPlayerContainerCss;
-    $.ipc.fullhdPlayerContainerCss = fullhdPlayerContainerCss;
+    var globalPlayerContainerCss = {};
+    globalPlayerContainerCss["vga"] = vgaPlayerContainerCss;
+    globalPlayerContainerCss["qvga"] = qvgaPlayerContainerCss;
+    globalPlayerContainerCss["hd"] = hdPlayerContainerCss;
+    globalPlayerContainerCss["fullhd"] = fullhdPlayerContainerCss;
 
-})(jQuery);
-
-(function($) {
-    "use strict";
-    $.ipc = $.ipc || {};
-
-    function PluginPlayerObjCss() {
-        this.css = null;
-    };
-
-    var qvgaPluginPlayerObjCss = new PluginPlayerObjCss();
-    qvgaPluginPlayerObjCss.css = {
-        width: 320,
-        height: 240,
-        left: 160,
-        top: 120,
-        position: "relative"
-    };
-
-    var vgaPluginPlayerObjCss = new PluginPlayerObjCss();
-    vgaPluginPlayerObjCss.css = {
-        width: 640,
-        height: 480,
-        left: 0,
-        top: 0,
-        position: "relative"
-    };
-
-    $.ipc.qvgaPluginPlayerObjCss = qvgaPluginPlayerObjCss;
-    $.ipc.vgaPluginPlayerObjCss = vgaPluginPlayerObjCss;
-})(jQuery);
+    return globalPlayerContainerCss;
+});

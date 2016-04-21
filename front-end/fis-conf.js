@@ -15,6 +15,9 @@ fis.media('build')
     .match('*', {
         release: '/${projectName}/${version}/$0'
     })
+    .match('/components/libs/ipc/js/*', {
+        isMod: true,
+    })
     .match(/views\/pages\/(.*).html/, {
         release: '/$1'
     })
@@ -46,45 +49,54 @@ fis.media('build')
     })
     .match('jwplayer.js', {
         useHash: false
-    });
+    })
+    .match('::package', {
+        postpackager: fis.plugin('loader', {
+            resourceType: 'amd',
+            useInlineMap: true
+        })
+    });;
 
 fis.hook('amd', {
-    baseUrl: './'
+    baseUrl: './components/libs/ipc/js',
+    paths: {
+        jquery: './components/libs/public/js/jquery-1.8.2.min'
+    }
 })
 
 
-fis.media('alpha')
-    .match('*.{js,css,png,ico}', {
-        domain: ALPHA_CDN_PATH
-    })
-    .match('*', {
-        release: '/$0'
-    })
-    .match('fis-conf.js', {
-        release: false
-    });
+// fis.media('alpha')
+//     .match('*.{js,css,png,ico}', {
+//         domain: ALPHA_CDN_PATH
+//     })
+//     .match('*', {
+//         release: '/$0'
+//     })
+//     .match('fis-conf.js', {
+//         release: false
+//     });
 
-fis.media('beta')
-    .match('*.{js,css,png,ico}', {
-        domain: BETA_CDN_PATH
-    })
-    .match('*', {
-        release: '/$0'
-    })
-    .match('fis-conf.js', {
-        release: false
-    });
+// fis.media('beta')
+//     .match('*.{js,css,png,ico}', {
+//         domain: BETA_CDN_PATH
+//     })
+//     .match('*', {
+//         release: '/$0'
+//     })
+//     .match('fis-conf.js', {
+//         release: false
+//     });
 
-fis.media('product')
-    .match('*.{js,css,png,ico}', {
-        domain: PRODUCT_CDN_PATH
-    })
-    .match('*', {
-        release: '/$0'
-    })
-    .match('fis-conf.js', {
-        release: false
-    });
+// fis.media('product')
+//     .match('*.{js,css,png,ico}', {
+//         domain: PRODUCT_CDN_PATH
+//     })
+//     .match('*', {
+//         release: '/$0'
+//     })
+//     .match('fis-conf.js', {
+//         release: false
+//     });
 
 /**
  * [getBaseFileId ]

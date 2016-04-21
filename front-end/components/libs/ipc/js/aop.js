@@ -1,4 +1,4 @@
-(function() {
+define(function () {
     Function.prototype.before = function(func) {
         var _self = this;
         return function() {
@@ -20,4 +20,5 @@
             return ret;
         }
     };
-})();
+    return {msg: "aop done"};
+});
