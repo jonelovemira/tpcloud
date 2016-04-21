@@ -2,7 +2,10 @@ define(["IpcProduct", "presetLinkieData"], function (IpcProduct, presetLinkieDat
     var globalIpcProduct = {};
     for (var key in presetLinkieData) {
         var tmpProduct = new IpcProduct();
-        tmpProduct.name = key.substring(0, 5).toUpperCase();
+        var name = key.substring(0, 5).toUpperCase();
+        tmpProduct.name = name;
+        tmpProduct.smallImgCssClass = name + "-small-img";
+        tmpProduct.middleImgCssClass = name + "-middle-img";
         globalIpcProduct[key] = tmpProduct;
     };
     return globalIpcProduct;

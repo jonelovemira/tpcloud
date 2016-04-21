@@ -6,6 +6,8 @@ define(function () {
         this.firmwareDownloadPath = null;
         this.firmwareNewestVersion = null;
         this.liveStreamConf = null;
+        this.smallImgCssClass = null;
+        this.middleImgCssClass = null;
     };
 
     return IpcProduct;

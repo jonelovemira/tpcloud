@@ -1,5 +1,5 @@
-define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error"], 
-    function (Model, inheritPrototype, Cookies, $, tips, Error) {
+define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error", "encrypt"], 
+    function (Model, inheritPrototype, Cookies, $, tips, Error, encrypt) {
     function User() {
         Model.call(this, arguments);
         this.username = null;
@@ -394,7 +394,7 @@ define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error"],
             console.error("error in encryptText");
             return;
         };
-
+        // return encrypt.rsa_encrypt(text);
         return text;
     };
 

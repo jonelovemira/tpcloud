@@ -1037,11 +1037,11 @@ define(["jquery"], function ($){
     RSAKey.prototype.encrypt = RSAEncrypt;
     //RSAKey.prototype.encrypt_b64 = RSAEncryptB64;
 
-    var secret = {
+    var encrypt = {
       rsaEncrypt: rsa_encrypt,
       base64encode: base64encode,
       base64decode: base64decode
     }
     
-    return secret;
+    return encrypt;
 });
