@@ -1,3 +1,4 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 # ipc-web重构 （四） 我的MVC
 
 前端的业务日益复杂，在面向对象编程的基础上需要一个良好的架构来管理和组织各个不同的模块，进行分工协作，完成复杂的任务。
