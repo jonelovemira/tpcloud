@@ -13,8 +13,8 @@ define(function () {
                 undefined == args.relayVideoTime) {
                 console.error("args error in generateRelaydCommand")
             };
-            var localResolutionStr = args.generateLocalParam(args);
-            var relayResolutionStr = args.generateRelayParam(args);
+            var localResolutionStr = this.generateLocalParam(args);
+            var relayResolutionStr = this.generateRelayParam(args);
             return "relayd -s 'http://127.0.0.1:" + this.port + "/" + this.url + "?" + localResolutionStr +
                 "' -d 'http://" + args.relayUrl + "/relayservice?deviceid=" +
                 args.deviceId + "&type=" + this.name + "&" + relayResolutionStr + "' -a 'X-token: " +

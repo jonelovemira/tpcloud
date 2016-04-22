@@ -1,9 +1,9 @@
 define(["DeviceWithLinkie","jquery", "globalIpcProduct", "IpcProduct", "LiveStreamConf", 
     "MixedPostChannel", "AudioPostChannel", "VideoPostChannel", "H264VideoCodec", "AACAudioCodec", "globalResolutions", "MJPEGVideoCodec",
-    "PCMAudioCodec", "browser", "globalPlayerTypes"], 
+    "PCMAudioCodec", "browser", "globalPlayerTypes", "inheritPrototype", "presetLinkieData"], 
     function (DeviceWithLinkie, $, globalIpcProduct, IpcProduct, LiveStreamConf,
         MixedPostChannel, AudioPostChannel, VideoPostChannel, H264VideoCodec, AACAudioCodec, globalResolutions, MJPEGVideoCodec,
-        PCMAudioCodec, browser, globalPlayerTypes) {
+        PCMAudioCodec, browser, globalPlayerTypes, inheritPrototype, presetLinkieData) {
 
     function PlayableDevice() {
         DeviceWithLinkie.call(this, arguments);
@@ -27,7 +27,7 @@ define(["DeviceWithLinkie","jquery", "globalIpcProduct", "IpcProduct", "LiveStre
         var p = this.model.substring(0, 5).toUpperCase();
         var tmpProduct = new IpcProduct();
         if (null == globalIpcProduct[p].liveStreamConf) {
-            globalIpcProduct[p].liveStreamConf = this.getLiveStreamConfFromLinkieData(presetLinkieData[p]);
+            globalIpcProduct[p].liveStreamConf = this.getLiveStreamConfFromLinkieData(presetLinkieData[p]["DEFAULT"]);
         }
         $.extend(true, tmpProduct, globalIpcProduct[p]);
         this.currentVideoResolution = tmpProduct.liveStreamConf.supportVideoResArr[0];

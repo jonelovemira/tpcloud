@@ -90,15 +90,15 @@ define(["devicePlayingState", "Player", "jquery", "inheritPrototype", "browser",
         _self.rubbishAjaxArr.push(getLocalInfoAjaxObj);
         _self.rubbishAjaxArr.push(getLinkieAjaxObj);
         var successFunc = function() {
-            var product;
+            var liveStreamConf;
             try {
                 var linkieData = _self.device.getLocalLinkieData();
-                product = _self.device.getProductFromLinkieData(linkieData);
+                liveStreamConf = _self.device.getLiveStreamConfFromLinkieData(linkieData);
             } catch (err) {
                 console.error(err);
             };
-            if (product) {
-                _self.device.updateProduct(product);
+            if (liveStreamConf) {
+                _self.device.updateProductLiveStreamConf(liveStreamConf);
             };
             _self.state = devicePlayingState.DEVICE_LOCAL_INFO_READY;
             _self.stateChangeCallback.fireWith(_self);
@@ -156,7 +156,7 @@ define(["devicePlayingState", "Player", "jquery", "inheritPrototype", "browser",
 
     PluginPlayer.prototype.updateDeviceResAtVideoReady = function(resolutionStr) {
         var device = this.device;
-        var supportVideoResArr = this.device.product.supportVideoResArr;
+        var supportVideoResArr = this.device.product.liveStreamConf.supportVideoResArr;
         for (var i = 0; i < supportVideoResArr.length; i++) {
             if (supportVideoResArr[i].name == resolutionStr) {
                 device.currentVideoResolution = supportVideoResArr[i];

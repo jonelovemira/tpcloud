@@ -1,5 +1,5 @@
-define(["User", "Model", "inheritPrototype", "jquery", "Cookies", "Error", "tips", "globalIpcProduct"], 
-    function (User, Model, inheritPrototype, $, Cookies, Error, tips, globalIpcProduct) {
+define(["User", "Model", "inheritPrototype", "jquery", "Cookies", "Error", "tips", "globalIpcProduct", 'IpcProduct'], 
+    function (User, Model, inheritPrototype, $, Cookies, Error, tips, globalIpcProduct, IpcProduct) {
     function Device() {
         Model.call(this, arguments);
         this.owner = null;

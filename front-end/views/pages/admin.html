@@ -1,0 +1,433 @@
+{% extends "../../common/base.html" %}
+
+{% block title %}
+<title lang="en">Admin</title>
+{% endblock %}
+
+{% block link %}
+<link rel="stylesheet" type="text/css" href="../../components/libs/public/css/jquery-ui.min.css">
+<link type="text/css" href="../css/admin.css" rel="stylesheet" />
+<link type="text/css" href="../css/product-img.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="../../components/widget/window/css/msg.css">
+<link rel="stylesheet" type="text/css" href="../../components/widget/form/css/scrollbar.css">
+<link rel="stylesheet" type="text/css" href="../../components/widget/form/css/select.css">
+<link rel="stylesheet" type="text/css" href="../../components/libs/player/jwplayer/skins/ipc-jwplayer-skin.css">
+{% endblock %}
+
+{% block body %}
+<div id="main-container">
+    <div class="nav-container">
+        <div class= "nav-container-inner">
+            <ul class="navstitle">
+                <li class="navstitle-cell">
+                    <span id="device" class="navstitle-title navselected"  title="Live View" >
+                        <a class="accountinnertext" lang="en">Device</a>
+                    </span>
+                </li>
+                <li class="navstitle-cell">
+                    <span id="account" class="navstitle-title" title="Account" >
+                        <a class="accountinnertext" lang="en">Account</a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="display-main-board">
+        <div class="main-content device-content">
+            <div id="sidebar" class="scrollable">
+                <div id="dev-page-ul">
+                    <span id="dev-left-arrow" class="ipcpag-cell"></span>
+                    <span id="dev-right-arrow" class="ipcpag-cell"></span>
+                </div>
+                <ul class="accordion items" id="accordion"></ul>
+            </div>
+            <div class="play-or-set">
+                <div class="admin-nav">
+                    <ul class="admin-nav-ul">
+                        <li id="live-view-tab" class="admin-nav-li admin-nav-li-select">
+                            <span class="admin-nav-li-font">Live View</span>
+                            <span class="admin-nav-li-split"></span>
+                        </li>
+                        <li id="setting-tab" class="admin-nav-li">
+                            <span class="admin-nav-li-font">Settings</span>
+                        </li>
+                    </ul>
+                </div>
+                <div id="watch">
+                    <div id="plugin-player-set" class="player">
+                        <div id ="plugin-player-container">
+                            <OBJECT classid="CLSID:81CBC1DD-8621-4F3E-B0C9-03480262EDFE" align="center" id="ie-mjpeg" class="ie-plugin-player-obj plugin-player-obj" style="display:none;">
+                                <PARAM NAME="Width" VALUE="">
+                                <PARAM NAME="Height" VALUE="">
+                                <PARAM NAME="AutoPlay" VALUE="0">
+                                <PARAM NAME="DisplayRate" VALUE="0">
+                                <PARAM NAME="iip" VALUE="">
+                                <PARAM NAME="iport" VALUE="">
+                                <PARAM NAME="Source" VALUE="">
+                                <FONT COLOR=red SIZE=5>Can"t find object</FONT>
+                            </OBJECT>
+                            <OBJECT classid="CLSID:71B417B2-B60E-4680-B6FC-8C342DFC4757" align="center" id="ie-h264" class="ie-plugin-player-obj plugin-player-obj" style="display:none;">
+                                <PARAM NAME="Width" VALUE="">
+                                <PARAM NAME="Height" VALUE="">
+                                <PARAM NAME="AutoPlay" VALUE="0">
+                                <PARAM NAME="DisplayRate" VALUE="0">
+                                <PARAM NAME="iip" VALUE="">
+                                <PARAM NAME="iport" VALUE="">
+                                <PARAM NAME="Source" VALUE="">
+                                <FONT COLOR=red SIZE=5>Can't find object</FONT>
+                            </OBJECT>
+                            <object  id="non-ie-mjpeg" type="application/x-tp-camera"  class="non-ie-plugin-player-obj plugin-player-obj" style="display:none;"></object>
+                            <object  id="non-ie-h264" type="application/x-tp-camera-h264" class="non-ie-plugin-player-obj plugin-player-obj" style="display:none;"></object>
+                        </div>
+                        <div id="loading-img-container">
+                            <img id="loading-img" src="../img/admin/loadings.gif"  alt="loading" />                        
+                            <span id="loading-tips-text">Loading</span>
+                        </div>
+                        <div class="control-board">
+                            <div id="disable-control-cover"></div>
+                            <div id="video-play-control">
+                                <ul>
+                                    <li class="play-control-button" title="Take a picture" id="take-picture"></li>
+                                    <li class="play-control-button" title="Record a video" id="video-record-start"></li>
+                                    <li class="play-control-button" title="Recording" id="video-record-stop"></li>
+                                </ul>
+                                <div id="video-volume-control">
+                                    <span >
+                                        <span class="play-volume-control plugin-video-icon volume-open" title="Mute"></span>
+                                        <span class="play-volume-control plugin-video-icon volume-mute" title="Mute"></span>
+                                    </span>
+                                </div>
+                                <div class="toolbar-volumeset">
+                                    <div id="volume-bar" class="tpcamera-bar watchmode-bar"></div>
+                                </div>
+                            </div>
+                            <div id="video-business-control">
+                                <div id="resolution-control" class="video-control-sonclass">
+                                    <label for="Resolution">Resolution:</label>
+                                    <select id="resolution-select" class="select">
+                                        <option value="1" name="VGA" selected="true">640*480</option>
+                                        <option name="QVGA" value="2">320*240</option>
+                                    </select>
+                                </div>
+                                <div id="video-zoom-control" class="video-control-sonclass">
+                                    <div id="zoom-in" class="zoom-icon-container">
+                                        <span class="plugin-video-icon zoom-in-img" title="Zoom"></span>
+                                    </div>
+                                    <div id="zoom-bar" class="tpcamera-bar watchmode-bar"></div>
+                                    <div id="zoom-out" class="zoom-icon-container zoom-icon-container-right">
+                                        <span class="plugin-video-icon zoom-out-img" title="Zoom"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="flash-player-container" class="player">
+                        <div id="flash-player"></div>
+                        <div id="flash-player-cover">
+                            <div class="network-tips" >
+                                <div><img src="../img/admin/network-error.png"></div>
+                                <div><p class="nonplugin-player-tips">No Internet connection available. Please check your network.</p></div>
+                            </div>
+                            <div class="loading-tips">
+                                <div class="loading-img-container"><img src="../img/admin/loading-bg.png">
+                                    <div class="spinner">
+                                        <div class="bounce1"></div>
+                                        <div class="bounce2"></div>
+                                        <div class="bounce3"></div>
+                                    </div>
+                                </div>
+                                <div><p class="nonplugin-player-tips">Loading...</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="img-tag-player-container" class="player">
+                        <div id="img-player-cover">
+                            <div class="network-tips" >
+                                <div><img src="../img/admin/network-error.png"></div>
+                                <div><p class="nonplugin-player-tips">No Internet connection available. Please check your network.</p></div>
+                            </div>
+                            <div class="loading-tips">
+                                <div class="loading-img-container"><img src="../img/admin/loading-bg.png">
+                                    <div class="spinner">
+                                        <div class="bounce1"></div>
+                                        <div class="bounce2"></div>
+                                        <div class="bounce3"></div>
+                                    </div>
+                                </div>
+                                <div><p class="nonplugin-player-tips">Loading...</p></div>
+                            </div>
+                        </div>
+                        <img id="img-player"> 
+                    </div>
+                    <div id="refreshtips">
+                        <p class="tips-title tips-body">
+                            Your <b class="dev-setting-name">Baby Cam</b>
+                            is offline!
+                        </p>
+                        <p class="blackstep tips-body">Please try the following:</p>
+                        <p class="tips-body">1. Make sure the System LED is solid green on you camera.</p>
+                        <p class="tips-body">2. Try rebooting your camera and router.</p>
+                        <p class="tips-body">3. Unplug your camera and then plug it back in.</p>
+                        <p class="tips-body">
+                            4. Make sure your camera uses the latest firmware version. To download the latest firmware,
+                            <a id="downloadpage" href="./download.html">click here</a>
+                            .
+                        </p>
+                        <p class="tips-body">
+                            5. Reset your camera, and register it again by using Setup Wizard. To download the Setup Wizard,
+                            <a id="downloadpage" href="./download.html">click here</a>
+                            .
+                        </p>
+                        <p class="tips-body"></p>
+                        <p class="blackstep tips-body">
+                            Please click <b>Refresh</b>
+                            to reconnect to your camera.
+                        </p>
+                        <input class="btn refresh-btn" id="refresh" type="button" value="Refresh" />
+                    </div>
+                    <div id="reloadtips">
+                        <p class="tips-title tips-body">Liveview Break</p>
+                        <p class="blackstep tips-body">
+                            The connection to your camera has been lost, please check your network and click the reload button to reconnect to your camera.
+                        </p>
+                        <p class="tips-body">Do you want to reload the viewing?</p>
+                        <input class="btn reload-btn" id="reload" type="button" value="Reload" />
+                    </div>
+                    <div id="continuetips">
+                        <p class="tips-title tips-body">Liveview Time Up</p>
+                        <p class="blackstep tips-body">You have viewed the live video for <span id="max-relay-video-time">10 minutes</span>.</p>
+                        <p class="tips-body">Do you want to continue the viewing?</p>
+                        <input class="btn continue-btn" id="continue" type="button" value="Continue" />
+                    </div>
+                    <div id="plugin-needed">
+                        <p class="tips-title">TP-LINK camera plugin is required.</p>
+                        <p >
+                            <span class="tips-body">
+                                Please click
+                                <a class="plugin-download-link">here</a>
+                                to download and install the camera plugin and then manually refresh the page or restart the browser.
+                            If the installed plugin doesn't work, set your browser security settings to allow plugins.
+                            </span>
+                        </p>
+                    </div>
+                    <div id="plugin-update-needed">
+                        <div class="plugin-update-needed-tip"> 
+                            <p class="title">
+                                TP-LINK camera plugin update is required.
+                            </p>
+                            <p class="body">
+                                <span>
+                                    Please click
+                                    <a class="plugin-download-link">here</a>
+                                    to download and update the camera plugin and then manually refresh the page or restart the browser.
+                                </span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/plugin-update.png" class="firmware-need-upgrade-img">
+                    </div>
+                </div>
+                <div id="setting">
+                    <div class="setting-content">
+                        <div class="setting-cell-title">
+                            <span class="setting-cell-title-img"></span>
+                            <span class="setting-cell-title-font">Camera Information</span>
+                        </div>
+                        <div class="setting-cell-body">
+                            <div class="setting-cell">
+                                <div class="setting-cell-dd padding-right-75">
+                                    <span class="setting-cell-td">Camera Name:</span>
+                                    <span class="setting-cell-td">
+                                        <input id="device-name" maxlength="31" class="infocus setting-cell-td-info" type="text"/>
+                                    </span>
+                                </div>
+                                <div class="setting-cell-dd">
+                                    <span class="setting-cell-td">Model:</span>
+                                    <span id="dev-setting-model" class="setting-cell-td setting-cell-td-info">NC200</span>
+                                </div>
+                            </div>
+                            <div class="setting-cell">
+                                <div class="setting-cell-dd padding-right-75">
+                                    <span class="setting-cell-td">IP Address:</span>
+                                    <span id="dev-setting-ip" class="setting-cell-td setting-cell-td-info">-</span>
+                                </div>
+                                <div class="setting-cell-dd">
+                                    <span class="setting-cell-td">MAC Address:</span>
+                                    <span id="dev-setting-mac" class="setting-cell-td setting-cell-td-info">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-cell-body">
+                            <div class="advance-setting">
+                                <div class="setting-cell-dd widthauto">
+                                    <span class="setting-cell-td height25">
+                                        Click the button below if you want to remove your <b class="dev-setting-name">Baby Cam</b>
+                                        from your cloud account.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="advance-setting">
+                                <div class="setting-cell-dd padding-right-75">
+                                    <span  class="setting-cell-td height25">
+                                        <input id="dev-setting-remove" type="button" class="dev-setting-btn btn" value="Remove Camera"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-content">
+                        <input id="dev-setting-save" type="button" class="dev-setting-btn btn" value="Save"/>
+                    </div>
+                </div>
+                <div id="common-tips">
+                    <div id="no-camera">
+                        <p class="tips-title">No camera exists in this account!</p>
+                        <p>
+                            <span class="tips-body">Please add a camera by using the tpCamera app.</span>
+                        </p>
+                    </div>
+                    <div id="firmware-need-upgrade" class="upgrade-state-tips">
+                        <div class="firmware-need-upgrade-tip"> 
+                            <p class="title">
+                                Firmware update is required to support better remote viewing service. If you use the tpCamera app, please update it too.
+                            </p>
+                            <p class="body">
+                                <span>
+                                    Please click
+                                    <span id="upgrade-device">here</span>
+                                    to download and update camera firmware.
+                                </span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/firmware-need-upgrade.png" class="firmware-need-upgrade-img">
+                        <img src="../img/admin/firmware-need-upgrade-arrow.png" class="firmware-need-upgrade-arrow">
+                    </div>
+                    <div id="upgrading" class="upgrade-state-tips">
+                        <div class="upgrading-tip">
+                            <p class="title">Updating firmware...</p>
+                            <p class="body">
+                                <span>
+                                    Do not power off your camera. Otherwise, your camera may be damaged.
+                                </span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrading.png" class="upgrading-img">
+                        <img src="../img/admin/upgrading-progressbar.gif" class="upgrading-progressbar-img">
+                    </div>
+                    <div id="upgrade-failed" class="upgrade-state-tips">
+                        <div class="upgrading-failed-tip">
+                            <p class="body">
+                                <span>Firmware update failed. Please try again later.</span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrade-failed.png" class="upgrade-failed-img">
+                        <input id="failed-back-button" type="button" class="btn account-btn" value="OK">                        
+                    </div>
+                    <div id="device-cross-region" class="upgrade-state-tips">
+                        <div class="cross-region-tip">
+                            <p class="body">
+                                <span>Loading...</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div id="downloading" class="upgrade-state-tips">
+                        <div class="downloading-tip">
+                            <p class="title">Downloading firmware...</p>
+                            <p class="body">
+                                <span class="tipslang">Do not disconnect the Internet.</span>
+                            </p>
+                        </div>
+                        <img src="../img/admin/upgrading.png" class="downloading-img">
+                        <img src="../img/admin/upgrading-progressbar.gif" class="downloading-progressbar-img">
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+        <div class="main-content account-content">
+            <div class="account-information">
+                <div class="content-title content-cell">
+                    <span class="content-title-img"></span>
+                    <span id="account-title" class="content-title-font" lang="en">Account Information</span>
+                </div>
+                <div class="userinfo content-cell">
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-email" class="userinfo-title userinfo-cell-span" lang="en">E-mail Address:</span>
+                        <span id="userinfo-email" class=" userinfo-title userinfo-cell-span"></span>
+                    </div>
+                    <div class="userinfo-cell">
+                        <span  class="userinfo-title userinfo-cell-span" lang="en">Password:</span>
+                        <a id="userinfo-title-changepwd" class="userinfo-title userinfo-cell-span" lang="en">Change Your Password</a>
+                    </div>
+                </div>
+            </div>
+            <div class="change-password-form">
+                <div class="content-title content-cell">
+                    <span class="content-title-img"></span>
+                    <span id="account-title" class="content-title-font" lang="en">Change Password</span>
+                </div>
+                <div class="userinfo content-cell">
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span" lang="en">Current Password:</span>
+                        <span class="userinfo-cell-span">
+                            <input id="oldpwd" maxlength="32" type="password" class="userinfo-input infocus" />
+                        </span>
+                    </div>
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span" lang="en">New Password:</span>
+                        <span class=" userinfo-cell-span">
+                            <input id="newpwd"  maxlength="32" type="password" class="userinfo-input infocus" />
+                        </span>
+                    </div>
+                    <div class="userinfo-cell">
+                        <span id="userinfo-title-username" class="userinfo-title userinfo-cell-span" lang="en">Confirm Password:</span>
+                        <span class="userinfo-cell-span">
+                            <input id="cfpwd"  maxlength="32" type="password" class="userinfo-input infocus" />
+                        </span>
+                    </div>
+                </div>
+                <div class="content-cell btncontent">
+                    <input id="changepwd" type="button" class="btn account-btn" value="OK">
+                    <input type="button" id="backaccount"class="btn account-btn" value="Cancel"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<li id="device-li-sample" class="dev-item">
+    <span class="device-img"></span>
+    <span class="usable-cover"></span>
+    <span class="dev-name">NC220 1.0</span>
+    <span class="system-status"></span>
+</li>
+<div id="unbind-msg-body-sample">
+    <div class="unbind-msg-body">
+        <div class="msg-cell">
+            <span class="title">Remove Camera</span>
+        </div>
+        <div class="msg-cell">
+            <span>This camera will be removed from your account.</span>
+        </div>
+        <div class="msg-cell camera-info">
+            <div>
+                <span class="arrow"></span>
+                Camera Name:
+                <span id="remove-dev-name">NC250 1.0</span>
+            </div>
+        </div>
+        <div class="msg-cell">
+            <span class="arrow"></span>
+            <span>Model No.:</span>
+            <span id="remove-dev-model">NC250(UN)</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+    require(['admin'], function() {});
+</script>
+{% endblock %}

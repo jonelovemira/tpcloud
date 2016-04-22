@@ -35,7 +35,7 @@ define(['DeviceListModel', 'BaseController', 'jquery', 'inheritPrototype', 'Devi
     };
 
     DeviceListController.prototype.gotoAdmin = function() {
-        var adminPage = __uri("../pages/admin.html");
+        var adminPage = __uri("../../pages/admin.html");
         window.location.href = adminPage;
     };
 

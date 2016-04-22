@@ -38,13 +38,13 @@ define(["Model", "inheritPrototype", "globalIpcProduct", "globalPlayerTypes"],
                         if (undefined == productNameObjMap[supportedModelsArr[j]]) {
                             console.error("unknown model: " + supportedModelsArr[j]);
                         } else {
-                            plugin.prototype.supportedModels.push(productNameObjMap[supportedModelsArr[j]]);
+                            plugin.supportedModels.push(productNameObjMap[supportedModelsArr[j]]);
                         }
                     };
-                    plugin.prototype.name = response.msg.software[i].name;
-                    plugin.prototype.downloadPath = response.msg.software[i].path;
-                    plugin.prototype.tags = response.msg.software[i].tags;
-                    plugin.prototype.newestVersion = response.msg.software[i].version;
+                    plugin.name = response.msg.software[i].name;
+                    plugin.downloadPath = response.msg.software[i].path;
+                    plugin.tags = response.msg.software[i].tags;
+                    plugin.newestVersion = response.msg.software[i].version;
                     this.plugins.push(plugin);
                 } else if (response.msg.software[i].name == "Firmware") {
                     globalIpcProduct[response.msg.software[i].model].firmwareDownloadPath = response.msg.software[i].path;

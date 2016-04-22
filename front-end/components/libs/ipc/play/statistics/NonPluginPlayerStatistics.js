@@ -1,11 +1,11 @@
 define(["Statistics", "inheritPrototype", "jquery"], 
     function (Statistics, inheritPrototype, $) {
-    function FlashPlayerStatistics() {
+    function NonPluginPlayerStatistics() {
         Statistics.call(this, arguments);
     };
-    inheritPrototype(FlashPlayerStatistics, Statistics);
+    inheritPrototype(NonPluginPlayerStatistics, Statistics);
 
-    FlashPlayerStatistics.prototype.send = function(ajaxOptions) {
+    NonPluginPlayerStatistics.prototype.send = function(ajaxOptions) {
         var result = {};
         var _self = this;
         var data = JSON.stringify({
@@ -44,5 +44,5 @@ define(["Statistics", "inheritPrototype", "jquery"],
         return result;
     };
 
-    return FlashPlayerStatistics;
+    return NonPluginPlayerStatistics;
 })

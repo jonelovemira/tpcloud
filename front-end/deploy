@@ -10,6 +10,7 @@ init(){
 	curl --silent --location https://rpm.nodesource.com/setup | bash -
 	sudo yum -y install nodejs
 	npm install -g fis3
+	npm install -g fis3-postpackager-loader
 }
 
 stop(){

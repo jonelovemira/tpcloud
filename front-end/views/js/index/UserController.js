@@ -61,9 +61,9 @@ define(['BaseController', 'jquery', 'inheritPrototype', 'tips', 'UserModel', 'Us
                     // document.cookie = "email=" + result.email + "; domain=.tplinkcloud.com";
                     // document.cookie = "token=" + result.token + "; domain=.tplinkcloud.com";
                     // document.cookie = "account=" + account + "; domain=.tplinkcloud.com";
-                    $.cookie("email", result.email);
-                    $.cookie("token", result.token);
-                    $.cookie("account", account);
+                    Cookies.set("email", result.email);
+                    Cookies.set("token", result.token);
+                    Cookies.set("account", account);
 
                     currentController.model.successLoginCallbacks.fire();
                 },
@@ -146,7 +146,7 @@ define(['BaseController', 'jquery', 'inheritPrototype', 'tips', 'UserModel', 'Us
     };
 
     UserController.prototype.locationToDownload = function() {
-        var dst = __uri("../pages/download.html");
+        var dst = __uri("../../pages/download.html");
         this.locateTo(dst);
     };
 

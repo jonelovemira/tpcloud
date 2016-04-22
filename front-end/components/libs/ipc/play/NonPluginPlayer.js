@@ -1,5 +1,5 @@
-define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics", "devicePlayingState"], 
-    function (Player, inheritPrototype, $, stopReasonCodeMap, Statistics, devicePlayingState) {
+define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics", "devicePlayingState", "FlashStatistics"], 
+    function (Player, inheritPrototype, $, stopReasonCodeMap, Statistics, devicePlayingState, FlashStatistics) {
 
     function NonPluginPlayer() {
         Player.call(this, arguments);
@@ -158,15 +158,15 @@ define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics
         _self.rubbishAjaxArr.push(getUrlAjaxObj);
         _self.rubbishAjaxArr.push(getLinkieAjaxObj);
         var successFunc = function() {
-            var product;
+            var liveStreamConf;
             try {
                 var linkieData = _self.device.getLocalLinkieData();
-                product = _self.device.getProductFromLinkieData(linkieData);
+                liveStreamConf = _self.device.getLiveStreamConfFromLinkieData(linkieData);
             } catch (err) {
                 console.error(err);
             };
-            if (product) {
-                _self.device.updateProduct(product);
+            if (liveStreamConf) {
+                _self.device.updateProductLiveStreamConf(liveStreamConf);
             };
             if (_self.device.relayUrl) {
                 _self.changeStateTo(devicePlayingState.RELAY_URL_READY);

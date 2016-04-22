@@ -27,9 +27,9 @@ fis.media('build')
     .match('*.{js,css,png,ico}', {
         useHash: true
     })
-    .match('*.js', {
-        optimizer: fis.plugin('uglify-js')
-    })
+    // .match('*.js', {
+    //     optimizer: fis.plugin('uglify-js')
+    // })
     .match('fis-conf.js', {
         release: '/$0',
         useHash: false,
@@ -96,6 +96,7 @@ fis.media('build')
             'Timer': 'libs/ipc/tool/Timer',
             'xajax': 'libs/ipc/tool/xajax',
             'User': 'libs/ipc/User',
+            'PlayableDeviceList': 'libs/ipc/PlayableDeviceList',
 
             // public libs
             'jquery': 'libs/public/js/jquery-1.8.2.min',
@@ -150,38 +151,38 @@ fis.media('build')
     });
 
 
-// fis.media('alpha')
-//     .match('*.{js,css,png,ico}', {
-//         domain: ALPHA_CDN_PATH
-//     })
-//     .match('*', {
-//         release: '/$0'
-//     })
-//     .match('fis-conf.js', {
-//         release: false
-//     });
+fis.media('alpha')
+    .match('*.{js,css,png,ico}', {
+        domain: ALPHA_CDN_PATH
+    })
+    .match('*', {
+        release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: false
+    });
 
-// fis.media('beta')
-//     .match('*.{js,css,png,ico}', {
-//         domain: BETA_CDN_PATH
-//     })
-//     .match('*', {
-//         release: '/$0'
-//     })
-//     .match('fis-conf.js', {
-//         release: false
-//     });
+fis.media('beta')
+    .match('*.{js,css,png,ico}', {
+        domain: BETA_CDN_PATH
+    })
+    .match('*', {
+        release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: false
+    });
 
-// fis.media('product')
-//     .match('*.{js,css,png,ico}', {
-//         domain: PRODUCT_CDN_PATH
-//     })
-//     .match('*', {
-//         release: '/$0'
-//     })
-//     .match('fis-conf.js', {
-//         release: false
-//     });
+fis.media('product')
+    .match('*.{js,css,png,ico}', {
+        domain: PRODUCT_CDN_PATH
+    })
+    .match('*', {
+        release: '/$0'
+    })
+    .match('fis-conf.js', {
+        release: false
+    });
 
 /**
  * [getBaseFileId ]
@@ -373,12 +374,12 @@ var myResourceLocate = function(ret, conf, settings, opt) {
 }
 
 
+var version = process.env.VERSION || "1.0.1";
+fis.set('version', version);
+var projectName = process.env.PROJECT_NAME || "ipc-web-front-end";
+fis.set('projectName', projectName);
 
 fis.config.set('modules.postpackager', [myResourceLocate, templateInheritance, fis.plugin('loader', {
     resourceType: 'amd',
     useInlineMap: true
 })]);
-var version = process.env.VERSION || "1.0.1";
-fis.set('version', version);
-var projectName = process.env.PROJECT_NAME || "ipc-web-front-end";
-fis.set('projectName', projectName);

@@ -8,6 +8,7 @@ define(["Model", "inheritPrototype", "Cookies", "User", "Device", "jquery"],
         this.devices = [];
         this.lastActiveDeviceId = null;
         this.playedDeviceChanged = false;
+        this.deviceCreator = Device;
     };
 
     inheritPrototype(DeviceList, Model);
@@ -67,7 +68,7 @@ define(["Model", "inheritPrototype", "Cookies", "User", "Device", "jquery"],
             response = this.updateFromNc200UpgradeCookie(response);
 
             for (var i = 0; i < response.msg.length; i++) {
-                var newDevice = new Device();
+                var newDevice = new this.deviceCreator();
                 newDevice.init(response.msg[i]);
                 newDevice.owner = this.owner;
                 this.devices.push(newDevice);

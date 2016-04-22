@@ -17,9 +17,9 @@ mkdir $RELEASE_FOLDER/static
 mkdir $RELEASE_FOLDER/$FRONT_END_FOLDER
 
 echo "release"
-cd $SRC_FOLDER && fis3 release build -d $RELEASE_FOLDER/$FRONT_END_FOLDER
+cd $SRC_FOLDER && fis3 release build -d $RELEASE_FOLDER/$FRONT_END_FOLDER -c
 cp -r $RELEASE_FOLDER/$FRONT_END_FOLDER/* $RELEASE_FOLDER/static
-rm -rf $RELEASE_FOLDER/static/deploy $RELEASE_FOLDER/static/fis-conf.js $RELEASE_FOLDER/static/index.html
+rm -rf $RELEASE_FOLDER/static/deploy $RELEASE_FOLDER/static/fis-conf.js $RELEASE_FOLDER/static/*.html
 
 echo "build"
 cd $FOLDER_ROOT
