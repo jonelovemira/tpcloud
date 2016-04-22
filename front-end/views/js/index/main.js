@@ -1,5 +1,5 @@
-define(['UserModel', 'UserController', 'UserView', 'DeviceListModel', 'DeviceListView', 'DeviceListController'], 
-    function (UserModel, UserController, UserView, DeviceListModel, DeviceListView, DeviceListController) {
+define(['UserModel', 'UserController', 'UserView', 'DeviceListModel', 'DeviceListView', 'DeviceListController', 'jquery'], 
+    function (UserModel, UserController, UserView, DeviceListModel, DeviceListView, DeviceListController, $) {
     var u = new UserModel();
     var uc = new UserController();
     var uv = new UserView();
