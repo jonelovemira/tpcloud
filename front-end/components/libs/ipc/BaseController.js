@@ -55,7 +55,7 @@ define(['jquery'], function ($) {
                     this.addHandler(args);
                 };
             };
-        };
+        }
     };
     return BaseController;
 });

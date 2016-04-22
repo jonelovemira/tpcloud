@@ -24,16 +24,16 @@ fis.media('build')
     .match('deploy', {
         release: '/$0'
     })
-    .match('fis-conf.js', {
-        release: '/$0',
-        useHash: false,
-        optimizer: false
-    })
     .match('*.{js,css,png,ico}', {
         useHash: true
     })
     .match('*.js', {
         optimizer: fis.plugin('uglify-js')
+    })
+    .match('fis-conf.js', {
+        release: '/$0',
+        useHash: false,
+        optimizer: false
     })
     .match('*.css', {
         optimizer: fis.plugin('clean-css')
@@ -49,26 +49,79 @@ fis.media('build')
     })
     .match('jwplayer.js', {
         useHash: false
-    })
-    .match('::package', {
-        postpackager: fis.plugin('loader', {
-            resourceType: 'amd',
-            useInlineMap: true
-        })
-    });;
+    });
 
 fis.hook('amd', {
     baseUrl: './components',
     paths: {
+        // ipc module
+        'BaseController': 'libs/ipc/BaseController',
+        'Device': 'libs/ipc/device/Device',
+        'DeviceList': 'libs/ipc/device/DeviceList',
+        'DeviceWithLinkie': 'libs/ipc/device/DeviceWithLinkie',
+        'globalIpcProduct': 'libs/ipc/device/product/globalIpcProduct',
+        'IpcProduct': 'libs/ipc/device/product/IpcProduct',
+        'Software': 'libs/ipc/device/Software',
+        'Model': 'libs/ipc/Model',
+        'AACAudioCodec': 'libs/ipc/play/codec/AACAudioCodec',
+        'Codec': 'libs/ipc/play/codec/Codec',
+        'H264VideoCodec': 'libs/ipc/play/codec/H264VideoCodec',
+        'MJPEGVideoCodec': 'libs/ipc/play/codec/MJPEGVideoCodec',
+        'PCMAudioCodec': 'libs/ipc/play/codec/PCMAudioCodec',
+        'devicePlayingState': 'libs/ipc/play/devicePlayingState',
+        'globalPlayerTypes': 'libs/ipc/play/globalPlayerTypes',
+        'globalResolutions': 'libs/ipc/play/globalResolutions',
+        'H264PluginPlayer': 'libs/ipc/play/H264PluginPlayer',
+        'ImgPlayer': 'libs/ipc/play/ImgPlayer',
+        'LiveStreamConf': 'libs/ipc/play/LiveStreamConf',
+        'MjpegPluginPlayer': 'libs/ipc/play/MjpegPluginPlayer',
+        'NonPluginPlayer': 'libs/ipc/play/NonPluginPlayer',
+        'Player': 'libs/ipc/play/Player',
+        'PluginPlayer': 'libs/ipc/play/PluginPlayer',
+        'AudioPostChannel': 'libs/ipc/play/post-channel/AudioPostChannel',
+        'MixedPostChannel': 'libs/ipc/play/post-channel/MixedPostChannel',
+        'PostChannel': 'libs/ipc/play/post-channel/PostChannel',
+        'VideoPostChannel': 'libs/ipc/play/post-channel/VideoPostChannel',
+        'RtmpPlayer': 'libs/ipc/play/RtmpPlayer',
+        'FlashPlayerStatistics': 'libs/ipc/play/statistics/FlashPlayerStatistics',
+        'PluginPlayerStatistics': 'libs/ipc/play/statistics/PluginPlayerStatistics',
+        'Statistics': 'libs/ipc/play/statistics/Statistics',
+        'PlayableDevice': 'libs/ipc/PlayableDevice',
+        'aop': 'libs/ipc/tool/aop',
+        'browser': 'libs/ipc/tool/browser',
+        'compareVersion': 'libs/ipc/tool/compareVersion',
+        'create': 'libs/ipc/tool/create',
+        'encrypt': 'libs/ipc/tool/encrypt',
+        'Error': 'libs/ipc/tool/Error',
+        'inheritPrototype': 'libs/ipc/tool/inheritPrototype',
+        'Timer': 'libs/ipc/tool/Timer',
+        'xajax': 'libs/ipc/tool/xajax',
+        'User': 'libs/ipc/User',
+
+        // public libs
         'jquery': 'libs/public/js/jquery-1.8.2.min',
         'jquery-ui': 'libs/public/js/jquery-ui-1.11.4.custom.min',
         'jwplayer': 'libs/player/jwplayer/jwplayer',
         'Lang': 'libs/public/js/jquery-lang',
         'jquery.scrollLoading': 'libs/public/js/jquery.scrollLoading',
+        'Cookies': 'libs/public/js/js.cookie.js',
+        
+        // encapsulate jquery plugins
         'jquery.checkbox': 'widget/form/js/checkbox',
         'jquery.scrollbar': 'widget/form/js/scrollbar',
         'jquery.select': 'widget/form/js/select',
-        'msg': 'widget/window/js/msg'
+        'msg': 'widget/window/js/msg',
+
+        // preset data
+        'globalPlayerContainerCss': '../data/globalPlayerContainerCss',
+        'globalPluginPlayerObjCss': '../data/globalPluginPlayerObjCss',
+        'presetLinkieData': '../data/presetLinkieData',
+        'stopReasonCodeMap': '../data/stopReasonCodeMap',
+        'tips': '../data/tips',
+
+
+        // enter point of views
+        'index': '../views/js/index/main',
     },
     shim: {
         Lang: {
@@ -318,7 +371,12 @@ var myResourceLocate = function(ret, conf, settings, opt) {
     });
 }
 
-fis.config.set('modules.postpackager', [myResourceLocate, templateInheritance]);
+
+
+fis.config.set('modules.postpackager', [myResourceLocate, templateInheritance, fis.plugin('loader', {
+    resourceType: 'amd',
+    useInlineMap: true
+})]);
 var version = process.env.VERSION || "1.0.1";
 fis.set('version', version);
 var projectName = process.env.PROJECT_NAME || "ipc-web-front-end";

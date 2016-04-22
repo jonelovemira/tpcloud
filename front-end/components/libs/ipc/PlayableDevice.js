@@ -1,8 +1,8 @@
-define(["DeviceWithLinkie","jquery", "globalIpcProduct", "IpcProduct", "LiveStreamConf",
-    "MixedPostChannel", "AudioPostChannel", "VideoPostChannel", "H264VideoCodec", "AACAudioCodec", "globalResolutions", "MJPEGVideoCodec"
+define(["DeviceWithLinkie","jquery", "globalIpcProduct", "IpcProduct", "LiveStreamConf", 
+    "MixedPostChannel", "AudioPostChannel", "VideoPostChannel", "H264VideoCodec", "AACAudioCodec", "globalResolutions", "MJPEGVideoCodec",
     "PCMAudioCodec", "browser", "globalPlayerTypes"], 
     function (DeviceWithLinkie, $, globalIpcProduct, IpcProduct, LiveStreamConf,
-        MixedPostChannel, AudioPostChannel, VideoPostChannel, H264VideoCodec, AACAudioCodec, globalResolutions, MJPEGVideoCodec
+        MixedPostChannel, AudioPostChannel, VideoPostChannel, H264VideoCodec, AACAudioCodec, globalResolutions, MJPEGVideoCodec,
         PCMAudioCodec, browser, globalPlayerTypes) {
 
     function PlayableDevice() {

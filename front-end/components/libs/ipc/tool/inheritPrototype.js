@@ -1,4 +1,4 @@
-define(["create"], function () {
+define(["create"], function (create) {
     return function(subType, baseType) {
         if (undefined == baseType || undefined == subType) {
             console.error("args error in inherit");

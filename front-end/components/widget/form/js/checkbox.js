@@ -89,12 +89,4 @@
         });
     }
 
-    $(function() {
-        $(".checkbox").each(function() {
-            $(this).Checkbox();
-        });
-    });
-
-
-
-})(jQuery)
+})(jQuery);
