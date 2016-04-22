@@ -356,7 +356,7 @@ define(['PlayableDeviceList', 'jwplayer', 'tips', 'jquery', 'PlayableDevice', 'm
     DeviceListView.prototype.feedPluginDownloadLink = function(dev) {
         if (undefined != dev && this.isPluginPlayer(dev.product.liveStreamConf.playerType)) {
             var playerType = dev.product.liveStreamConf.playerType;
-            var downloadLink = playerType.prototype.downloadPath;
+            var downloadLink = playerType.downloadPath;
             if (downloadLink) {
                 $(".plugin-download-link").attr("href", downloadLink);
             } else {
@@ -514,7 +514,7 @@ define(['PlayableDeviceList', 'jwplayer', 'tips', 'jquery', 'PlayableDevice', 'm
     DeviceListView.prototype.hidePluginPlayers = function(device) {
         if (device && device.isActive) {
             var playerType = device.product.liveStreamConf.playerType;
-            var id = playerType.prototype.mimetypeCssMap[device.product.liveStreamConf.mimeType];
+            var id = playerType.mimetypeCssMap[device.product.liveStreamConf.mimeType];
             $("#" + id).hide();
             $("#plugin-player-set").hide();
         };
