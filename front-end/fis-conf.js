@@ -15,7 +15,7 @@ fis.media('build')
     .match('*', {
         release: '/${projectName}/${version}/$0'
     })
-    .match('/components/libs/ipc/js/*', {
+    .match(/\/components\/libs\/ipc\/.*\.js/, {
         isMod: true,
     })
     .match(/views\/pages\/(.*).html/, {
@@ -58,9 +58,40 @@ fis.media('build')
     });;
 
 fis.hook('amd', {
-    baseUrl: './components/libs/ipc/js',
+    baseUrl: './components',
     paths: {
-        jquery: './components/libs/public/js/jquery-1.8.2.min'
+        'jquery': 'libs/public/js/jquery-1.8.2.min',
+        'jquery-ui': 'libs/public/js/jquery-ui-1.11.4.custom.min',
+        'jwplayer': 'libs/player/jwplayer/jwplayer',
+        'Lang': 'libs/public/js/jquery-lang',
+        'jquery.scrollLoading': 'libs/public/js/jquery.scrollLoading',
+        'jquery.checkbox': 'widget/form/js/checkbox',
+        'jquery.scrollbar': 'widget/form/js/scrollbar',
+        'jquery.select': 'widget/form/js/select',
+        'msg': 'widget/window/js/msg'
+    },
+    shim: {
+        Lang: {
+            deps: ['jquery', 'Cookies'],
+            exports: 'Lang'
+        },
+        'jquery.scrollLoading': {
+            deps: ['jquery'],
+            exports: '$.fn.scrollLoading'
+        },
+        'jquery.checkbox': {
+            deps: ['jquery'],
+            exports: '$.fn.Checkbox'
+        },
+        'jquery.scrollbar': {
+            deps: ['jquery'],
+            exports: '$.fn.Scrollbar'
+        },
+        'jquery.select': {
+            deps: ['jquery', 'jquery.scrollbar'],
+            exports: '$.fn.Select'
+        },
+
     }
 })
 

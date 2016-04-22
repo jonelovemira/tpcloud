@@ -69,7 +69,10 @@ var Lang = (function () {
 			prepend: $.fn.prepend,
 			before: $.fn.before,
 			after: $.fn.after,
-			html: $.fn.html
+			html: $.fn.html,
+			prependTo: $.fn.prependTo,
+			insertBefore: $.fn.insertBefore,
+			text : $.fn.text
 		};
 
 		// Now override the existing mutation methods with our own
@@ -79,6 +82,9 @@ var Lang = (function () {
 		$.fn.before = function () { return self._mutation(this, 'before', arguments) };
 		$.fn.after = function () { return self._mutation(this, 'after', arguments) };
 		$.fn.html = function () { return self._mutation(this, 'html', arguments) };
+		$.fn.prependTo = function () { return self._mutation(this, 'prependTo', arguments) };
+		$.fn.insertBefore = function () { return self._mutation(this, 'insertBefore', arguments) };
+		$.fn.text = function () { return self._mutation(this, 'text', arguments) };
 
 		// Set default and current language to the default one
 		// to start with

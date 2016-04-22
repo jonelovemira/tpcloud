@@ -1,8 +1,4 @@
-(function($) {
-    "use strict";
-
-    $.ipc = $.ipc || {};
-
+define(['jquery'], function ($) {
     var Msg = {
         ID: 0,
         mainTemplate: '<div >' +
@@ -50,12 +46,30 @@
                 Msg.close(event.data.msg);
             };
         }
-
     };
 
-    $.ipc.Msg = function(options) {
+    var defaults = {
+        type: "alert",
+        title: "",
+        info: "",
+        html: "",
+        btnConfirm: "Confirm",
+        btnCancel: "Cancel",
+        btnOk: "OK",
+        width: 400,
+        height: 260,
+        hotKey: true,
+        closeIcon: true,
+        cancel: function() {},
+        ok: function() {},
+        confirm: function() {},
+        beforeInit: function() {},
+        afterClose: function() {}
+    };
 
-        var _options = $.extend(true, {}, $.ipc.Msg.defaults, options);
+    return function(options) {
+
+        var _options = $.extend(true, {}, defaults, options);
 
         var id = "Msg-1";
         if ($("#" + id).length > 0) {
@@ -153,24 +167,4 @@
 
         return msg;
     };
-
-    // make default options writable outside
-    $.ipc.Msg.defaults = {
-        type: "alert",
-        title: "",
-        info: "",
-        html: "",
-        btnConfirm: "Confirm",
-        btnCancel: "Cancel",
-        btnOk: "OK",
-        width: 400,
-        height: 260,
-        hotKey: true,
-        closeIcon: true,
-        cancel: function() {},
-        ok: function() {},
-        confirm: function() {},
-        beforeInit: function() {},
-        afterClose: function() {}
-    };
-})(jQuery);
+})
