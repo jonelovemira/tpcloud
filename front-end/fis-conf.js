@@ -51,6 +51,21 @@ fis.media('build')
     .match('jwplayer.js', {
         useHash: false
     })
+    .match(/\/views\/js\/(.*)\/.*/, {
+        packTo: '/views/js/$1/$1_aio.js'
+    })
+    .match(/\/components\/libs\/ipc\/([^\/]*)\/.*\.js/, {
+        packTo: '/components/libs/ipc/$1/$1_aio.js',
+    })
+    .match(/\/.*\/(Model|BaseController).js/, {
+        packTo: '/components/libs/ipc/tool/tool_aio.js'
+    })
+    .match('/data/*.js', {
+        packTo: '/data/preset_aio.js'
+    })
+    .match('/components/widget/form/*.js', {
+        packTo: '/components/widget/form/form_aio.js'
+    })
     .hook('amd', {
         baseUrl: './components',
         paths: {
