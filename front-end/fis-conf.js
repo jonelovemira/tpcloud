@@ -8,7 +8,8 @@ var PRODUCT_CDN_PATH = process.env.CDN_PATH || '';
 fis.set('project.ignore', [
     '.git/**',
     '.svn/**',
-    'create-package'
+    'create-package',
+    'doc/**'
 ]);
 
 fis.media('build')
