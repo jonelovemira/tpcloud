@@ -38,6 +38,14 @@
     background: url("../img/product/NC250-middle.png") no-repeat scroll transparent;
 }
 
+.NC260-small-img {
+    background: url("../img/product/NC260-small.png") no-repeat scroll transparent;
+}
+
+.NC260-middle-img {
+    background: url("../img/product/NC260-middle.png") no-repeat scroll transparent;
+}
+
 .NC350-small-img {
     background: url("../img/product/NC350-small.png") no-repeat scroll transparent;
 }

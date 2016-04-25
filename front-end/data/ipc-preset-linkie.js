@@ -175,6 +175,35 @@
                 }
             }
         },
+        "NC260": {
+            "DEFAULT": {
+                "smartlife.cam.ipcamera.liveStream": {
+                    "get_modules": {
+                        "name": "smartlife.cam.ipcamera.liveStream",
+                        "version": "0.0",
+                        "port": 8080,
+                        "video": [{
+                            "video_codec": "H.264",
+                            "resolutions": ["1280*720"],
+                            "url": "stream/video/h264",
+                            "encrypt": []
+                        }, {
+                            "video_codec": "MJPEG",
+                            "resolutions": ["640*480"],
+                            "url": "stream/video/mjpeg"
+                        }],
+                        "audio": [{
+                            "audio_codec": "PCM",
+                            "url": "stream/audio/wavpcm"
+                        }, {
+                            "audio_codec": "AAC",
+                            "url": "stream/audio/mpegaac",
+                            "encrypt": []
+                        }]
+                    }
+                }
+            }
+        },
         "NC350": {
             "DEFAULT": {
                 "smartlife.cam.ipcamera.liveStream": {
