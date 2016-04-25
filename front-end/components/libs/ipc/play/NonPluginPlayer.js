@@ -1,5 +1,5 @@
-define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics", "devicePlayingState", "FlashStatistics"], 
-    function (Player, inheritPrototype, $, stopReasonCodeMap, Statistics, devicePlayingState, FlashStatistics) {
+define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics", "devicePlayingState", "NonPluginPlayerStatistics"], 
+    function (Player, inheritPrototype, $, stopReasonCodeMap, Statistics, devicePlayingState, NonPluginPlayerStatistics) {
 
     function NonPluginPlayer() {
         Player.call(this, arguments);
@@ -335,7 +335,7 @@ define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics
     };
 
     NonPluginPlayer.prototype.createNewStatisticsObj = function() {
-        this.statistics = new FlashStatistics();
+        this.statistics = new NonPluginPlayerStatistics();
         this.statistics.devID = this.device.id;
         this.statistics.devModel = this.device.model.substring(0, 5);
         this.statistics.firmwareVersion = this.device.fwVer;

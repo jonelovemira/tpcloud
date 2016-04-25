@@ -92,17 +92,15 @@ define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error", "encr
     User.prototype.register = function(args, inputCallbacks) {
         var result = {};
         var validateResult = (!this.validateEmailFormat(args.email).code && this.validateEmailFormat(args.email)) ||
-            (!this.validateUsername(args.username).code && this.validateUsername(args.username)) ||
-            (!this.validatePassword(args.password).code && this.validatePassword(args.password));
-        if (!validateResult.code) {
+            (!this.validateTwoPassword(args.password, args.passwordConfirm).code && this.validateTwoPassword(args.password, args.passwordConfirm));
+        if (validateResult.code == false) {
             result["validateResult"] = validateResult;
             return result;
         };
 
         var data = JSON.stringify({
             "email": args.email,
-            "username": args.username,
-            "password": args.encryptText(args.password)
+            "password": this.encryptText(args.password)
         });
 
         result["ajaxObj"] = this.makeAjaxRequest({
@@ -221,7 +219,7 @@ define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error", "encr
         var result = {};
         var validateResult = (!this.validateAccount(args.account).code && this.validateAccount(args.account)) ||
             (!this.validatePassword(args.password).code && this.validatePassword(args.password)) ||
-            (!this.validateNewPassword(args.newPassword, args.newPasswordSecond).code && this.validateNewPassword(args.newPassword, args.newPasswordSecond));
+            (!this.validateTwoPassword(args.newPassword, args.newPasswordSecond).code && this.validateTwoPassword(args.newPassword, args.newPasswordSecond));
         if (validateResult.code == false) {
             result["validateResult"] = validateResult;
             return result;
@@ -357,18 +355,18 @@ define(["Model", "inheritPrototype", "Cookies", "jquery", "tips", "Error", "encr
         return this.validateAttr(validateArgs);
     };
 
-    User.prototype.validateNewPassword = function(tmpNewPassword, tmpNewPasswordSecond) {
-        if (undefined == tmpNewPassword || undefined == tmpNewPasswordSecond) {
-            console.error("args error in validateNewPassword");
+    User.prototype.validateTwoPassword = function(password, passwordTwo) {
+        if (undefined == password || undefined == passwordTwo) {
+            console.error("args error in validateTwoPassword");
             return;
         };
-        if (tmpNewPassword != tmpNewPasswordSecond) {
+        if (password != passwordTwo) {
             var err = new Error();
             err.code = false;
-            err.msg = tips.types.newPassword.notSame;
+            err.msg = tips.types.confirmPassword.notSame;
             return err;
         };
-        return this.validatePassword(tmpNewPassword);
+        return this.validatePassword(password);
     };
 
     User.prototype.validateEmailFormat = function(tmpEmail) {

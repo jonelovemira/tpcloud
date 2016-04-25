@@ -28,9 +28,9 @@ fis.media('build')
     .match('*.{js,css,png,ico}', {
         useHash: true
     })
-    // .match('*.js', {
-    //     optimizer: fis.plugin('uglify-js')
-    // })
+    .match('*.js', {
+        optimizer: fis.plugin('uglify-js')
+    })
     .match('fis-conf.js', {
         release: '/$0',
         useHash: false,
@@ -83,7 +83,7 @@ fis.media('build')
             'PostChannel': 'libs/ipc/play/post-channel/PostChannel',
             'VideoPostChannel': 'libs/ipc/play/post-channel/VideoPostChannel',
             'RtmpPlayer': 'libs/ipc/play/RtmpPlayer',
-            'FlashPlayerStatistics': 'libs/ipc/play/statistics/FlashPlayerStatistics',
+            'NonPluginPlayerStatistics': 'libs/ipc/play/statistics/NonPluginPlayerStatistics',
             'PluginPlayerStatistics': 'libs/ipc/play/statistics/PluginPlayerStatistics',
             'Statistics': 'libs/ipc/play/statistics/Statistics',
             'PlayableDevice': 'libs/ipc/PlayableDevice',
@@ -125,7 +125,8 @@ fis.media('build')
             'index': '../views/js/index/main',
             'forgotpassword': '../views/js/forgotpassword/main',
             'download': '../views/js/download/main',
-            'admin': '../views/js/admin/main'
+            'admin': '../views/js/admin/main',
+            'register': '../views/js/register/main'
         },
         shim: {
             Lang: {

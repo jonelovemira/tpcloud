@@ -1,16 +1,10 @@
-$(function () {
-    function User() {
-        $.ipc.User.call(this, arguments);
-        this.activateDeviceAdminCallback = $.Callbacks("unique stopOnFalse");
-    };
-
-    $.ipc.inheritPrototype(User, $.ipc.User);
-
+define(['BaseController', 'inheritPrototype', 'User', 'UserView', 'jquery', 'tips'], 
+    function (BaseController, inheritPrototype, User, UserView, $, tips) {
     function UserController() {
-        $.ipc.BaseController.call(this, arguments);
+        BaseController.call(this, arguments);
     }
 
-    $.ipc.inheritPrototype(UserController, $.ipc.BaseController);
+    inheritPrototype(UserController, BaseController);
 
     UserController.prototype.initHandler = function() {
         var appendedSelectorHandlerMap = {
@@ -121,53 +115,5 @@ $(function () {
         };
     };
 
-    function UserView() {
-        this.model = null;
-        this.registerTitle = "Create Account";
-        this.activateTitle = "Activate Account";
-    }
-
-    UserView.prototype.renderError = function(msg) {
-        if (msg) {
-            $.ipc.Msg({
-                "type": "alert",
-                "info": msg
-            });
-        } else {
-            console.error("args error in renderError");
-        }
-    };
-
-    UserView.prototype.hideAllTips = function() {
-        $(".account-ctrl").hide();
-    };
-
-    UserView.prototype.showActivate = function() {
-        this.hideAllTips();
-        $("#goto-register").show();
-        $("#password").attr("value","");
-        $("#password-confirm").attr("value","");
-        $("#password").closest("div").hide();
-        $("#password-confirm").closest("div").hide();
-
-        $("span.accountinnertext").text(this.activateTitle);
-    };
-
-    UserView.prototype.showRegister = function() {
-        this.hideAllTips();
-        $("#goto-activate").show();
-        $("#password").closest("div").show();
-        $("#password-confirm").closest("div").show();
-
-        $("span.accountinnertext").text(this.registerTitle);
-    };
-
-    var u = new User();
-    var uc = new UserController();
-    var uv = new UserView();
-    uc.model = u;
-    uc.view = uv;
-    uv.model = u;
-
-    uc.initHandler();
-});
+    return UserController;
+})
