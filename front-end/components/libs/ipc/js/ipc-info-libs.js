@@ -41,10 +41,6 @@ var tips = {
         "snapshot": {
             "diskFull": "Not enough storage. The recording will stop."
         },
-        "sendFeedback": {
-            "success": "E-mail sent successfully.",
-            "failed": "Operation failed. Please try again later."
-        },
         "sendFindPasswordEmail": {
             "success": "E-mail is sent successfully.",
             "failed": "Failed to send the E-mail. Please try again later."
