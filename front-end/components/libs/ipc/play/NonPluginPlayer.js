@@ -1,5 +1,5 @@
-define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics", "devicePlayingState", "NonPluginPlayerStatistics"], 
-    function (Player, inheritPrototype, $, stopReasonCodeMap, Statistics, devicePlayingState, NonPluginPlayerStatistics) {
+define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics", "devicePlayingState", "NonPluginPlayerStatistics", "Cookies"], 
+    function (Player, inheritPrototype, $, stopReasonCodeMap, Statistics, devicePlayingState, NonPluginPlayerStatistics, Cookies) {
 
     function NonPluginPlayer() {
         Player.call(this, arguments);
@@ -305,6 +305,10 @@ define(["Player", "inheritPrototype", "jquery", "stopReasonCodeMap", "Statistics
         var changeStateFunc = function(response) {
             if (response.result.realServerKey.indexOf("AWSELB") >= 0) {
                 _self.device.ELBcookie = response.result.realServerKey;
+                Cookies.set(elbCookieKey, elbCookieValue, {
+                    path: "/",
+                    domain: ".tplinkcloud.com"
+                });
                 _self.changeStateTo(devicePlayingState.RELAY_READY);
             }
         };
