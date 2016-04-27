@@ -2608,6 +2608,14 @@
         var changeStateFunc = function(response) {
             if (response.result.realServerKey.indexOf("AWSELB") >= 0) {
                 _self.device.ELBcookie = response.result.realServerKey;
+                var elbCookieKey = _self.device.ELBcookie.split("=")[0];
+                var elbCookieValue = _self.device.ELBcookie.split("=")[1];
+                if (elbCookieKey) {
+                    $.cookie(elbCookieKey, elbCookieValue, {
+                        path: "/",
+                        domain: ".tplinkcloud.com"
+                    });
+                }
                 _self.changeStateTo(devicePlayingState.RELAY_READY);
             }
         };
